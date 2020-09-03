@@ -10,6 +10,7 @@ include_directories(
 enable_testing()
 set(TEST_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core/traits.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/format.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core/tuple.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core/union.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core/variant.cpp"
