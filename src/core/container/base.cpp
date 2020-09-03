@@ -1,6 +1,6 @@
 #include "base.hpp"
 
-#ifdef TEST_UNIT
+#ifdef TEST_CORE
 
 #include <memory>
 #include <catch.hpp>
@@ -14,4 +14,4 @@ TEST_CASE("Base", "[base]") {
     }
 }
 
-#endif // TEST_UNIT
+#endif // TEST_CORE

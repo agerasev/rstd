@@ -2,7 +2,7 @@
 
 using namespace core;
 
-#ifdef TEST_UNIT
+#ifdef TEST_CORE
 
 #include "container/tuple.hpp"
 #include <catch.hpp>
@@ -51,4 +51,4 @@ TEST_CASE("Option", "[option]") {
     }
 }
 
-#endif // TEST_UNIT
+#endif // TEST_CORE

@@ -2,7 +2,7 @@
 
 using namespace core;
 
-#ifdef TEST_UNIT
+#ifdef TEST_CORE
 
 #include <catch.hpp>
 #include <memory>

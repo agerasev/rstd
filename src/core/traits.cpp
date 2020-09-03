@@ -2,7 +2,7 @@
 
 using namespace core;
 
-#ifdef TEST_UNIT
+#ifdef TEST_CORE
 
 #include <catch.hpp>
 
@@ -17,4 +17,4 @@ TEST_CASE("Traits", "[traits]") {
     }
 }
 
-#endif // TEST_UNIT
+#endif // TEST_CORE

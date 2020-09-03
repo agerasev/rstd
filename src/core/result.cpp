@@ -3,7 +3,7 @@
 
 using namespace core;
 
-#ifdef TEST_UNIT
+#ifdef TEST_CORE
 
 #include <catch.hpp>
 #include <memory>
@@ -41,4 +41,4 @@ TEST_CASE("Result", "[result]") {
     }
 }
 
-#endif // TEST_UNIT
+#endif // TEST_CORE
