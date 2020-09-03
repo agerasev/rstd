@@ -35,7 +35,7 @@ TEST_CASE("Union", "[union]") {
     SECTION("Ctor Dtor") {
         std::shared_ptr<int> ptr = std::make_shared<int>(123);
         REQUIRE(ptr.use_count() == 1);
-        auto a = Union<Tuple<>, std::shared_ptr<int>>::create<1>(copy(ptr));
+        auto a = Union<Tuple<>, std::shared_ptr<int>>::create<1>(clone(ptr));
         REQUIRE(ptr.use_count() == 2);
         REQUIRE(*a.get<1>() == 123);
         REQUIRE(ptr.use_count() == 2);

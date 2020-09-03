@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(core VERSION 0.1.0 DESCRIPTION "Rust-like types and routines for C++17")
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}"
 )
@@ -17,9 +19,6 @@ set(SOURCE
 add_library(${PROJECT_NAME} OBJECT ${SOURCE})
 
 enable_testing()
-add_executable(test_core ${SOURCE} "${CMAKE_CURRENT_SOURCE_DIR}/core/test.cpp")
-
-set(CMAKE_C_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++17") #-fno-exceptions
-target_compile_definitions(test_core PRIVATE "-DDEBUG" "-DUNIT_TEST")
-add_test(test_core test_core)
+add_executable("test_${PROJECT_NAME}" ${SOURCE} "${CMAKE_CURRENT_SOURCE_DIR}/core/test.cpp")
+target_compile_definitions("test_${PROJECT_NAME}" PRIVATE "-DDEBUG" "-DTEST_UNIT")
+add_test("test_${PROJECT_NAME}" "test_${PROJECT_NAME}")
