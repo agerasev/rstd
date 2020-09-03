@@ -1,7 +1,7 @@
 #pragma once
 
-#include "container/tuple.hpp"
-#include "container/variant.hpp"
+#include "tuple.hpp"
+#include "variant.hpp"
 
 
 namespace core {

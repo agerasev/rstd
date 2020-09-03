@@ -1,11 +1,10 @@
+#include <catch.hpp>
+#include <memory>
+
 #include "tuple.hpp"
 
 using namespace core;
 
-#ifdef TEST_CORE
-
-#include <memory>
-#include <catch.hpp>
 
 TEST_CASE("Tuple", "[tuple]") {
     SECTION("Getters") {
@@ -28,5 +27,3 @@ TEST_CASE("Tuple", "[tuple]") {
         REQUIRE(b.get<1>() == 456);
     }
 }
-
-#endif // TEST_CORE

@@ -1,12 +1,11 @@
+#include <catch.hpp>
+#include <memory>
+
+#include "tuple.hpp"
 #include "option.hpp"
 
 using namespace core;
 
-#ifdef TEST_CORE
-
-#include "container/tuple.hpp"
-#include <catch.hpp>
-#include <memory>
 
 TEST_CASE("Option", "[option]") {
     SECTION("Create") {
@@ -50,5 +49,3 @@ TEST_CASE("Option", "[option]") {
         //REQUIRE(*ptr == 123);
     }
 }
-
-#endif // TEST_CORE

@@ -1,12 +1,10 @@
+#include <catch.hpp>
+#include <memory>
+
+#include "tuple.hpp"
 #include "variant.hpp"
 
 using namespace core;
-
-#ifdef TEST_CORE
-
-#include <catch.hpp>
-#include <memory>
-#include "tuple.hpp"
 
 
 TEST_CASE("Variant", "[variant]") {
@@ -43,5 +41,3 @@ TEST_CASE("Variant", "[variant]") {
         REQUIRE(ptr.use_count() == 1);
     }
 }
-
-#endif

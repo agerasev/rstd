@@ -1,12 +1,10 @@
-#include "result.hpp"
+#include <catch.hpp>
+#include <memory>
 
+#include "result.hpp"
 
 using namespace core;
 
-#ifdef TEST_CORE
-
-#include <catch.hpp>
-#include <memory>
 
 TEST_CASE("Result", "[result]") {
     SECTION("Create") {
@@ -40,5 +38,3 @@ TEST_CASE("Result", "[result]") {
         REQUIRE(ptr.use_count() == 1);
     }
 }
-
-#endif // TEST_CORE

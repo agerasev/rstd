@@ -1,12 +1,11 @@
-#include "union.hpp"
-
-using namespace core;
-
-#ifdef TEST_CORE
-
 #include <catch.hpp>
 #include <memory>
+
 #include "tuple.hpp"
+#include "union.hpp"
+#include "traits.hpp"
+
+using namespace core;
 
 
 template <size_t P>
@@ -35,7 +34,7 @@ TEST_CASE("Union", "[union]") {
     SECTION("Ctor Dtor") {
         std::shared_ptr<int> ptr = std::make_shared<int>(123);
         REQUIRE(ptr.use_count() == 1);
-        auto a = Union<Tuple<>, std::shared_ptr<int>>::create<1>(clone(ptr));
+        auto a = Union<Tuple<>, std::shared_ptr<int>>::create<1>(core::clone(ptr));
         REQUIRE(ptr.use_count() == 2);
         REQUIRE(*a.get<1>() == 123);
         REQUIRE(ptr.use_count() == 2);
@@ -56,5 +55,3 @@ TEST_CASE("Union", "[union]") {
         a.destroy<1>();
     }
 };
-
-#endif

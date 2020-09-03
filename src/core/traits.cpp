@@ -1,10 +1,8 @@
+#include <catch.hpp>
+
 #include "traits.hpp"
 
 using namespace core;
-
-#ifdef TEST_CORE
-
-#include <catch.hpp>
 
 
 TEST_CASE("Traits", "[traits]") {
@@ -16,5 +14,3 @@ TEST_CASE("Traits", "[traits]") {
         REQUIRE((all_v<true, false, true>) == false);
     }
 }
-
-#endif // TEST_CORE
