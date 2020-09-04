@@ -151,14 +151,14 @@ public:
 
     _Variant(const _Variant &var) {
         if (var) {
-            Dispatcher<Copier, this->size()>::dispatch(var.id_, this->union_, var.union_);
+            Dispatcher<Copier, _Variant::size()>::dispatch(var.id_, this->union_, var.union_);
             this->id_ = var.id_;
         }
     }
     _Variant &operator=(const _Variant &var) {
         this->try_destroy();
         if (var) {
-            Dispatcher<Copier, this->size()>::dispatch(var.id_, this->union_, var.union_);
+            Dispatcher<Copier, _Variant::size()>::dispatch(var.id_, this->union_, var.union_);
             this->id_ = var.id_;
         }
         return *this;
@@ -210,7 +210,7 @@ public:
     static void fmt(const Variant<Elems...> &v, std::ostream &o) {
         assert_(bool(v));
         o << "Variant<" << v.id() << ">(";
-        Dispatcher<Printer, v.size()>::dispatch(v.id(), o, v);
+        Dispatcher<Printer, Variant<Elems...>::size()>::dispatch(v.id(), o, v);
         o << ")";
     }
 };
