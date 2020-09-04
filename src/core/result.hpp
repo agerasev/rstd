@@ -6,7 +6,7 @@
 
 namespace core {
 
-template <typename T = Tuple<>, typename E = Tuple<>>
+template <typename T, typename E>
 class Result final {
 private:
     Variant<T, E> var;
@@ -66,16 +66,37 @@ public:
     }
 
     T unwrap() {
-        assert(this->is_ok());
+        if (!this->is_ok()) {
+            panic_("Result unwrap error:\n{}", this->get_err());
+        }
         return this->var.template take<0>();
     }
     E unwrap_err() {
-        assert(this->is_err());
+        if (!this->is_err()) {
+            panic_("Result unwrap_err failed");
+        }
         return this->var.template take<1>();
     }
 
     operator bool() const {
         return bool(var);
+    }
+};
+
+template <typename T, typename E>
+struct fmt::Display<Result<T, E>> {
+public:
+    static void fmt(const Result<T, E> &t, std::ostream &o) {
+        assert_(t);
+        if (t.is_ok()) {
+            o << "Ok(";
+            write_(o, t.get());
+            o << ")";
+        } else {
+            o << "Err(";
+            write_(o, t.get_err());
+            o << ")";
+        }
     }
 };
 

@@ -57,12 +57,29 @@ public:
     }
 
     T unwrap() {
-        assert(this->is_some());
+        if (!this->is_some()) {
+            panic_("Option unwrap error");
+        }
         return this->var.template take<1>();
     }
 
     operator bool() const {
         return bool(var);
+    }
+};
+
+template <typename T>
+struct fmt::Display<Option<T>> {
+public:
+    static void fmt(const Option<T> &t, std::ostream &o) {
+        assert_(t);
+        if (t.is_some()) {
+            o << "Some(";
+            write_(o, t.get());
+            o << ")";
+        } else {
+            o << "None";
+        }
     }
 };
 

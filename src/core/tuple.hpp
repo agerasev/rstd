@@ -2,7 +2,8 @@
 
 #include <tuple>
 #include <cassert>
-#include <core/traits.hpp>
+#include "traits.hpp"
+#include "format.hpp"
 #include "container.hpp"
 
 
@@ -27,19 +28,19 @@ private:
     template <size_t P>
     using Getter = _TupleGetter<P, T, Elems...>;
 
-    T value;
-    Tuple<Elems...> tail;
+    T value_;
+    Tuple<Elems...> tail_;
 
 public:
     Tuple() = default;
     
     explicit Tuple(const T &v, Elems &&...args) :
-        value(v),
-        tail(std::forward<Elems>(args)...)
+        value_(v),
+        tail_(std::forward<Elems>(args)...)
     {}
     explicit Tuple(T &&v, Elems &&...args) :
-        value(std::move(v)),
-        tail(std::forward<Elems>(args)...)
+        value_(std::move(v)),
+        tail_(std::forward<Elems>(args)...)
     {}
 
     Tuple(const Tuple &t) = default;
@@ -52,6 +53,13 @@ public:
 
     static constexpr size_t size() {
         return 1 + sizeof...(Elems);
+    }
+
+    Tuple<Elems...> &tail() {
+        return tail_;
+    }
+    const Tuple<Elems...> &tail() const {
+        return tail_;
     }
     
     template <size_t P>
@@ -67,20 +75,45 @@ public:
 template <size_t P, typename T, typename ...Elems>
 struct _TupleGetter {
     static const nth_type<P - 1, Elems...> &get(const Tuple<T, Elems...> &t) {
-        return _TupleGetter<P - 1, Elems...>::get(t.tail);
+        return _TupleGetter<P - 1, Elems...>::get(t.tail_);
     }
     static nth_type<P - 1, Elems...> &get(Tuple<T, Elems...> &t) {
-        return _TupleGetter<P - 1, Elems...>::get(t.tail);
+        return _TupleGetter<P - 1, Elems...>::get(t.tail_);
     }
 };
 
 template <typename T, typename ...Elems>
 struct _TupleGetter<0, T, Elems...> {
     static const T &get(const Tuple<T, Elems...> &t) {
-        return t.value;
+        return t.value_;
     }
     static T &get(Tuple<T, Elems...> &t) {
-        return t.value;
+        return t.value_;
+    }
+};
+
+template <typename T, typename ...Elems>
+struct _TuplePrinter {
+    static void print(std::ostream &o, const Tuple<T, Elems...> &t) {
+        write_(o, "{}, ", t.template get<0>());
+        _TuplePrinter<Elems...>::print(o, t.tail());
+    }
+};
+
+template <typename T>
+struct _TuplePrinter<T> {
+    static void print(std::ostream &o, const Tuple<T> &t) {
+        write_(o, t.template get<0>());
+    }
+};
+
+template <typename ...Elems>
+struct fmt::Display<Tuple<Elems...>> {
+public:
+    static void fmt(const Tuple<Elems...> &t, std::ostream &o) {
+        o << "(";
+        _TuplePrinter<Elems...>::print(o, t);
+        o << ")";
     }
 };
 

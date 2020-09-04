@@ -203,7 +203,7 @@ private:
     template <size_t P>
     struct Printer {
         static void call(std::ostream &o, const Variant<Elems...> &v) {
-            o << v.template get<P>();
+            write_(o, v.template get<P>());
         }
     };
 public:

@@ -48,4 +48,11 @@ TEST_CASE("Option", "[option]") {
         //ptr = a.get<0>().unwrap();
         //REQUIRE(*ptr == 123);
     }
+    SECTION("Print") {
+        auto a = Option<int>::Some(123);
+        REQUIRE(format_(a) == "Some(123)");
+
+        auto b = Option<int>::None();
+        REQUIRE(format_(b) == "None");
+    }
 }

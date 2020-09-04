@@ -37,4 +37,11 @@ TEST_CASE("Result", "[result]") {
         }
         REQUIRE(ptr.use_count() == 1);
     }
+    SECTION("Print") {
+        auto a = Result<int, std::string>::Ok(123);
+        REQUIRE(format_(a) == "Ok(123)");
+
+        auto b = Result<int, std::string>::Err("abc");
+        REQUIRE(format_(b) == "Err(abc)");
+    }
 }
