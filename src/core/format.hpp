@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "macros.hpp"
 #include "panic.hpp"
 
 
@@ -35,8 +36,8 @@ public:
     } type = OK;
 
     FmtRes() = delete;
-    explicit FmtRes(int pos, Code type = OK) : pos(pos), type(type) {}
-    std::string message() const {
+    inline explicit FmtRes(int pos, Code type = OK) : pos(pos), type(type) {}
+    inline std::string message() const {
         std::string msg;
         switch (type) {
             case OK:
@@ -123,14 +124,14 @@ FmtRes _fmt_recurse(std::ostream &o, const char (&fstr)[N], int i, const T &t, c
 
 // FIXME: Use compile-time format-string parsing
 
-void _write(
-    const char *_file_, int _line_,
-    std::ostream &o
+inline void _write(
+    const char *, int,
+    std::ostream &
 ) {}
 
 template <typename T>
 void _write(
-    const char *_file_, int _line_,
+    const char *, int ,
     std::ostream &o, const T &t
 ) {
     fmt::display(o, t);
@@ -212,14 +213,12 @@ void _panic(
 
 } // namespace core
 
-#define _VA_ARGS_ZERO(...) , ##__VA_ARGS__
+#define write_(...)     ::core::_write    (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
+#define writeln_(...)   ::core::_writeln  (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
+#define format_(...)    ::core::_format   (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
+#define print_(...)     ::core::_print    (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
+#define println_(...)   ::core::_println  (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
+#define eprint_(...)    ::core::_eprint   (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
+#define eprintln_(...)  ::core::_eprintln (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
 
-#define write_(...)     ::core::_write    (__FILE__, __LINE__  _VA_ARGS_ZERO(__VA_ARGS__))
-#define writeln_(...)   ::core::_writeln  (__FILE__, __LINE__  _VA_ARGS_ZERO(__VA_ARGS__))
-#define format_(...)    ::core::_format   (__FILE__, __LINE__  _VA_ARGS_ZERO(__VA_ARGS__))
-#define print_(...)     ::core::_print    (__FILE__, __LINE__  _VA_ARGS_ZERO(__VA_ARGS__))
-#define println_(...)   ::core::_println  (__FILE__, __LINE__  _VA_ARGS_ZERO(__VA_ARGS__))
-#define eprint_(...)    ::core::_eprint   (__FILE__, __LINE__  _VA_ARGS_ZERO(__VA_ARGS__))
-#define eprintln_(...)  ::core::_eprintln (__FILE__, __LINE__  _VA_ARGS_ZERO(__VA_ARGS__))
-
-#define panic_(...)     ::core::_panic    (__FILE__, __LINE__  _VA_ARGS_ZERO(__VA_ARGS__))
+#define panic_(...)     ::core::_panic    (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))

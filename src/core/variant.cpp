@@ -6,6 +6,17 @@
 
 using namespace core;
 
+template <typename T>
+void print_mem(const T &t) {
+    const unsigned char *mem = reinterpret_cast<const unsigned char*>(&t);
+    for (size_t i = 0; i < sizeof(T); ++i) {
+        unsigned char c = mem[i];
+        static const char *cmap = "0123456789abcdef";
+        std::cout << cmap[c / 16] << cmap[c % 16] << " ";
+    }
+    std::cout << std::endl;
+}
+
 
 TEST_CASE("Variant", "[variant]") {
     SECTION("Primitive") {
@@ -39,5 +50,24 @@ TEST_CASE("Variant", "[variant]") {
             REQUIRE(ptr.use_count() == 2);
         }
         REQUIRE(ptr.use_count() == 1);
+    }
+    SECTION("Move assignment") {
+        auto a = Variant<int, std::string>::create<0>(123);
+        REQUIRE(a.get<0>() == 123);
+        a = Variant<int, std::string>::create<1>("abc");
+        REQUIRE(a.get<1>() == "abc");
+    }
+    SECTION("Copy assignment") {
+        auto a = Variant<int, std::string>::create<0>(123);
+        REQUIRE(a.get<0>() == 123);
+        auto b = Variant<int, std::string>::create<1>("abc");
+        a = b;
+        REQUIRE(a.get<1>() == "abc");
+    }
+    SECTION("Format") {
+        auto a = Variant<int, std::string>::create<0>(123);
+        REQUIRE(format_(a) == "Variant<0>(123)");
+        a = Variant<int, std::string>::create<1>("abc");
+        REQUIRE(format_(a) == "Variant<1>(abc)");
     }
 }

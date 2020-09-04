@@ -1,8 +1,8 @@
 #pragma once
 
+#include <cstdlib>
 #include <cassert>
-
-#include <core/traits.hpp>
+#include "traits.hpp"
 #include "container.hpp"
 
 
@@ -25,27 +25,8 @@ public:
     Union(const Union &) = delete;
     Union &operator=(const Union &) = delete;
 
-    // FIXME: Call move constructor of stored object
-    Union(Union &&u) :
-        data(u.data)
-#ifdef DEBUG
-        ,stored_(u.stored_)
-#endif // DEBUG
-    {
-#ifdef DEBUG
-        u.stored_ = false;
-#endif // DEBUG
-    }
-    // FIXME: Call move constructor of stored object
-    Union &operator=(Union &&u) {
-#ifdef DEBUG
-        assert(!this->stored_);
-        this->stored_ = u.stored_;
-        u.stored_ = false;
-#endif // DEBUG
-        this->data = u.data;
-        return *this;
-    }
+    Union(Union &&u) = delete;
+    Union &operator=(Union &&u) = delete;
 
     ~Union() {
 #ifdef DEBUG
@@ -93,15 +74,13 @@ public:
     }
 
     template <size_t P>
-    static Union create(nth_type<P, Elems...> &&x) {
-        Union u;
-        u.put<P>(std::move(x));
-        return u;
+    void init(nth_type<P, Elems...> &&x) {
+        this->template put<P>(std::move(x));
     }
     template <size_t P, std::enable_if_t<core::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
-    static Union create(const nth_type<P, Elems...> &x) {
+    void init(const nth_type<P, Elems...> &x) {
         nth_type<P, Elems...> cx(x);
-        return create<P>(std::move(cx));
+        return this->template init<P>(std::move(cx));
     }
 
     template <size_t P>
@@ -119,6 +98,11 @@ public:
     template <size_t P>
     void destroy() {
         this->take<P>();
+    }
+
+    template <size_t P>
+    void move_from(Union &u) {
+        this->template put<P>(u.template take<P>());
     }
 };
 
