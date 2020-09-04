@@ -29,5 +29,6 @@ TEST_CASE("Tuple", "[tuple]") {
     SECTION("Print") {
         Tuple<bool, int, std::string> a(true, 123, "abc");
         REQUIRE(format_(a) == "(1, 123, abc)");
+        REQUIRE(format_(Tuple<>()) == "()");
     }
 }

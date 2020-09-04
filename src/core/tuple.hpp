@@ -81,7 +81,6 @@ struct _TupleGetter {
         return _TupleGetter<P - 1, Elems...>::get(t.tail_);
     }
 };
-
 template <typename T, typename ...Elems>
 struct _TupleGetter<0, T, Elems...> {
     static const T &get(const Tuple<T, Elems...> &t) {
@@ -92,14 +91,18 @@ struct _TupleGetter<0, T, Elems...> {
     }
 };
 
-template <typename T, typename ...Elems>
+
+template <typename ...Elems>
 struct _TuplePrinter {
-    static void print(std::ostream &o, const Tuple<T, Elems...> &t) {
+    static void print(std::ostream &, const Tuple<Elems...> &) {}
+};
+template <typename T, typename S, typename ...Elems>
+struct _TuplePrinter<T, S, Elems...> {
+    static void print(std::ostream &o, const Tuple<T, S, Elems...> &t) {
         write_(o, "{}, ", t.template get<0>());
-        _TuplePrinter<Elems...>::print(o, t.tail());
+        _TuplePrinter<S, Elems...>::print(o, t.tail());
     }
 };
-
 template <typename T>
 struct _TuplePrinter<T> {
     static void print(std::ostream &o, const Tuple<T> &t) {

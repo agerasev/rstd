@@ -121,7 +121,7 @@ public:
         return std::move(this->union_.template take<P>());
     }
 
-    operator bool() const {
+    explicit operator bool() const {
         return this->id_ < size();
     }
 
@@ -208,7 +208,7 @@ private:
     };
 public:
     static void fmt(const Variant<Elems...> &v, std::ostream &o) {
-        assert_(v);
+        assert_(bool(v));
         o << "Variant<" << v.id() << ">(";
         Dispatcher<Printer, v.size()>::dispatch(v.id(), o, v);
         o << ")";

@@ -6,7 +6,7 @@
 
 namespace core {
 
-template <typename T, typename E>
+template <typename T=Tuple<>, typename E=Tuple<>>
 class Result final {
 private:
     Variant<T, E> var;
@@ -78,7 +78,7 @@ public:
         return this->var.template take<1>();
     }
 
-    operator bool() const {
+    explicit operator bool() const {
         return bool(var);
     }
 };
@@ -87,7 +87,7 @@ template <typename T, typename E>
 struct fmt::Display<Result<T, E>> {
 public:
     static void fmt(const Result<T, E> &t, std::ostream &o) {
-        assert_(t);
+        assert_(bool(t));
         if (t.is_ok()) {
             o << "Ok(";
             write_(o, t.get());
