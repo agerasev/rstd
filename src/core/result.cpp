@@ -40,8 +40,10 @@ TEST_CASE("Result", "[result]") {
     SECTION("Print") {
         auto a = Result<int, std::string>::Ok(123);
         REQUIRE(format_(a) == "Ok(123)");
+        REQUIRE(a.unwrap() == 123);
 
         auto b = Result<int, std::string>::Err("abc");
         REQUIRE(format_(b) == "Err(abc)");
+        REQUIRE(b.unwrap_err() == "abc");
     }
 }

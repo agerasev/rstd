@@ -17,6 +17,7 @@ set(TEST_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core/variant.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core/option.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core/result.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/lazy_static.cpp"
 )
 add_executable("test_${PROJECT_NAME}"
     ${TEST_SOURCE}
