@@ -6,13 +6,9 @@
 namespace core {
 
 // FIXME: Print call stack trace
-[[ noreturn ]] inline void _panic(
-    const char *loc, int ln,
-    const std::string &message=""
-) {
+[[ noreturn ]] inline void panic(const std::string &message="") {
     std::cerr
         << "Thread panicked: " << std::endl
-        << loc << ":" << ln  << ": " << std::endl
         << message << std::endl;
     abort();
 }

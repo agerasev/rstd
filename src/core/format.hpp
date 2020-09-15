@@ -124,101 +124,71 @@ FmtRes _fmt_recurse(std::ostream &o, const char (&fstr)[N], int i, const T &t, c
 
 // FIXME: Use compile-time format-string parsing
 
-inline void _write(
-    const char *, int,
-    std::ostream &
-) {}
+inline void write(std::ostream &) {}
 
 template <typename T>
-void _write(
-    const char *, int ,
-    std::ostream &o, const T &t
-) {
+void write(std::ostream &o, const T &t) {
     fmt::display(o, t);
 }
 
 template <int N, typename ...Args>
-void _write(
-    const char *_file_, int _line_,
-    std::ostream &o, const char (&fstr)[N], const Args &...args
-) {
+void write(std::ostream &o, const char (&fstr)[N], const Args &...args) {
     FmtRes res = _fmt_recurse(o, fstr, 0, args...);
     if (res.type == FmtRes::OK){
         return;
     }
-    _panic(_file_, _line_, "Format error: " + res.message());
+    panic("Format error: " + res.message());
 }
 
 template <typename ...Args>
-void _writeln(
-    const char *_file_, int _line_,
-    std::ostream &o, const Args &...args
-) {
-    _write(_file_, _line_, o, args...);
+void writeln(std::ostream &o, const Args &...args) {
+    write(o, args...);
     o << std::endl;
 }
 
 
 template <typename ...Args>
-std::string _format(
-    const char *_file_, int _line_,
-    const Args &...args
-) {
+std::string format(const Args &...args) {
     std::stringstream ss;
-    _write(_file_, _line_, ss, args...);
+    write(ss, args...);
     return ss.str();
 }
 
 template <typename ...Args>
-void _print(
-    const char *_file_, int _line_,
-    const Args &...args
-) {
-    _write(_file_, _line_, std::cout, args...);
+void print(const Args &...args) {
+    write(std::cout, args...);
 }
 
 template <typename ...Args>
-void _println(
-    const char *_file_, int _line_,
-    const Args &...args
-) {
-    _print(_file_, _line_, args...);
+void println(const Args &...args) {
+    print(args...);
     std::cout << std::endl;
 }
 
 template <typename ...Args>
-void _eprint(
-    const char *_file_, int _line_,
-    const Args &...args
-) {
-    _write(_file_, _line_, std::cerr, args...);
+void eprint(const Args &...args) {
+    write(std::cerr, args...);
 }
 
 template <typename ...Args>
-void _eprintln(
-    const char *_file_, int _line_,
-    const Args &...args
-) {
-    _eprint(_file_, _line_, args...);
+void eprintln(const Args &...args) {
+    eprint(args...);
     std::cerr << std::endl;
 }
 
 template <typename ...Args>
-void _panic(
-    const char *_file_, int _line_,
-    const Args &...args
-) {
-    _panic(_file_, _line_, _format(_file_, _line_, args...));
+void panic(const Args &...args) {
+    panic(format(args...));
 }
 
 } // namespace core
 
-#define write_(...)     ::core::_write    (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
-#define writeln_(...)   ::core::_writeln  (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
-#define format_(...)    ::core::_format   (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
-#define print_(...)     ::core::_print    (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
-#define println_(...)   ::core::_println  (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
-#define eprint_(...)    ::core::_eprint   (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
-#define eprintln_(...)  ::core::_eprintln (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
+#define write_(...)     ::core::write    (__VA_ARGS__)
+#define writeln_(...)   ::core::writeln  (__VA_ARGS__)
+#define format_(...)    ::core::format   (__VA_ARGS__)
+#define print_(...)     ::core::print    (__VA_ARGS__)
+#define println_(...)   ::core::println  (__VA_ARGS__)
+#define eprint_(...)    ::core::eprint   (__VA_ARGS__)
+#define eprintln_(...)  ::core::eprintln (__VA_ARGS__)
 
-#define panic_(...)     ::core::_panic    (__FILE__, __LINE__  CORE_VA_ARGS_ZERO(__VA_ARGS__))
+#define panic_(...)     ::core::panic    (__VA_ARGS__)
