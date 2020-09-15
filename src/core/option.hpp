@@ -62,6 +62,12 @@ public:
         }
         return this->var.template take<1>();
     }
+    T expect(const std::string &message) {
+        if (!this->is_some()) {
+            panic_("Option expect none:\n{}", message);
+        }
+        return this->var.template take<1>();
+    }
 
     explicit operator bool() const {
         return bool(var);

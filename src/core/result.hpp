@@ -23,7 +23,16 @@ public:
     Result(Result &&) = default;
     Result &operator=(Result &&) = default;
 
-    ~Result() = default;
+    ~Result() {
+#ifdef DEBUG
+        if (bool(var)) {
+            panic_("Unhandled result detected");
+        }
+#endif // DEBUG
+    }
+    void clear() {
+        core::drop(var);
+    }
 
     const Variant<T, E> &as_variant() const {
         return var;
@@ -76,6 +85,12 @@ public:
             panic_("Result unwrap_err failed");
         }
         return this->var.template take<1>();
+    }
+    T expect(const std::string &message) {
+        if (!this->is_ok()) {
+            panic_("Result expect error:\n{}\n{}", this->get_err(), message);
+        }
+        return this->var.template take<0>();
     }
 
     explicit operator bool() const {
