@@ -1,3 +1,5 @@
+#pragma once
+
 #include <core/prelude.hpp>
 #include <atomic>
 #include <type_traits>
@@ -22,8 +24,8 @@ public:
         }
         return *ptr;
     }
-    const T &operator->() {
-        return this->operator*();
+    const T *operator->() {
+        return &this->operator*();
     }
 
     void _clear() {

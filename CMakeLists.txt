@@ -25,3 +25,10 @@ add_executable("test_${PROJECT_NAME}"
 )
 target_compile_definitions("test_${PROJECT_NAME}" PRIVATE "DEBUG")
 add_test("test_${PROJECT_NAME}" "test_${PROJECT_NAME}")
+
+add_executable("self_test_${PROJECT_NAME}"
+    #${TEST_SOURCE}
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/self_test.cpp"
+)
+target_compile_definitions("self_test_${PROJECT_NAME}" PRIVATE "DEBUG")
+add_test("self_test_${PROJECT_NAME}" "self_test_${PROJECT_NAME}")
