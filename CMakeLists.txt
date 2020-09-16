@@ -9,15 +9,16 @@ include_directories(
 
 enable_testing()
 set(TEST_SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/format.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/assert.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/traits.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/tuple.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/union.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/variant.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/option.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/result.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/lazy_static.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/base/format.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/base/assert.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/base/traits.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/base/tuple.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/base/union.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/base/variant.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/base/option.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/base/result.cpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/lazy_static.cpp"
 )
 add_executable("test_${PROJECT_NAME}"
     ${TEST_SOURCE}

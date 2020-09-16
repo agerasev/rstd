@@ -1,8 +1,9 @@
 #include <core/prelude.hpp>
-#include <core/testing.hpp>
+#include <core/test/test.hpp>
 
-CORE_TEST_(dummy) {
+
+test_(dummy) {
     println_("Dummy");
 }
 
-#include <core/testing_main.hpp>
+#include <core/test/main.hpp>

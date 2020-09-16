@@ -1,7 +1,7 @@
 #pragma once
 
 #include <type_traits>
-#include <core/traits.hpp>
+#include "traits.hpp"
 #include "container.hpp"
 #include "union.hpp"
 #include "format.hpp"

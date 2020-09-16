@@ -4,6 +4,8 @@
 #include <atomic>
 #include <type_traits>
 
+namespace core {
+
 // FIXME: In C++20 atomic pointer is not POD
 static_assert(std::is_pod<std::atomic<const void *>>::value);
 
@@ -37,15 +39,20 @@ public:
     }
 };
 
-int __lazy_static__create() { return 1; }
-static_assert(std::is_pod<LazyStatic<int, __lazy_static__create>>::value);
+static_assert(std::is_pod<LazyStatic<int, nullptr>>::value);
 
-#define lazy_static_(Type, name)\
-    Type __lazy_static__##name##__create();\
-    LazyStatic<Type, __lazy_static__##name##__create> name;\
-    struct __lazy_static__##name##__Destroyer {\
-        ~__lazy_static__##name##__Destroyer() {\
-            name._clear();\
-        }\
-    } __lazy_static__##name##__destroyer;\
-    Type __lazy_static__##name##__create()
+} // namespace core
+
+#define lazy_static_(Type, name) \
+    Type __##name##__create(); \
+    ::core::LazyStatic<Type, __##name##__create> name; \
+    struct __##name##__Destroyer { \
+        ~__##name##__Destroyer() { \
+            name._clear(); \
+        } \
+    } __##name##__destroyer; \
+    Type __##name##__create()
+
+#define extern_lazy_static_(Type, name) \
+    extern Type __##name##__create(); \
+    extern ::core::LazyStatic<Type, __##name##__create> name
