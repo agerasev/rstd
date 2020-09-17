@@ -19,3 +19,5 @@ script:
   - cmake ..
   - make VERBOSE=1 test_core
   - ./test_core
+  - make VERBOSE=1 self_test_core
+  - ./self_test_core

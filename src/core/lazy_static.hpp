@@ -43,14 +43,25 @@ static_assert(std::is_pod<LazyStatic<int, nullptr>>::value);
 
 } // namespace core
 
+
+#define static_block_(name) \
+    struct __static_block__##name##__struct { \
+        __static_block__##name##__struct(); \
+    } __static_block__##name##__instance; \
+    __static_block__##name##__struct::__static_block__##name##__struct()
+
+#define static_atexit_(name) \
+    struct __static_atexit__##name##__struct { \
+        ~__static_atexit__##name##__struct(); \
+    } __static_atexit__##name##__instance; \
+    __static_atexit__##name##__struct::~__static_atexit__##name##__struct()
+
 #define lazy_static_(Type, name) \
     Type __##name##__create(); \
     ::core::LazyStatic<Type, __##name##__create> name; \
-    struct __##name##__Destroyer { \
-        ~__##name##__Destroyer() { \
-            name._clear(); \
-        } \
-    } __##name##__destroyer; \
+    static_atexit_(name##__destroyer) { \
+        name._clear(); \
+    } \
     Type __##name##__create()
 
 #define extern_lazy_static_(Type, name) \
