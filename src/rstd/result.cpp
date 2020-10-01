@@ -3,7 +3,7 @@
 
 #include "result.hpp"
 
-using namespace core;
+using namespace rstd;
 
 
 TEST_CASE("Result", "[result]") {

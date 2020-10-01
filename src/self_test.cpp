@@ -1,5 +1,5 @@
-#include <core/prelude.hpp>
-#include <core/test/test.hpp>
+#include <rstd/prelude.hpp>
+#include <rtest/prelude.hpp>
 
 test_section_(base) {
     test_case_(one) {
@@ -20,4 +20,4 @@ test_section_(dummy) {
 }
 
 
-#include <core/test/main.hpp>
+#include <rtest/main.hpp>

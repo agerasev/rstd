@@ -4,7 +4,7 @@
 #include "tuple.hpp"
 #include "variant.hpp"
 
-using namespace core;
+using namespace rstd;
 
 template <typename T>
 void print_mem(const T &t) {

@@ -2,7 +2,7 @@
 
 #include "traits.hpp"
 
-using namespace core;
+using namespace rstd;
 
 
 TEST_CASE("Traits", "[traits]") {

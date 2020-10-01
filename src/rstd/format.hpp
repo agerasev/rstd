@@ -7,7 +7,7 @@
 #include "panic.hpp"
 
 
-namespace core {
+namespace rstd {
 
 namespace fmt {
 
@@ -181,14 +181,14 @@ void panic(const Args &...args) {
     panic(format(args...));
 }
 
-} // namespace core
+} // namespace rstd
 
-#define write_(...)     ::core::write    (__VA_ARGS__)
-#define writeln_(...)   ::core::writeln  (__VA_ARGS__)
-#define format_(...)    ::core::format   (__VA_ARGS__)
-#define print_(...)     ::core::print    (__VA_ARGS__)
-#define println_(...)   ::core::println  (__VA_ARGS__)
-#define eprint_(...)    ::core::eprint   (__VA_ARGS__)
-#define eprintln_(...)  ::core::eprintln (__VA_ARGS__)
+#define write_(...)     ::rstd::write    (__VA_ARGS__)
+#define writeln_(...)   ::rstd::writeln  (__VA_ARGS__)
+#define format_(...)    ::rstd::format   (__VA_ARGS__)
+#define print_(...)     ::rstd::print    (__VA_ARGS__)
+#define println_(...)   ::rstd::println  (__VA_ARGS__)
+#define eprint_(...)    ::rstd::eprint   (__VA_ARGS__)
+#define eprintln_(...)  ::rstd::eprintln (__VA_ARGS__)
 
-#define panic_(...)     ::core::panic    (__VA_ARGS__)
+#define panic_(...)     ::rstd::panic    (__VA_ARGS__)

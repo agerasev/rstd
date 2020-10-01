@@ -1,10 +1,10 @@
 #pragma once
 
-#include <core/prelude.hpp>
+#include <rstd/prelude.hpp>
 #include <atomic>
 #include <type_traits>
 
-namespace core {
+namespace rstd {
 
 // FIXME: In C++20 atomic pointer is not POD
 static_assert(std::is_pod<std::atomic<const void *>>::value);
@@ -41,7 +41,7 @@ public:
 
 static_assert(std::is_pod<LazyStatic<int, nullptr>>::value);
 
-} // namespace core
+} // namespace rstd
 
 
 #define static_block_(name) \
@@ -58,7 +58,7 @@ static_assert(std::is_pod<LazyStatic<int, nullptr>>::value);
 
 #define lazy_static_(Type, name) \
     Type __##name##__create(); \
-    ::core::LazyStatic<Type, __##name##__create> name; \
+    ::rstd::LazyStatic<Type, __##name##__create> name; \
     static_atexit_(name##__destroyer) { \
         name._clear(); \
     } \
@@ -66,4 +66,4 @@ static_assert(std::is_pod<LazyStatic<int, nullptr>>::value);
 
 #define extern_lazy_static_(Type, name) \
     extern Type __##name##__create(); \
-    extern ::core::LazyStatic<Type, __##name##__create> name
+    extern ::rstd::LazyStatic<Type, __##name##__create> name

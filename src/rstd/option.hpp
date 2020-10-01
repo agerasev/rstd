@@ -4,7 +4,7 @@
 #include "variant.hpp"
 
 
-namespace core {
+namespace rstd {
 
 template <typename T=Tuple<>>
 class Option final {
@@ -89,4 +89,4 @@ public:
     }
 };
 
-} // namespace core
+} // namespace rstd

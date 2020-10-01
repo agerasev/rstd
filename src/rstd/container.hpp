@@ -5,7 +5,7 @@
 #include <numeric>
 #include <algorithm>
 
-namespace core {
+namespace rstd {
 
 template <typename ...Types>
 struct CommonSize {
@@ -64,4 +64,4 @@ inline constexpr bool is_copyable_v =
     std::is_copy_constructible_v<T> && std::is_copy_assignable_v<T>;
 
 
-} // namespace core
+} // namespace rstd

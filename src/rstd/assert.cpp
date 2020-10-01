@@ -2,7 +2,7 @@
 #include <string>
 #include "assert.hpp"
 
-using namespace core;
+using namespace rstd;
 
 
 TEST_CASE("Assert", "[assert]") {

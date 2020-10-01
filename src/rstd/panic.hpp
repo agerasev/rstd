@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cstdlib>
 
-namespace core {
+namespace rstd {
 
 // FIXME: Print call stack trace
 [[ noreturn ]] inline void panic(const std::string &message="") {
@@ -13,4 +13,4 @@ namespace core {
     abort();
 }
 
-} // namespace core
+} // namespace rstd

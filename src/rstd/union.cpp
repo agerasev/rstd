@@ -5,7 +5,7 @@
 #include "union.hpp"
 #include "traits.hpp"
 
-using namespace core;
+using namespace rstd;
 
 
 template <size_t P>
@@ -37,7 +37,7 @@ TEST_CASE("Union", "[union]") {
         std::shared_ptr<int> ptr = std::make_shared<int>(123);
         REQUIRE(ptr.use_count() == 1);
         Union<Tuple<>, std::shared_ptr<int>> a;
-        a.init<1>(core::clone(ptr));
+        a.init<1>(rstd::clone(ptr));
         REQUIRE(ptr.use_count() == 2);
         REQUIRE(*a.get<1>() == 123);
         REQUIRE(ptr.use_count() == 2);
@@ -52,7 +52,7 @@ TEST_CASE("Union", "[union]") {
         bool mask[3] = {false, false, false};
         Union<bool, int, double> a;
         a.init<1>(123);
-        core::Dispatcher<TestDispatch, a.size()>::dispatch(1, mask);
+        rstd::Dispatcher<TestDispatch, a.size()>::dispatch(1, mask);
         REQUIRE(mask[0] == false);
         REQUIRE(mask[1] == true);
         REQUIRE(mask[2] == false);

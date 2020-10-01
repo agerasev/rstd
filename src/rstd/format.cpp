@@ -1,7 +1,7 @@
 #include <catch.hpp>
 #include "format.hpp"
 
-using namespace core;
+using namespace rstd;
 
 
 TEST_CASE("Format", "[format]") {

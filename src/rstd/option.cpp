@@ -4,7 +4,7 @@
 #include "tuple.hpp"
 #include "option.hpp"
 
-using namespace core;
+using namespace rstd;
 
 
 TEST_CASE("Option", "[option]") {
