@@ -26,6 +26,7 @@ add_executable("test_${PROJECT_NAME}"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/test.cpp"
 )
 target_compile_definitions("test_${PROJECT_NAME}" PRIVATE "DEBUG")
+target_link_libraries("test_${PROJECT_NAME}" PRIVATE "pthread")
 add_test("test_${PROJECT_NAME}" "test_${PROJECT_NAME}")
 
 add_executable("self_test_${PROJECT_NAME}"

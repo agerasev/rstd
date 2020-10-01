@@ -57,13 +57,17 @@ public:
     _Variant() = default;
 
     _Variant(_Variant &&v) {
-        Dispatcher<Mover, size()>::dispatch(this->id_, this->union_, v.union_);
+        if (bool(v)) {
+            Dispatcher<Mover, size()>::dispatch(v.id_, this->union_, v.union_);
+        }
         this->id_ = v.id_;
         v.id_ = size();
     }
     _Variant &operator=(_Variant &&v) {
         this->try_destroy();
-        Dispatcher<Mover, size()>::dispatch(this->id_, this->union_, v.union_);
+        if (bool(v)) {
+            Dispatcher<Mover, size()>::dispatch(v.id_, this->union_, v.union_);
+        }
         this->id_ = v.id_;
         v.id_ = size();
         return *this;
@@ -126,7 +130,7 @@ public:
     }
 
     void try_destroy() {
-        if (*this) {
+        if (bool(*this)) {
             Dispatcher<Destroyer, size()>::dispatch(this->id_, this->union_);
             this->id_ = size();
         }

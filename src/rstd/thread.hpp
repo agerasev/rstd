@@ -12,8 +12,8 @@ class JoinHandle;
 
 namespace thread {
 
-template <typename T, typename F>
-JoinHandle<T> spawn(F f);
+template <typename T>
+JoinHandle<T> spawn(std::function<T()> f);
 
 } // namespace thread
 
@@ -39,11 +39,11 @@ public:
     }
 
     Result<T> join() {
-        void *rv = nullptr;
-        assert_(pthread_join(thread_.take(), &rv) == 0);
+        T *rv = nullptr;
+        assert_(pthread_join(thread_.take().unwrap(), (void**)&rv) == 0);
         if (rv != nullptr) {
-            auto ret = Result<T>::Ok(std::move((T*)rv));
-            delete (T*)rv;
+            auto ret = Result<T>::Ok(std::move(*rv));
+            delete rv;
             return ret;
         } else {
             return Result<T>::Err(Tuple<>());
@@ -60,8 +60,8 @@ public:
         return thread_.is_some();
     }
 
-    template <typename F>
-    friend JoinHandle<T> thread::spawn(F f);
+    template <typename T_>
+    friend JoinHandle<T_> thread::spawn(std::function<T_()> f);
 };
 
 namespace thread {
@@ -71,27 +71,34 @@ void __delete(void *obj) {
     delete (T*)obj;
 }
 
-template <typename T, typename F>
+template <typename T>
 void *__call(void *arg) {
-    F *f = (F*)arg;
+    std::function<T()> *f = (std::function<T()>*)arg;
     T *ret = nullptr;
-    pthread_cleanup_push((__delete<F>), (void*)f);
-    ret = new T(std::move(f()));
+    pthread_cleanup_push((__delete<std::function<T()>>), (void*)f);
+    ret = new T(std::move((*f)()));
     pthread_cleanup_pop(1);
     return (void*)ret;
 }
 
-template <typename T, typename F>
-JoinHandle<T> spawn(F f) {
+template <typename T>
+JoinHandle<T> spawn(std::function<T()> f) {
     pthread_t thread_;
     assert_(pthread_create(
         &thread_,
         nullptr,
-        (__call<T, F>),
-        (void*)(new F(std::move(f)))
+        (__call<T>),
+        (void*)(new std::function<T()>(std::move(f)))
     ) == 0);
 
     return JoinHandle<T>(thread_);
+}
+
+JoinHandle<Tuple<>> spawn(std::function<void()> f) {
+    return spawn(std::function<Tuple<>()>([f{std::move(f)}]() {
+        f();
+        return Tuple<>();
+    }));
 }
 
 } // namespace thread

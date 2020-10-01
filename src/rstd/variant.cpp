@@ -70,4 +70,11 @@ TEST_CASE("Variant", "[variant]") {
         a = Variant<int, std::string>::create<1>("abc");
         REQUIRE(format_(a) == "Variant<1>(abc)");
     }
+    SECTION("Bool") {
+        auto a = Variant<Tuple<>, int, bool>::create<1>(123);
+        REQUIRE(a.get<1>() == 123);
+
+        auto b = Variant<Tuple<>, int, bool>::create<2>(true);
+        REQUIRE(b.get<2>() == true);
+    }
 }
