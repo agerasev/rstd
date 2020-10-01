@@ -31,7 +31,7 @@ public:
 #endif // DEBUG
     }
     void clear() {
-        rstd::drop(var);
+        drop(var);
     }
 
     const Variant<T, E> &as_variant() const {

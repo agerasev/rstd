@@ -48,6 +48,16 @@ TEST_CASE("Option", "[option]") {
         //ptr = a.get<0>().unwrap();
         //REQUIRE(*ptr == 123);
     }
+    SECTION("Empty option is None") {
+        REQUIRE(Option<>().is_none());
+
+        auto a = Option<int>::Some(123);
+        REQUIRE(a.is_some());
+        REQUIRE(a.get() == 123);
+
+        drop(a);
+        REQUIRE(a.is_none());
+    }
     SECTION("Print") {
         auto a = Option<int>::Some(123);
         REQUIRE(format_(a) == "Some(123)");

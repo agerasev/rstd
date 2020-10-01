@@ -36,16 +36,16 @@ public:
 
 // FIXME: Don't use `test_case_` without `test_section_`
 #define test_section_(name) \
-    extern_lazy_static_(::rstd::TestRegistrar, __core_test_registrar); \
-    static_block_(__core_test__##name##__namespacer) { \
-        __core_test_registrar->set_section(#name); \
+    extern_lazy_static_(::rstd::TestRegistrar, __rtest_registrar); \
+    static_block_(__rtest__##name##__namespacer) { \
+        __rtest_registrar->set_section(#name); \
     } \
-    namespace __core_test_section__##name
+    namespace __rtest_section__##name
 
 #define test_case_(name) \
-    extern_lazy_static_(::rstd::TestRegistrar, __core_test_registrar); \
-    void __core_test_case__##name(); \
-    static_block_(__core_test__##name##__registrator) { \
-        ::__core_test_registrar->_register(#name, __core_test_case__##name); \
+    extern_lazy_static_(::rstd::TestRegistrar, __rtest_registrar); \
+    void __rtest_case__##name(); \
+    static_block_(__rtest__##name##__registrator) { \
+        ::__rtest_registrar->_register(#name, __rtest_case__##name); \
     } \
-    void __core_test_case__##name()
+    void __rtest_case__##name()

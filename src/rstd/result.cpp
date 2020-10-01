@@ -46,4 +46,17 @@ TEST_CASE("Result", "[result]") {
         REQUIRE(format_(b) == "Err(abc)");
         REQUIRE(b.unwrap_err() == "abc");
     }
+    SECTION("Move empty") {
+        auto a = Result<int, std::string>::Ok(123);
+        REQUIRE(bool(a) == true);
+        REQUIRE(a.unwrap() == 123);
+        REQUIRE(bool(a) == false);
+
+        auto b = std::move(a);
+        REQUIRE(bool(b) == false);
+    }
+    SECTION("Int-bool") {
+        auto a = Result<int, bool>::Ok(123);
+        REQUIRE(a.unwrap() == 123);
+    }
 }
