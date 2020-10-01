@@ -1,5 +1,6 @@
 #pragma once
 
+#include <pthread.h>
 #include <iostream>
 #include <cstdlib>
 
@@ -10,7 +11,7 @@ namespace rstd {
     std::cerr
         << "Thread panicked: " << std::endl
         << message << std::endl;
-    abort();
+    pthread_exit(nullptr);
 }
 
 } // namespace rstd
