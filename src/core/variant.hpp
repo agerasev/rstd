@@ -57,13 +57,13 @@ public:
     _Variant() = default;
 
     _Variant(_Variant &&v) {
-        Dispatcher<Mover, size()>::dispatch(this->id_, this->union_, v.union_);
+        Dispatcher<Mover, size()>::dispatch(v.id_, this->union_, v.union_);
         this->id_ = v.id_;
         v.id_ = size();
     }
     _Variant &operator=(_Variant &&v) {
         this->try_destroy();
-        Dispatcher<Mover, size()>::dispatch(this->id_, this->union_, v.union_);
+        Dispatcher<Mover, size()>::dispatch(v.id_, this->union_, v.union_);
         this->id_ = v.id_;
         v.id_ = size();
         return *this;
