@@ -3,7 +3,7 @@
 
 #include "tuple.hpp"
 
-using namespace core;
+using namespace rstd;
 
 
 TEST_CASE("Tuple", "[tuple]") {

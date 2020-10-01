@@ -1,12 +1,12 @@
 #pragma once
 
-#include <core/prelude.hpp>
-#include <core/lazy_static.hpp>
+#include <rstd/prelude.hpp>
+#include <lazy_static.hpp>
 #include "test.hpp"
 
 
-lazy_static_(::core::TestRegistrar, __core_test_registrar) {
-    return ::core::TestRegistrar();
+lazy_static_(::rstd::TestRegistrar, __core_test_registrar) {
+    return ::rstd::TestRegistrar();
 }
 
 int main(int, const char *[]) {

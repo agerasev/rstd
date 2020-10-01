@@ -1,13 +1,13 @@
-# CPP-Core
+# CPP-RSTD
 
-Rust-like types and routines for C++17
+C++17 replica of Rust's `std`.
 
 ## Usage
 
 ```cpp
-#include <core/prelude.hpp>
+#include <rstd/prelude.hpp>
 
-using namespace core;
+using namespace rstd;
 
 // Your code
 ```

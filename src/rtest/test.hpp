@@ -1,14 +1,14 @@
 #pragma once
 
-#include <core/prelude.hpp>
-#include <core/lazy_static.hpp>
+#include <rstd/prelude.hpp>
+#include <lazy_static.hpp>
 
 #include <string>
 #include <thread>
 #include <functional>
 #include <unordered_map>
 
-namespace core {
+namespace rstd {
 
 class TestRegistrar {
 private:
@@ -32,18 +32,18 @@ public:
     }
 };
 
-} // namespace core
+} // namespace rstd
 
 // FIXME: Don't use `test_case_` without `test_section_`
 #define test_section_(name) \
-    extern_lazy_static_(::core::TestRegistrar, __core_test_registrar); \
+    extern_lazy_static_(::rstd::TestRegistrar, __core_test_registrar); \
     static_block_(__core_test__##name##__namespacer) { \
         __core_test_registrar->set_section(#name); \
     } \
     namespace __core_test_section__##name
 
 #define test_case_(name) \
-    extern_lazy_static_(::core::TestRegistrar, __core_test_registrar); \
+    extern_lazy_static_(::rstd::TestRegistrar, __core_test_registrar); \
     void __core_test_case__##name(); \
     static_block_(__core_test__##name##__registrator) { \
         ::__core_test_registrar->_register(#name, __core_test_case__##name); \

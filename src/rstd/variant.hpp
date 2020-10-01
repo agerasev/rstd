@@ -8,7 +8,7 @@
 #include "assert.hpp"
 
 
-namespace core {
+namespace rstd {
 
 // Safe union with id (similar to Rust enum type)
 
@@ -97,7 +97,7 @@ public:
         this->union_.template put<P>(std::move(x));
         this->id_ = P;
     }
-    template <size_t P, std::enable_if_t<core::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
+    template <size_t P, std::enable_if_t<rstd::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
     void put(const nth_type<P, Elems...> &x) {
         nth_type<P, Elems...> cx(x);
         this->put<P>(std::move(cx));
@@ -171,7 +171,7 @@ public:
 };
 
 template <typename ...Elems>
-class Variant final : public _Variant<all_v<core::is_copyable_v<Elems>...>, Elems...> {
+class Variant final : public _Variant<all_v<rstd::is_copyable_v<Elems>...>, Elems...> {
 public:
     Variant() = default;
 
@@ -190,7 +190,7 @@ public:
         v.template put<P>(std::move(x));
         return v;
     }
-    template <size_t P, std::enable_if_t<core::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
+    template <size_t P, std::enable_if_t<rstd::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
     static Variant create(const nth_type<P, Elems...> &x) {
         nth_type<P, Elems...> cx(x);
         return create<P>(std::move(cx));
@@ -215,4 +215,4 @@ public:
     }
 };
 
-} // namespace core
+} // namespace rstd
