@@ -9,34 +9,28 @@ namespace rstd {
 template <typename T=Tuple<>>
 class Option final {
 private:
-    Variant<Tuple<>, T> var;
+    Variant<T> var;
 
 public:
-    Option() : Option(Variant<Tuple<>, T>::template create<0>(Tuple<>())) {}
+    Option() : Option(Variant<T>()) {}
 
     Option(const Option &) = default;
     Option &operator=(const Option &) = default;
 
-    Option(Option &&other) : var(std::move(other.var)) {
-        other.var.template put<0>(Tuple<>());
-    }
-    Option &operator=(Option &&other) {
-        var.try_destroy();
-        var = std::move(other.var);
-        other.var.template put<0>(Tuple<>());
-    }
+    Option(Option &&other) = default;
+    Option &operator=(Option &&other) = default;
 
     ~Option() = default;
 
 private:
-    Option(Variant<Tuple<>, T> &&v) :
+    Option(Variant<T> &&v) :
         var(std::move(v))
     {}
 
-    const Variant<Tuple<>, T> &as_variant() const {
+    const Variant<T> &as_variant() const {
         return var;
     }
-    Variant<Tuple<>, T> &as_variant() {
+    Variant<T> &as_variant() {
         return var;
     }
 
@@ -45,24 +39,24 @@ public:
         return Option();
     }
     static Option Some(T &&x) {
-        return Option(Variant<Tuple<>, T>::template create<1>(std::move(x)));
+        return Option(Variant<T>::template create<0>(std::move(x)));
     }
     static Option Some(const T &x) {
-        return Option(Variant<Tuple<>, T>::template create<1>(x));
+        return Option(Variant<T>::template create<0>(x));
     }
 
-    bool is_none() const {
+    bool is_some() const {
         return var.id() == 0;
     }
-    bool is_some() const {
+    bool is_none() const {
         return var.id() == 1;
     }
 
     T &get() {
-        return this->var.template get<1>();
+        return this->var.template get<0>();
     }
     const T &get() const {
-        return this->var.template get<1>();
+        return this->var.template get<0>();
     }
 
 private:
@@ -70,18 +64,12 @@ private:
 #ifdef DEBUG
         assert_(this->is_some());
 #endif // DEBUG
-        T v(std::move(this->var.template take<1>()));
-        this->var.template put<0>(Tuple<>());
-        return v;
+        return this->var.template take<0>();
     }
 
 public:
     Option take() {
-        if (this->is_some()) {
-            return Option<T>::Some(this->take_some());
-        } else {
-            return Option<T>::None();
-        }
+        return Option<T>(std::move(var));
     }
 
     T unwrap() {
