@@ -13,16 +13,22 @@ lazy_static_(::rstd::TestRegistrar, __rtest_registrar) {
 }
 
 int main(int, const char *[]) {
-    println_("Found {} tests", __rtest_registrar->size());
+    int test_count = __rtest_registrar->size();
     auto b = __rtest_registrar->begin();
     auto e = __rtest_registrar->end();
     rstd::Mutex<decltype(b)> mb(std::move(b));
 
-    std::vector<rstd::JoinHandle<bool>> workers(std::thread::hardware_concurrency());
-    println_("Running in {} threads", workers.size());
+    std::vector<rstd::JoinHandle<int>> workers(std::min(
+        std::thread::hardware_concurrency(),
+        unsigned(test_count)
+    ));
+
+    std::string result_name[2] = {"ok", "FAILED"};
+    println_("running {} tests in {} threads", test_count, workers.size());
+
     for (auto &worker : workers) {
-        worker = rstd::thread::spawn(std::function<bool()>([&mb, &e]() -> bool {
-            bool passed = true;
+        worker = rstd::thread::spawn(std::function<int()>([&]() -> int {
+            int fails = 0;
             for (;;) {
                 auto i = mb.lock();
                 if (*i == e) {
@@ -38,22 +44,26 @@ int main(int, const char *[]) {
                 
                 std::string rn;
                 if (res.is_ok()) {
-                    rn = "ok";
+                    rn = result_name[0];
                 } else {
-                    rn = "fail";
-                    passed = false;
+                    rn = result_name[1];
+                    fails += 1;
                 }
                 res.clear();
-                println_("{} ... {}", test.first, rn);
+                println_("test {} ... {}", test.first, rn);
             }
-            return passed;
+            return fails;
         }));
     }
-    bool passed = true;
+    
+    int fails = 0;
     for (auto &worker : workers) {
-        if (!worker.join().unwrap()) {
-            passed = false;
-        }
+        fails += worker.join().unwrap();
     }
-    return int(!passed);
+
+    println_();
+    println_("test result: {}. {} passed; {} failed;", result_name[fails != 0], test_count - fails, fails);
+    println_();
+
+    return int(fails != 0);
 }
