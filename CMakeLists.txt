@@ -6,6 +6,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++17") #-fno-exceptions
 include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
+set(SOURCE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/io.cpp"
+)
 
 enable_testing()
 set(TEST_SOURCE
@@ -23,6 +26,7 @@ set(TEST_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/lazy_static.cpp"
 )
 add_executable("test_${PROJECT_NAME}"
+    ${SOURCE}
     ${TEST_SOURCE}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/test.cpp"
 )
@@ -31,7 +35,7 @@ target_link_libraries("test_${PROJECT_NAME}" PRIVATE "pthread")
 add_test("test_${PROJECT_NAME}" "test_${PROJECT_NAME}")
 
 add_executable("self_test_${PROJECT_NAME}"
-    #${TEST_SOURCE}
+    ${SOURCE}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/self_test.cpp"
 )
 target_compile_definitions("self_test_${PROJECT_NAME}" PRIVATE "DEBUG")
