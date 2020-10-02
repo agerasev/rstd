@@ -95,6 +95,11 @@ public:
             panic_("Option expect None:\n{}", message);
         }
     }
+
+    //template <typename RetT, typename FSome, typename FNone>
+    //RetT match(FSome fsome, FNone fnone) {
+    //    if ()
+    //}
 };
 
 template <typename T>
