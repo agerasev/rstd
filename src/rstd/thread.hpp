@@ -94,7 +94,7 @@ JoinHandle<T> spawn(std::function<T()> f) {
     return JoinHandle<T>(thread_);
 }
 
-JoinHandle<Tuple<>> spawn(std::function<void()> f) {
+inline JoinHandle<Tuple<>> spawn(std::function<void()> f) {
     return spawn(std::function<Tuple<>()>([f{std::move(f)}]() {
         f();
         return Tuple<>();

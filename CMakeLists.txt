@@ -18,6 +18,7 @@ set(TEST_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/option.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/result.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/thread.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/mutex.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/lazy_static.cpp"
 )
