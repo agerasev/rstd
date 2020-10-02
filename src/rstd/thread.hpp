@@ -17,7 +17,7 @@ JoinHandle<T> spawn(std::function<T()> f);
 
 } // namespace thread
 
-template <typename T>
+template <typename T = Tuple<>>
 class JoinHandle final {
 private:
     Option<pthread_t> thread_;
@@ -36,6 +36,7 @@ public:
     JoinHandle &operator=(JoinHandle &&other) {
         assert_(thread_.is_none());
         thread_ = std::move(other.thread_);
+        return *this;
     }
 
     Result<T> join() {
@@ -94,7 +95,7 @@ JoinHandle<T> spawn(std::function<T()> f) {
     return JoinHandle<T>(thread_);
 }
 
-inline JoinHandle<Tuple<>> spawn(std::function<void()> f) {
+inline JoinHandle<> spawn(std::function<void()> f) {
     return spawn(std::function<Tuple<>()>([f{std::move(f)}]() {
         f();
         return Tuple<>();

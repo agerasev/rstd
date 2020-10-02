@@ -74,4 +74,11 @@ TEST_CASE("Mutex", "[mutex]") {
         t1.join().unwrap();
         REQUIRE(x == 600);
     }
+    SECTION("Drop guard") {
+        Mutex<int> x(321);
+        auto guard = x.lock();
+        *guard += 123;
+        drop(guard);
+        REQUIRE(x.into_inner() == 444);
+    }
 }

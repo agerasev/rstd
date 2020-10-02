@@ -14,3 +14,6 @@
 #include "box.hpp"
 
 #include "rc.hpp"
+
+#include "thread.hpp"
+#include "mutex.hpp"

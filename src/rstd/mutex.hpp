@@ -85,7 +85,9 @@ public:
         Option<const Mutex *> origin;
 
         void release() {
-            origin.take().unwrap()->mutex.unlock();
+            if (origin.is_some()) {
+                origin.take().unwrap()->mutex.unlock();
+            }
         }
 
     public:
