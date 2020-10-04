@@ -8,8 +8,8 @@
 using namespace rstd;
 
 
-rtest_section_(mutex) {
-    rtest_case_(multiple_access) {
+rtest_module_(mutex) {
+    rtest_(multiple_access) {
         Mutex<int> x(0);
         auto t0 = thread::spawn(std::function<void()>([&x]() {
             for (int i = 0; i < 1024; ++i) {
@@ -25,7 +25,7 @@ rtest_section_(mutex) {
         t1.join().unwrap();
         assert_eq_(x.into_inner(), 1024);
     }
-    rtest_case_(ping_pong) {
+    rtest_(ping_pong) {
         _Mutex m[3];
         for (int i = 0; i < 3; ++i) {
             m[i].lock();
@@ -73,7 +73,7 @@ rtest_section_(mutex) {
         t1.join().unwrap();
         assert_eq_(x, 600);
     }
-    rtest_case_(drop_guard) {
+    rtest_(drop_guard) {
         Mutex<int> x(321);
         auto guard = x.lock();
         *guard += 123;

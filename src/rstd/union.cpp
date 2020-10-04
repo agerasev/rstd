@@ -15,8 +15,8 @@ struct TestDispatch {
     }
 };
 
-rtest_section_(union) {
-    rtest_case_(primitive) {
+rtest_module_(union) {
+    rtest_(primitive) {
         Union<bool, int, double> a;
         a.init<1>(123);
         assert_eq_(a.size(), 3u);
@@ -25,7 +25,7 @@ rtest_section_(union) {
         a.get<1>() = -321;
         assert_eq_(a.take<1>(), -321);
     }
-    rtest_case_(move) {
+    rtest_(move) {
         std::unique_ptr<int> ptr = std::make_unique<int>(123);
         Union<Tuple<>, std::unique_ptr<int>> a;
         a.init<1>(std::move(ptr));
@@ -33,7 +33,7 @@ rtest_section_(union) {
         ptr = a.take<1>();
         assert_eq_(*ptr, 123);
     }
-    rtest_case_(ctor_dtor) {
+    rtest_(ctor_dtor) {
         std::shared_ptr<int> ptr = std::make_shared<int>(123);
         assert_eq_(ptr.use_count(), 1);
         Union<Tuple<>, std::shared_ptr<int>> a;
@@ -48,7 +48,7 @@ rtest_section_(union) {
         }
         assert_eq_(ptr.use_count(), 1);
     }
-    rtest_case_(dispatch) {
+    rtest_(dispatch) {
         bool mask[3] = {false, false, false};
         Union<bool, int, double> a;
         a.init<1>(123);

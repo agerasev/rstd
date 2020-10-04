@@ -17,8 +17,8 @@ void print_mem(const T &t) {
     std::cout << std::endl;
 }
 
-rtest_section_(variant) {
-    rtest_case_(primitive) {
+rtest_module_(variant) {
+    rtest_(primitive) {
         auto a = Variant<bool, int, double>::create<1>(123);
         assert_eq_(a.size(), 3u);
 
@@ -31,7 +31,7 @@ rtest_section_(variant) {
         a.get<2>() = -2.71;
         assert_eq_(a.take<2>(), -2.71);
     }
-    rtest_case_(move) {
+    rtest_(move) {
         std::unique_ptr<int> ptr = std::make_unique<int>(123);
         auto a = Variant<Tuple<>, std::unique_ptr<int>>::create<1>(std::move(ptr));
         //auto b = a;
@@ -39,7 +39,7 @@ rtest_section_(variant) {
         ptr = a.take<1>();
         assert_eq_(*ptr, 123);
     }
-    rtest_case_(ctor_dtor) {
+    rtest_(ctor_dtor) {
         std::shared_ptr<int> ptr = std::make_shared<int>(123);
         assert_eq_(ptr.use_count(), 1);
         {
@@ -50,26 +50,26 @@ rtest_section_(variant) {
         }
         assert_eq_(ptr.use_count(), 1);
     }
-    rtest_case_(move_assignment) {
+    rtest_(move_assignment) {
         auto a = Variant<int, std::string>::create<0>(123);
         assert_eq_(a.get<0>(), 123);
         a = Variant<int, std::string>::create<1>("abc");
         assert_eq_(a.get<1>(), "abc");
     }
-    rtest_case_(copy_assignment) {
+    rtest_(copy_assignment) {
         auto a = Variant<int, std::string>::create<0>(123);
         assert_eq_(a.get<0>(), 123);
         auto b = Variant<int, std::string>::create<1>("abc");
         a = b;
         assert_eq_(a.get<1>(), "abc");
     }
-    rtest_case_(format) {
+    rtest_(format) {
         auto a = Variant<int, std::string>::create<0>(123);
         assert_eq_(format_(a), "Variant<0>(123)");
         a = Variant<int, std::string>::create<1>("abc");
         assert_eq_(format_(a), "Variant<1>(abc)");
     }
-    rtest_case_(bool) {
+    rtest_(bool) {
         auto a = Variant<Tuple<>, int, bool>::create<1>(123);
         assert_eq_(a.get<1>(), 123);
 

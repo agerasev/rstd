@@ -5,8 +5,8 @@
 using namespace rstd;
 
 
-rtest_section_(thread) {
-    rtest_case_(run) {
+rtest_module_(thread) {
+    rtest_(run) {
         int x = 321;
         auto jh = thread::spawn(std::function<void()>([&x]() {
             x = 123;
@@ -16,7 +16,7 @@ rtest_section_(thread) {
         res.clear();
         assert_eq_(x, 123);
     }
-    rtest_case_(input_and_output) {
+    rtest_(input_and_output) {
         int x = 321;
         auto jh = thread::spawn(std::function<int()>([x]() -> int {
             assert_eq_(x, 321);
@@ -24,7 +24,7 @@ rtest_section_(thread) {
         }));
         assert_eq_(jh.join().unwrap(), 123);
     }
-    rtest_case_(thread_panic) {
+    rtest_(thread_panic) {
         auto jh = thread::spawn(std::function<void()>([]() {
             panic_("Panic!");
         }));

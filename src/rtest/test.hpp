@@ -34,15 +34,15 @@ public:
 
 } // namespace rstd
 
-// FIXME: Don't use `rtest_case_` without `rtest_section_`
-#define rtest_section_(name) \
+// FIXME: Don't use `rtest_` without `rtest_module_`
+#define rtest_module_(name) \
     extern_lazy_static_(::rstd::TestRegistrar, __rtest_registrar); \
     static_block_(__rtest__##name##__namespacer) { \
         __rtest_registrar->set_section(#name); \
     } \
     namespace __rtest_section__##name
 
-#define rtest_case_(name) \
+#define rtest_(name) \
     extern_lazy_static_(::rstd::TestRegistrar, __rtest_registrar); \
     void __rtest_case__##name(); \
     static_block_(__rtest__##name##__registrator) { \

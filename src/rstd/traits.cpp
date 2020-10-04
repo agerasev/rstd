@@ -5,8 +5,8 @@
 using namespace rstd;
 
 
-rtest_section_(traits) {
-    rtest_case_(any_all) {
+rtest_module_(traits) {
+    rtest_(any_all) {
         assert_eq_((any_v<false, false, true>), true);
         assert_eq_((any_v<false, false, false>), false);
 

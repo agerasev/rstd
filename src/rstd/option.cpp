@@ -7,8 +7,8 @@
 using namespace rstd;
 
 
-rtest_section_(option) {
-    rtest_case_(create) {
+rtest_module_(option) {
+    rtest_(create) {
         auto a = Option<int>::Some(123);
         assert_(a.is_some());
         assert_eq_(a.unwrap(), 123);
@@ -16,14 +16,14 @@ rtest_section_(option) {
         auto b = Option<int>::None();
         assert_(b.is_none());
     }
-    rtest_case_(move) {
+    rtest_(move) {
         std::unique_ptr<int> ptr = std::make_unique<int>(123);
         auto a = Option<std::unique_ptr<int>>::Some(std::move(ptr));
         assert_eq_(*a.get(), 123);
         ptr = a.unwrap();
         assert_eq_(*ptr, 123);
     }
-    rtest_case_(destroy) {
+    rtest_(destroy) {
         std::shared_ptr<int> ptr = std::make_shared<int>(123);
         assert_eq_(ptr.use_count(), 1);
         auto a = Option<std::shared_ptr<int>>::Some(ptr);
@@ -37,7 +37,7 @@ rtest_section_(option) {
         }
         assert_eq_(ptr.use_count(), 1);
     }
-    rtest_case_(tuple_of_non_copy_option) {
+    rtest_(tuple_of_non_copy_option) {
         std::unique_ptr<int> ptr = std::make_unique<int>(123);
         Tuple<Option<std::unique_ptr<int>>, int> a(
             Option<std::unique_ptr<int>>::Some(std::move(ptr)),
@@ -48,7 +48,7 @@ rtest_section_(option) {
         //ptr = a.get<0>().unwrap();
         //assert_eq_(*ptr, 123);
     }
-    rtest_case_(empty_option_is_none) {
+    rtest_(empty_option_is_none) {
         assert_(Option<>().is_none());
 
         auto a = Option<int>::Some(123);
@@ -58,7 +58,7 @@ rtest_section_(option) {
         drop(a);
         assert_(a.is_none());
     }
-    rtest_case_(print) {
+    rtest_(print) {
         auto a = Option<int>::Some(123);
         assert_eq_(format_(a), "Some(123)");
 
