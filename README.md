@@ -1,6 +1,6 @@
 # CPP-RSTD
 
-C++17 replica of Rust's `std`.
+Very incomplete C++17 replica of Rust's std.
 
 ## Usage
 
