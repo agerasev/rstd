@@ -3,6 +3,7 @@
 #include <vector>
 #include <thread>
 #include <functional>
+#include <sstream>
 #include <rstd/prelude.hpp>
 #include <lazy_static.hpp>
 #include "test.hpp"
@@ -26,6 +27,7 @@ int main(int, const char *[]) {
     std::string result_name[2] = {"ok", "FAILED"};
     println_("running {} tests in {} threads", test_count, workers.size());
 
+    rstd::Mutex<std::ostream*> log(&std::cout);
     for (auto &worker : workers) {
         worker = rstd::thread::spawn(std::function<int()>([&]() -> int {
             int fails = 0;
@@ -38,7 +40,10 @@ int main(int, const char *[]) {
                 ++*i;
                 rstd::drop(i);
 
-                auto res = rstd::thread::spawn(std::function<void()>([&test]() {
+                std::stringstream ss;
+                auto res = rstd::thread::Builder()
+                .stdout_(ss).stderr_(ss)
+                .spawn(std::function<void()>([&test]() {
                     test.second();
                 })).join();
                 
@@ -50,7 +55,7 @@ int main(int, const char *[]) {
                     fails += 1;
                 }
                 res.clear();
-                println_("test {} ... {}", test.first, rn);
+                writeln_(**log.lock(), "test {} ... {}", test.first, rn);
             }
             return fails;
         }));

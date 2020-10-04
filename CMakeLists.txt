@@ -7,7 +7,9 @@ include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 set(SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/io.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/io.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/thread.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/panic.cpp"
 )
 
 enable_testing()

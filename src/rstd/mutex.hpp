@@ -155,10 +155,8 @@ public:
         return Guard(*this);
     }
     Result<Guard> try_lock() {
-        // FIXME: Use `Option::map`
-        auto res = mutex.try_lock();
-        if (res.is_ok()) {
-            return Result<Guard>::Ok(res.unwrap());
+        if (mutex.try_lock()) {
+            return Result<Guard>::Ok(Guard(*this));
         } else {
             return Result<Guard>::Err(Tuple<>());
         }

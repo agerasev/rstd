@@ -3,8 +3,9 @@
 #include <iostream>
 #include <sstream>
 
+#include <core/io.hpp>
+#include <core/panic.hpp>
 #include "macros.hpp"
-#include "panic.hpp"
 
 
 namespace rstd {
@@ -137,7 +138,7 @@ void write(std::ostream &o, const char (&fstr)[N], const Args &...args) {
     if (res.type == FmtRes::OK){
         return;
     }
-    panic("Format error: " + res.message());
+    core::panic("Format error: " + res.message());
 }
 
 template <typename ...Args>
@@ -156,29 +157,29 @@ std::string format(const Args &...args) {
 
 template <typename ...Args>
 void print(const Args &...args) {
-    write(std::cout, args...);
+    write(core::stdout_(), args...);
 }
 
 template <typename ...Args>
 void println(const Args &...args) {
     print(args...);
-    std::cout << std::endl;
+    core::stdout_() << std::endl;
 }
 
 template <typename ...Args>
 void eprint(const Args &...args) {
-    write(std::cerr, args...);
+    write(core::stderr_(), args...);
 }
 
 template <typename ...Args>
 void eprintln(const Args &...args) {
     eprint(args...);
-    std::cerr << std::endl;
+    core::stderr_() << std::endl;
 }
 
 template <typename ...Args>
 void panic(const Args &...args) {
-    panic(format(args...));
+    core::panic(format(args...));
 }
 
 } // namespace rstd
