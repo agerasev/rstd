@@ -1,4 +1,4 @@
-#include <catch.hpp>
+#include <rtest.hpp>
 #include <memory>
 
 #include "tuple.hpp"
@@ -7,62 +7,62 @@
 using namespace rstd;
 
 
-TEST_CASE("Option", "[option]") {
-    SECTION("Create") {
+rtest_section_(option) {
+    rtest_case_(create) {
         auto a = Option<int>::Some(123);
-        REQUIRE(a.is_some());
-        REQUIRE(a.unwrap() == 123);
+        assert_(a.is_some());
+        assert_eq_(a.unwrap(), 123);
 
         auto b = Option<int>::None();
-        REQUIRE(b.is_none());
+        assert_(b.is_none());
     }
-    SECTION("Move") {
+    rtest_case_(move) {
         std::unique_ptr<int> ptr = std::make_unique<int>(123);
         auto a = Option<std::unique_ptr<int>>::Some(std::move(ptr));
-        REQUIRE(*a.get() == 123);
+        assert_eq_(*a.get(), 123);
         ptr = a.unwrap();
-        REQUIRE(*ptr == 123);
+        assert_eq_(*ptr, 123);
     }
-    SECTION("Destroy") {
+    rtest_case_(destroy) {
         std::shared_ptr<int> ptr = std::make_shared<int>(123);
-        REQUIRE(ptr.use_count() == 1);
+        assert_eq_(ptr.use_count(), 1);
         auto a = Option<std::shared_ptr<int>>::Some(ptr);
-        REQUIRE(ptr.use_count() == 2);
-        REQUIRE(*a.get() == 123);
-        REQUIRE(ptr.use_count() == 2);
+        assert_eq_(ptr.use_count(), 2);
+        assert_eq_(*a.get(), 123);
+        assert_eq_(ptr.use_count(), 2);
         {
             std::shared_ptr<int> cptr = a.unwrap();
-            REQUIRE(*cptr == 123);
-            REQUIRE(ptr.use_count() == 2);
+            assert_eq_(*cptr, 123);
+            assert_eq_(ptr.use_count(), 2);
         }
-        REQUIRE(ptr.use_count() == 1);
+        assert_eq_(ptr.use_count(), 1);
     }
-    SECTION("Tuple of non-copy option") {
+    rtest_case_(tuple_of_non_copy_option) {
         std::unique_ptr<int> ptr = std::make_unique<int>(123);
         Tuple<Option<std::unique_ptr<int>>, int> a(
             Option<std::unique_ptr<int>>::Some(std::move(ptr)),
             321
         );
-        REQUIRE(*a.get<0>().get() == 123);
-        REQUIRE(a.get<1>() == 321);
+        assert_eq_(*a.get<0>().get(), 123);
+        assert_eq_(a.get<1>(), 321);
         //ptr = a.get<0>().unwrap();
-        //REQUIRE(*ptr == 123);
+        //assert_eq_(*ptr, 123);
     }
-    SECTION("Empty option is None") {
-        REQUIRE(Option<>().is_none());
+    rtest_case_(empty_option_is_none) {
+        assert_(Option<>().is_none());
 
         auto a = Option<int>::Some(123);
-        REQUIRE(a.is_some());
-        REQUIRE(a.get() == 123);
+        assert_(a.is_some());
+        assert_eq_(a.get(), 123);
 
         drop(a);
-        REQUIRE(a.is_none());
+        assert_(a.is_none());
     }
-    SECTION("Print") {
+    rtest_case_(print) {
         auto a = Option<int>::Some(123);
-        REQUIRE(format_(a) == "Some(123)");
+        assert_eq_(format_(a), "Some(123)");
 
         auto b = Option<int>::None();
-        REQUIRE(format_(b) == "None");
+        assert_eq_(format_(b), "None");
     }
 }

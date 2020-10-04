@@ -17,7 +17,5 @@ script:
   - mkdir build
   - cd build
   - cmake ..
-  - make VERBOSE=1 test_rstd
-  - ./test_rstd
-  - make VERBOSE=1 self_test_rstd
-  - ./self_test_rstd
+  - make VERBOSE=1 rstd_test
+  - ./rstd_test

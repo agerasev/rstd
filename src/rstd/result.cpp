@@ -1,4 +1,4 @@
-#include <catch.hpp>
+#include <rtest.hpp>
 #include <memory>
 
 #include "result.hpp"
@@ -6,57 +6,57 @@
 using namespace rstd;
 
 
-TEST_CASE("Result", "[result]") {
-    SECTION("Create") {
+rtest_section_(result) {
+    rtest_case_(create) {
         auto a = Result<int, float>::Ok(123);
-        REQUIRE(a.is_ok());
-        REQUIRE(a.unwrap() == 123);
+        assert_(a.is_ok());
+        assert_eq_(a.unwrap(), 123);
 
         auto b = Result<int, float>::Err(3.1415f);
-        REQUIRE(b.is_err());
-        REQUIRE(b.unwrap_err() == Approx(3.1415f));
+        assert_(b.is_err());
+        assert_((b.unwrap_err() - 3.1415f) < 1e-6);
     }
-    SECTION("Move") {
+    rtest_case_(move) {
         std::unique_ptr<int> ptr = std::make_unique<int>(123);
         auto a = Result<std::unique_ptr<int>, std::string>::Ok(std::move(ptr));
-        REQUIRE(*a.get() == 123);
+        assert_eq_(*a.get(), 123);
         ptr = a.unwrap();
-        REQUIRE(*ptr == 123);
+        assert_eq_(*ptr, 123);
     }
-    SECTION("Destroy") {
+    rtest_case_(destroy) {
         std::shared_ptr<int> ptr = std::make_shared<int>(123);
-        REQUIRE(ptr.use_count() == 1);
+        assert_eq_(ptr.use_count(), 1);
         auto a = Result<std::shared_ptr<int>, std::string>::Ok(ptr);
-        REQUIRE(ptr.use_count() == 2);
-        REQUIRE(*a.get() == 123);
-        REQUIRE(ptr.use_count() == 2);
+        assert_eq_(ptr.use_count(), 2);
+        assert_eq_(*a.get(), 123);
+        assert_eq_(ptr.use_count(), 2);
         {
             std::shared_ptr<int> cptr = a.unwrap();
-            REQUIRE(*cptr == 123);
-            REQUIRE(ptr.use_count() == 2);
+            assert_eq_(*cptr, 123);
+            assert_eq_(ptr.use_count(), 2);
         }
-        REQUIRE(ptr.use_count() == 1);
+        assert_eq_(ptr.use_count(), 1);
     }
-    SECTION("Print") {
+    rtest_case_(print) {
         auto a = Result<int, std::string>::Ok(123);
-        REQUIRE(format_(a) == "Ok(123)");
-        REQUIRE(a.unwrap() == 123);
+        assert_eq_(format_(a), "Ok(123)");
+        assert_eq_(a.unwrap(), 123);
 
         auto b = Result<int, std::string>::Err("abc");
-        REQUIRE(format_(b) == "Err(abc)");
-        REQUIRE(b.unwrap_err() == "abc");
+        assert_eq_(format_(b), "Err(abc)");
+        assert_eq_(b.unwrap_err(), "abc");
     }
-    SECTION("Move empty") {
+    rtest_case_(move_empty) {
         auto a = Result<int, std::string>::Ok(123);
-        REQUIRE(bool(a) == true);
-        REQUIRE(a.unwrap() == 123);
-        REQUIRE(bool(a) == false);
+        assert_eq_(bool(a), true);
+        assert_eq_(a.unwrap(), 123);
+        assert_eq_(bool(a), false);
 
         auto b = std::move(a);
-        REQUIRE(bool(b) == false);
+        assert_eq_(bool(b), false);
     }
-    SECTION("Int-bool") {
+    rtest_case_(int_bool) {
         auto a = Result<int, bool>::Ok(123);
-        REQUIRE(a.unwrap() == 123);
+        assert_eq_(a.unwrap(), 123);
     }
 }

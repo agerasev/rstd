@@ -1,4 +1,4 @@
-#include <rtest/test.hpp>
+#include <rtest.hpp>
 #include "format.hpp"
 
 using namespace rstd;

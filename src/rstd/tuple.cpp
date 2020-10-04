@@ -1,4 +1,4 @@
-#include <catch.hpp>
+#include <rtest.hpp>
 #include <memory>
 
 #include "tuple.hpp"
@@ -6,29 +6,29 @@
 using namespace rstd;
 
 
-TEST_CASE("Tuple", "[tuple]") {
-    SECTION("Getters") {
+rtest_section_(tuple) {
+    rtest_case_(getters) {
         Tuple<bool, int, double> a(true, 1, 3.1415);
-        REQUIRE(a.size() == 3);
+        assert_eq_(a.size(), 3u);
 
-        REQUIRE(a.get<0>() == true);
-        REQUIRE(a.get<1>() == 1);
-        REQUIRE(a.get<2>() == Approx(3.1415));
+        assert_eq_(a.get<0>(), true);
+        assert_eq_(a.get<1>(), 1);
+        assert_(std::abs(a.get<2>() - 3.1415) < 1e-8);
     }
-    SECTION("Move") {
+    rtest_case_(move) {
         Tuple<std::unique_ptr<int>, int> a(std::make_unique<int>(123), 456);
-        REQUIRE(a.size() == 2);
-        REQUIRE(*a.get<0>() == 123);
-        REQUIRE(a.get<1>() == 456);
+        assert_eq_(a.size(), 2u);
+        assert_eq_(*a.get<0>(), 123);
+        assert_eq_(a.get<1>(), 456);
 
         auto b(std::move(a));
-        REQUIRE(b.size() == 2);
-        REQUIRE(*b.get<0>() == 123);
-        REQUIRE(b.get<1>() == 456);
+        assert_eq_(b.size(), 2u);
+        assert_eq_(*b.get<0>(), 123);
+        assert_eq_(b.get<1>(), 456);
     }
-    SECTION("Print") {
+    rtest_case_(print) {
         Tuple<bool, int, std::string> a(true, 123, "abc");
-        REQUIRE(format_(a) == "(1, 123, abc)");
-        REQUIRE(format_(Tuple<>()) == "()");
+        assert_eq_(format_(a), "(1, 123, abc)");
+        assert_eq_(format_(Tuple<>()), "()");
     }
 }

@@ -1,4 +1,4 @@
-#include <catch.hpp>
+#include <rtest.hpp>
 
 #include <chrono>
 #include <thread>
@@ -8,8 +8,8 @@
 using namespace rstd;
 
 
-TEST_CASE("Mutex", "[mutex]") {
-    SECTION("Multiple access") {
+rtest_section_(mutex) {
+    rtest_case_(multiple_access) {
         Mutex<int> x(0);
         auto t0 = thread::spawn(std::function<void()>([&x]() {
             for (int i = 0; i < 1024; ++i) {
@@ -23,9 +23,9 @@ TEST_CASE("Mutex", "[mutex]") {
         }));
         t0.join().unwrap();
         t1.join().unwrap();
-        REQUIRE(x.into_inner() == 1024);
+        assert_eq_(x.into_inner(), 1024);
     }
-    SECTION("Ping pong") {
+    rtest_case_(ping_pong) {
         _Mutex m[3];
         for (int i = 0; i < 3; ++i) {
             m[i].lock();
@@ -71,13 +71,13 @@ TEST_CASE("Mutex", "[mutex]") {
 
         t0.join().unwrap();
         t1.join().unwrap();
-        REQUIRE(x == 600);
+        assert_eq_(x, 600);
     }
-    SECTION("Drop guard") {
+    rtest_case_(drop_guard) {
         Mutex<int> x(321);
         auto guard = x.lock();
         *guard += 123;
         drop(guard);
-        REQUIRE(x.into_inner() == 444);
+        assert_eq_(x.into_inner(), 444);
     }
 }

@@ -1,35 +1,35 @@
-#include <catch.hpp>
+#include <rtest.hpp>
 
 #include "thread.hpp"
 
 using namespace rstd;
 
 
-TEST_CASE("Thread", "[thread]") {
-    SECTION("Run") {
+rtest_section_(thread) {
+    rtest_case_(run) {
         int x = 321;
         auto jh = thread::spawn(std::function<void()>([&x]() {
             x = 123;
         }));
         auto res = jh.join();
-        REQUIRE(res.is_ok());
+        assert_(res.is_ok());
         res.clear();
-        REQUIRE(x == 123);
+        assert_eq_(x, 123);
     }
-    SECTION("Input and output") {
+    rtest_case_(input_and_output) {
         int x = 321;
         auto jh = thread::spawn(std::function<int()>([x]() -> int {
             assert_eq_(x, 321);
             return 123;
         }));
-        REQUIRE(jh.join().unwrap() == 123);
+        assert_eq_(jh.join().unwrap(), 123);
     }
-    SECTION("Thread panic") {
+    rtest_case_(thread_panic) {
         auto jh = thread::spawn(std::function<void()>([]() {
             panic_("Panic!");
         }));
         auto res = jh.join();
-        REQUIRE(res.is_err());
+        assert_(res.is_err());
         res.clear();
     }
 }
