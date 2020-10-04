@@ -11,11 +11,10 @@ addons:
   apt:
     packages:
       - cmake
-      - catch
 
 script:
   - mkdir build
   - cd build
   - cmake ..
-  - make VERBOSE=1 rstd_test
+  - make rstd_test
   - ./rstd_test
