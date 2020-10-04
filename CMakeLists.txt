@@ -14,8 +14,6 @@ set(SOURCE
 
 enable_testing()
 set(TEST_SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/format.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/assert.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/traits.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/tuple.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/union.cpp"
@@ -26,6 +24,10 @@ set(TEST_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/mutex.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/lazy_static.cpp"
+)
+set(SELF_TEST_SOURCE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/format.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/assert.cpp"
 )
 add_executable("test_${PROJECT_NAME}"
     ${SOURCE}
@@ -38,6 +40,7 @@ add_test("test_${PROJECT_NAME}" "test_${PROJECT_NAME}")
 
 add_executable("self_test_${PROJECT_NAME}"
     ${SOURCE}
+    ${SELF_TEST_SOURCE}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/self_test.cpp"
 )
 target_compile_definitions("self_test_${PROJECT_NAME}" PRIVATE "DEBUG")

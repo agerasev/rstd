@@ -1,34 +1,32 @@
-#include <catch.hpp>
+#include <rtest/test.hpp>
 #include "format.hpp"
 
 using namespace rstd;
 
 
-TEST_CASE("Format", "[format]") {
-    SECTION("Empty") {
-        REQUIRE(format_() == "");
+rtest_section_(format) {
+    rtest_case_(empty) {
+        assert_eq_(format_(), "");
     }
-    SECTION("Single string") {
-        REQUIRE(format_("abc") == "abc");
+    rtest_case_(single_string) {
+        assert_eq_(format_("abc"), "abc");
     }
-    SECTION("Single int") {
-        REQUIRE(format_("int") == "int");
+    rtest_case_(single_int) {
+        assert_eq_(format_("int"), "int");
     }
-    SECTION("Format one") {
-        REQUIRE(format_("a: {};", 123) == "a: 123;");
+    rtest_case_(format_one) {
+        assert_eq_(format_("a: {};", 123), "a: 123;");
     }
-    SECTION("Format two") {
-        REQUIRE(format_("a: {}, b: {};", 123, "abc") == "a: 123, b: abc;");
+    rtest_case_(format_two) {
+        assert_eq_(format_("a: {}, b: {};", 123, "abc"), "a: 123, b: abc;");
     }
-    SECTION("Format escape") {
-        REQUIRE(format_("{{abc}}") == "{abc}");
+    rtest_case_(format_escape) {
+        assert_eq_(format_("{{abc}}"), "{abc}");
     }
-    SECTION("Format no escape") {
-        REQUIRE(format_(std::string("{abc}")) == "{abc}");
+    rtest_case_(format_no_escape) {
+        assert_eq_(format_(std::string("{abc}")), "{abc}");
     }
-    /*
-    // should panic
-    SECTION("Wrong format") {
+    rtest_case_should_panic_(wrong_format) {
         format_("}{");
         format_("}");
         format_("{");
@@ -38,5 +36,4 @@ TEST_CASE("Format", "[format]") {
         format_("", 1);
         format_("{}", 1, 2);
     }
-    */
 }
