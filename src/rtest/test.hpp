@@ -13,10 +13,10 @@ namespace rstd {
 class TestRegistrar {
 private:
     mutable std::string section;
-    mutable std::unordered_map<std::string, std::function<void()>> tests;
+    mutable std::unordered_map<std::string, std::pair<std::function<void()>, bool>> tests;
 public:
-    void _register(const std::string &name, std::function<void()> func) const {
-        tests.insert(std::make_pair(section + "::" + name, func));
+    void _register(const std::string &name, std::function<void()> func, bool should_panic=false) const {
+        tests.insert(std::make_pair(section + "::" + name, std::make_pair(func, should_panic)));
     }
     auto begin() const {
         return tests.cbegin();
@@ -47,5 +47,13 @@ public:
     void __rtest_case__##name(); \
     static_block_(__rtest__##name##__registrator) { \
         ::__rtest_registrar->_register(#name, __rtest_case__##name); \
+    } \
+    void __rtest_case__##name()
+
+#define rtest_case_should_panic_(name) \
+    extern_lazy_static_(::rstd::TestRegistrar, __rtest_registrar); \
+    void __rtest_case__##name(); \
+    static_block_(__rtest__##name##__registrator) { \
+        ::__rtest_registrar->_register(#name, __rtest_case__##name, true); \
     } \
     void __rtest_case__##name()

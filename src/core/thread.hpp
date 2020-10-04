@@ -9,8 +9,8 @@ namespace core {
 
 class Thread {
 public:
-    std::function<void(const std::string &)> panic_hook;
     core::StdIo stdio;
+    std::function<void(const std::string &)> panic_hook;
 };
 
 namespace thread {

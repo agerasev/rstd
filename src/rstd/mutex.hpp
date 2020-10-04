@@ -13,16 +13,11 @@ private:
     bool locked = false;
 #endif // DEBUG
 
-    _Mutex(pthread_mutex_t m) :
-        raw(Option<pthread_mutex_t>::Some(m))
-    {}
-
 public:
-    _Mutex() = default;
-    static _Mutex create() {
+    _Mutex() {
         pthread_mutex_t m;
         assert_(pthread_mutex_init(&m, nullptr) == 0);
-        return _Mutex(m);
+        raw = Option<pthread_mutex_t>::Some(m);
     }
     ~_Mutex() {
         if (raw.is_some()) {
@@ -144,10 +139,7 @@ private:
 
 public:
     Mutex() = default;
-    Mutex(T &&v) :
-        value(std::move(v)),
-        mutex(_Mutex::create())
-    {}
+    Mutex(T &&v) : value(std::move(v)) {}
     ~Mutex() = default;
 
     Guard lock() {

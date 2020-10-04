@@ -1,24 +1,24 @@
 #include <rstd/prelude.hpp>
 #include <rtest/prelude.hpp>
 
-rtest_section_(base) {
-    rtest_case_(one) {
-        println_("b1");
+rtest_section_(one) {
+    rtest_case_(dummy) {
+        println_("1");
     }
-    rtest_case_(two) {
-        println_("b2");
+    rtest_case_should_panic_(panic) {
+        println_("panic");
+        panic_();
     }
-}
-
-rtest_section_(dummy) {
-    rtest_case_(one) {
-        println_("d1");
-    }
-    rtest_case_(two) {
-        println_("d2");
-        //panic_();
+    rtest_case_should_panic_(segfault) {
+        println_("segfault");
+        ((void(*)())nullptr)();
     }
 }
 
+rtest_section_(two) {
+    rtest_case_(dummy) {
+        println_("2");
+    }
+}
 
 #include <rtest/main.hpp>
