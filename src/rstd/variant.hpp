@@ -15,25 +15,18 @@ namespace rstd {
 template <bool C, typename ...Elems>
 class _Variant {
 protected:
-    Union<Elems...> union_;
+    _Union<Elems...> union_;
     size_t id_ = size();
 
-    void assert_valid() const {
-#ifdef DEBUG
-        assert(this->id_ < size());
-#endif // DEBUG
+    void assert_some() const {
+        assert_(this->id_ < size());
     }
     template <size_t P>
     void assert_variant() const {
-        this->assert_valid();
-#ifdef DEBUG
-        assert(this->id_ == P);
-#endif // DEBUG
+        assert_(this->id_ == P);
     }
-    void assert_empty() const {
-#ifdef DEBUG
-        assert(this->id_ == size());
-#endif // DEBUG
+    void assert_none() const {
+        assert_(this->id_ == size());
     }
 
 public:
@@ -42,13 +35,13 @@ public:
 protected:
     template <size_t P>
     struct Destroyer{
-        static void call(Union<Elems...> &u) {
+        static void call(_Union<Elems...> &u) {
             u.template destroy<P>();
         }
     };
     template <size_t P>
     struct Mover {
-        static void call(Union<Elems...> &dst, Union<Elems...> &src) {
+        static void call(_Union<Elems...> &dst, _Union<Elems...> &src) {
             dst.template move_from<P>(src);
         }
     };
@@ -87,17 +80,22 @@ public:
         return this->id_;
     }
 
-    Union<Elems...> &_as_union() {
+    _Union<Elems...> &_as_union() {
         return union_;
     }
-    const Union<Elems...> &_as_union() const {
+    const _Union<Elems...> &_as_union() const {
         return union_;
     }
 
     template <size_t P>
-    void put(nth_type<P, Elems...> &&x) {
+    void _put(nth_type<P, Elems...> &&x) {
         static_assert(P < size(), "Index is out of bounds");
-        this->try_destroy();
+        this->union_.template put<P>(std::move(x));
+        this->id_ = P;
+    }
+    template <size_t P>
+    void put(nth_type<P, Elems...> &&x) {
+        this->assert_none();
         this->union_.template put<P>(std::move(x));
         this->id_ = P;
     }
@@ -108,31 +106,68 @@ public:
     }
 
     template <size_t P>
+    void set(nth_type<P, Elems...> &&x) {
+        this->try_destroy();
+        this->union_.template put<P>(std::move(x));
+        this->id_ = P;
+    }
+    template <size_t P, std::enable_if_t<rstd::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
+    void set(const nth_type<P, Elems...> &x) {
+        nth_type<P, Elems...> cx(x);
+        this->set<P>(std::move(cx));
+    }
+
+    template <size_t P>
+    const nth_type<P, Elems...> &_get() const {
+        return this->union_.template get<P>();
+    }
+    template <size_t P>
     const nth_type<P, Elems...> &get() const {
         this->assert_variant<P>();
+        return this->template get<P>();
+    }
+    template <size_t P>
+    nth_type<P, Elems...> &_get() {
         return this->union_.template get<P>();
     }
     template <size_t P>
     nth_type<P, Elems...> &get() {
         this->assert_variant<P>();
-        return this->union_.template get<P>();
+        return this->template get<P>();
     }
 
     template <size_t P>
-    nth_type<P, Elems...> take() {
-        this->assert_variant<P>();
+    nth_type<P, Elems...> _take() {
         this->id_ = size();
         return std::move(this->union_.template take<P>());
     }
-
-    explicit operator bool() const {
-        return this->id_ < size();
+    template <size_t P>
+    nth_type<P, Elems...> take() {
+        this->assert_variant<P>();
+        return this->template _take<P>();
     }
 
+    bool is_some() const {
+        return this->id_ < size();
+    }
+    bool is_none() const {
+        return !this->is_some();
+    }
+    explicit operator bool() const {
+        return this->is_some();
+    }
+
+    void _destroy() {
+        Dispatcher<Destroyer, size()>::dispatch(this->id_, this->union_);
+        this->id_ = size();
+    }
+    void destroy() {
+        this->assert_some();
+        this->_destroy();
+    }
     void try_destroy() {
-        if (bool(*this)) {
-            Dispatcher<Destroyer, size()>::dispatch(this->id_, this->union_);
-            this->id_ = size();
+        if (this->is_some()) {
+            this->_destroy();
         }
     }
 };
@@ -145,7 +180,7 @@ public:
 private:
     template <size_t P>
     struct Copier {
-        static void call(Union<Elems...> &dst, const Union<Elems...> &src) {
+        static void call(_Union<Elems...> &dst, const _Union<Elems...> &src) {
             dst.template put<P>(src.template get<P>());
         }
     };
@@ -191,7 +226,7 @@ public:
     static Variant create(nth_type<P, Elems...> &&x) {
         static_assert(P < Variant::size(), "Index is out of bounds");
         Variant v;
-        v.template put<P>(std::move(x));
+        v.template _put<P>(std::move(x));
         return v;
     }
     template <size_t P, std::enable_if_t<rstd::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
