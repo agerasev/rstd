@@ -6,14 +6,14 @@
 #include "container.hpp"
 
 
-namespace core {
+namespace rstd {
 
 // Union for types with non-trivial ctors/dtors
 template <typename ...Elems>
 class Union final {
 private:
-    struct __attribute__((aligned(core::common_align<Elems...>))) {
-        char bytes[core::common_size<Elems...>];
+    struct __attribute__((aligned(rstd::common_align<Elems...>))) {
+        char bytes[rstd::common_size<Elems...>];
     } data;
 #ifdef DEBUG
     bool stored_ = false;
@@ -52,7 +52,7 @@ public:
         new (reinterpret_cast<nth_type<P, Elems...> *>(&this->data))
             nth_type<P, Elems...>(std::move(x));
     }
-    template <size_t P, std::enable_if_t<core::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
+    template <size_t P, std::enable_if_t<rstd::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
     void put(const nth_type<P, Elems...> &x) {
         nth_type<P, Elems...> cx(x);
         this->put<P>(std::move(cx));
@@ -77,7 +77,7 @@ public:
     void init(nth_type<P, Elems...> &&x) {
         this->template put<P>(std::move(x));
     }
-    template <size_t P, std::enable_if_t<core::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
+    template <size_t P, std::enable_if_t<rstd::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
     void init(const nth_type<P, Elems...> &x) {
         nth_type<P, Elems...> cx(x);
         return this->template init<P>(std::move(cx));
@@ -106,4 +106,4 @@ public:
     }
 };
 
-} // namespace core
+} // namespace rstd

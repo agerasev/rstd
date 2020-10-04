@@ -7,7 +7,7 @@
 #include "container.hpp"
 
 
-namespace core {
+namespace rstd {
 
 template <typename ...Elems>
 class Tuple {
@@ -120,4 +120,4 @@ public:
     }
 };
 
-} // namespace core
+} // namespace rstd

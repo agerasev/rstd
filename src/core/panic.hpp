@@ -1,16 +1,13 @@
 #pragma once
 
-#include <iostream>
-#include <cstdlib>
+#include <string>
+#include <functional>
+
 
 namespace core {
 
-// FIXME: Print call stack trace
-[[ noreturn ]] inline void panic(const std::string &message="") {
-    std::cerr
-        << "Thread panicked: " << std::endl
-        << message << std::endl;
-    abort();
-}
+std::function<void(const std::string &)> panic_hook();
+
+[[ noreturn ]] void panic(const std::string &message="");
 
 } // namespace core

@@ -3,11 +3,12 @@
 #include <iostream>
 #include <sstream>
 
+#include <core/io.hpp>
+#include <core/panic.hpp>
 #include "macros.hpp"
-#include "panic.hpp"
 
 
-namespace core {
+namespace rstd {
 
 namespace fmt {
 
@@ -137,7 +138,7 @@ void write(std::ostream &o, const char (&fstr)[N], const Args &...args) {
     if (res.type == FmtRes::OK){
         return;
     }
-    panic("Format error: " + res.message());
+    core::panic("Format error: " + res.message());
 }
 
 template <typename ...Args>
@@ -156,39 +157,39 @@ std::string format(const Args &...args) {
 
 template <typename ...Args>
 void print(const Args &...args) {
-    write(std::cout, args...);
+    write(core::stdout_(), args...);
 }
 
 template <typename ...Args>
 void println(const Args &...args) {
     print(args...);
-    std::cout << std::endl;
+    core::stdout_() << std::endl;
 }
 
 template <typename ...Args>
 void eprint(const Args &...args) {
-    write(std::cerr, args...);
+    write(core::stderr_(), args...);
 }
 
 template <typename ...Args>
 void eprintln(const Args &...args) {
     eprint(args...);
-    std::cerr << std::endl;
+    core::stderr_() << std::endl;
 }
 
 template <typename ...Args>
 void panic(const Args &...args) {
-    panic(format(args...));
+    core::panic(format(args...));
 }
 
-} // namespace core
+} // namespace rstd
 
-#define write_(...)     ::core::write    (__VA_ARGS__)
-#define writeln_(...)   ::core::writeln  (__VA_ARGS__)
-#define format_(...)    ::core::format   (__VA_ARGS__)
-#define print_(...)     ::core::print    (__VA_ARGS__)
-#define println_(...)   ::core::println  (__VA_ARGS__)
-#define eprint_(...)    ::core::eprint   (__VA_ARGS__)
-#define eprintln_(...)  ::core::eprintln (__VA_ARGS__)
+#define write_(...)     ::rstd::write    (__VA_ARGS__)
+#define writeln_(...)   ::rstd::writeln  (__VA_ARGS__)
+#define format_(...)    ::rstd::format   (__VA_ARGS__)
+#define print_(...)     ::rstd::print    (__VA_ARGS__)
+#define println_(...)   ::rstd::println  (__VA_ARGS__)
+#define eprint_(...)    ::rstd::eprint   (__VA_ARGS__)
+#define eprintln_(...)  ::rstd::eprintln (__VA_ARGS__)
 
-#define panic_(...)     ::core::panic    (__VA_ARGS__)
+#define panic_(...)     ::rstd::panic    (__VA_ARGS__)

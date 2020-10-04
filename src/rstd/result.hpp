@@ -4,7 +4,7 @@
 #include "variant.hpp"
 
 
-namespace core {
+namespace rstd {
 
 template <typename T=Tuple<>, typename E=Tuple<>>
 class Result final {
@@ -31,7 +31,7 @@ public:
 #endif // DEBUG
     }
     void clear() {
-        core::drop(var);
+        drop(var);
     }
 
     const Variant<T, E> &as_variant() const {
@@ -115,4 +115,4 @@ public:
     }
 };
 
-} // namespace core
+} // namespace rstd

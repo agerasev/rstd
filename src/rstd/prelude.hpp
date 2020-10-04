@@ -1,6 +1,5 @@
 #pragma once
 
-#include "panic.hpp"
 #include "format.hpp"
 
 #include "traits.hpp"
@@ -14,3 +13,6 @@
 #include "box.hpp"
 
 #include "rc.hpp"
+
+#include "thread.hpp"
+#include "mutex.hpp"

@@ -1,6 +1,10 @@
-#include <core/prelude.hpp>
+#pragma once
+
+#include <rstd/prelude.hpp>
 #include <atomic>
 #include <type_traits>
+
+namespace rstd {
 
 // FIXME: In C++20 atomic pointer is not POD
 static_assert(std::is_pod<std::atomic<const void *>>::value);
@@ -22,8 +26,8 @@ public:
         }
         return *ptr;
     }
-    const T &operator->() {
-        return this->operator*();
+    const T *operator->() {
+        return &this->operator*();
     }
 
     void _clear() {
@@ -35,15 +39,31 @@ public:
     }
 };
 
-int __lazy_static__create() { return 1; }
-static_assert(std::is_pod<LazyStatic<int, __lazy_static__create>>::value);
+static_assert(std::is_pod<LazyStatic<int, nullptr>>::value);
 
-#define lazy_static_(Type, name)\
-    Type __lazy_static__##name##__create();\
-    LazyStatic<Type, __lazy_static__##name##__create> name;\
-    struct __lazy_static__##name##__Destroyer {\
-        ~__lazy_static__##name##__Destroyer() {\
-            name._clear();\
-        }\
-    } __lazy_static__##name##__destroyer;\
-    Type __lazy_static__##name##__create()
+} // namespace rstd
+
+
+#define static_block_(name) \
+    struct __static_block__##name##__struct { \
+        __static_block__##name##__struct(); \
+    } __static_block__##name##__instance; \
+    __static_block__##name##__struct::__static_block__##name##__struct()
+
+#define static_atexit_(name) \
+    struct __static_atexit__##name##__struct { \
+        ~__static_atexit__##name##__struct(); \
+    } __static_atexit__##name##__instance; \
+    __static_atexit__##name##__struct::~__static_atexit__##name##__struct()
+
+#define lazy_static_(Type, name) \
+    Type __##name##__create(); \
+    ::rstd::LazyStatic<Type, __##name##__create> name; \
+    static_atexit_(name##__destroyer) { \
+        name._clear(); \
+    } \
+    Type __##name##__create()
+
+#define extern_lazy_static_(Type, name) \
+    extern Type __##name##__create(); \
+    extern ::rstd::LazyStatic<Type, __##name##__create> name

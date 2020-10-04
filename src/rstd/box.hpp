@@ -4,7 +4,7 @@
 #include "prelude.hpp"
 
 
-namespace core {
+namespace rstd {
 
 // Wrapper over std::unique_ptr
 template <typename T>
@@ -51,4 +51,4 @@ public:
     }
 };
 
-} // namespace core
+} // namespace rstd

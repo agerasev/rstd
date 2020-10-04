@@ -4,7 +4,7 @@
 #include "prelude.hpp"
 
 
-namespace core {
+namespace rstd {
 
 // Wrapper over std::shared_ptr
 template <typename T>
@@ -55,4 +55,4 @@ public:
     }
 };
 
-} // namespace core
+} // namespace rstd

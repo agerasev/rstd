@@ -4,7 +4,7 @@
 #include "format.hpp"
 
 
-namespace core {
+namespace rstd {
 
 inline void _assert(
     const char *expr, bool value
@@ -29,8 +29,8 @@ inline void _assert_eq(
     }
 }
 
-} // namespace core
+} // namespace rstd
 
 
-#define assert_(x) ::core::_assert(#x, (x))
-#define assert_eq_(a, b) ::core::_assert_eq(#a, #b, (a), (b))
+#define assert_(x) ::rstd::_assert(#x, (x))
+#define assert_eq_(a, b) ::rstd::_assert_eq(#a, #b, (a), (b))

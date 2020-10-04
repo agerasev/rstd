@@ -1,14 +1,14 @@
 #pragma once
 
 #include <type_traits>
-#include <core/traits.hpp>
+#include "traits.hpp"
 #include "container.hpp"
 #include "union.hpp"
 #include "format.hpp"
 #include "assert.hpp"
 
 
-namespace core {
+namespace rstd {
 
 // Safe union with id (similar to Rust enum type)
 
@@ -57,13 +57,17 @@ public:
     _Variant() = default;
 
     _Variant(_Variant &&v) {
-        Dispatcher<Mover, size()>::dispatch(v.id_, this->union_, v.union_);
+        if (bool(v)) {
+            Dispatcher<Mover, size()>::dispatch(v.id_, this->union_, v.union_);
+        }
         this->id_ = v.id_;
         v.id_ = size();
     }
     _Variant &operator=(_Variant &&v) {
         this->try_destroy();
-        Dispatcher<Mover, size()>::dispatch(v.id_, this->union_, v.union_);
+        if (bool(v)) {
+            Dispatcher<Mover, size()>::dispatch(v.id_, this->union_, v.union_);
+        }
         this->id_ = v.id_;
         v.id_ = size();
         return *this;
@@ -97,7 +101,7 @@ public:
         this->union_.template put<P>(std::move(x));
         this->id_ = P;
     }
-    template <size_t P, std::enable_if_t<core::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
+    template <size_t P, std::enable_if_t<rstd::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
     void put(const nth_type<P, Elems...> &x) {
         nth_type<P, Elems...> cx(x);
         this->put<P>(std::move(cx));
@@ -126,7 +130,7 @@ public:
     }
 
     void try_destroy() {
-        if (*this) {
+        if (bool(*this)) {
             Dispatcher<Destroyer, size()>::dispatch(this->id_, this->union_);
             this->id_ = size();
         }
@@ -171,7 +175,7 @@ public:
 };
 
 template <typename ...Elems>
-class Variant final : public _Variant<all_v<core::is_copyable_v<Elems>...>, Elems...> {
+class Variant final : public _Variant<all_v<rstd::is_copyable_v<Elems>...>, Elems...> {
 public:
     Variant() = default;
 
@@ -190,7 +194,7 @@ public:
         v.template put<P>(std::move(x));
         return v;
     }
-    template <size_t P, std::enable_if_t<core::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
+    template <size_t P, std::enable_if_t<rstd::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
     static Variant create(const nth_type<P, Elems...> &x) {
         nth_type<P, Elems...> cx(x);
         return create<P>(std::move(cx));
@@ -215,4 +219,4 @@ public:
     }
 };
 
-} // namespace core
+} // namespace rstd
