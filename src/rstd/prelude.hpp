@@ -1,6 +1,5 @@
 #pragma once
 
-#include "panic.hpp"
 #include "format.hpp"
 
 #include "traits.hpp"
