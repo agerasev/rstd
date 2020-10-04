@@ -27,19 +27,12 @@ set(TEST_SOURCE
 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/lazy_static.cpp"
 )
-add_executable("test_${PROJECT_NAME}"
+set(PROJECT_TEST "${PROJECT_NAME}_test")
+add_executable("${PROJECT_TEST}"
     ${SOURCE}
     ${TEST_SOURCE}
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/test.cpp"
-)
-target_compile_definitions("test_${PROJECT_NAME}" PRIVATE "DEBUG")
-target_link_libraries("test_${PROJECT_NAME}" PRIVATE "pthread")
-add_test("test_${PROJECT_NAME}" "test_${PROJECT_NAME}")
-
-add_executable("self_test_${PROJECT_NAME}"
-    ${SOURCE}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/self_test.cpp"
 )
-target_compile_definitions("self_test_${PROJECT_NAME}" PRIVATE "DEBUG")
-target_link_libraries("self_test_${PROJECT_NAME}" PRIVATE "pthread")
-add_test("self_test_${PROJECT_NAME}" "self_test_${PROJECT_NAME}")
+target_compile_definitions("${PROJECT_TEST}" PRIVATE "DEBUG")
+target_link_libraries("${PROJECT_TEST}" PRIVATE "pthread")
+add_test("${PROJECT_TEST}" "${PROJECT_TEST}")

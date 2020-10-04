@@ -1,4 +1,4 @@
-#include <catch.hpp>
+#include <rtest.hpp>
 #include <memory>
 
 #include "tuple.hpp"
@@ -17,64 +17,63 @@ void print_mem(const T &t) {
     std::cout << std::endl;
 }
 
-
-TEST_CASE("Variant", "[variant]") {
-    SECTION("Primitive") {
+rtest_section_(variant) {
+    rtest_case_(primitive) {
         auto a = Variant<bool, int, double>::create<1>(123);
-        REQUIRE(a.size() == 3);
+        assert_eq_(a.size(), 3u);
 
-        REQUIRE(a.get<1>() == 123);
+        assert_eq_(a.get<1>(), 123);
         a.get<1>() = -321;
-        REQUIRE(a.take<1>() == -321);
+        assert_eq_(a.take<1>(), -321);
 
         a.put<2>(3.1415);
-        REQUIRE(a.get<2>() == Approx(3.1415));
+        assert_(std::abs(a.get<2>() - 3.1415) < 1e-8);
         a.get<2>() = -2.71;
-        REQUIRE(a.take<2>() == -2.71);
+        assert_eq_(a.take<2>(), -2.71);
     }
-    SECTION("Move") {
+    rtest_case_(move) {
         std::unique_ptr<int> ptr = std::make_unique<int>(123);
         auto a = Variant<Tuple<>, std::unique_ptr<int>>::create<1>(std::move(ptr));
         //auto b = a;
-        REQUIRE(*a.get<1>() == 123);
+        assert_eq_(*a.get<1>(), 123);
         ptr = a.take<1>();
-        REQUIRE(*ptr == 123);
+        assert_eq_(*ptr, 123);
     }
-    SECTION("Ctor Dtor") {
+    rtest_case_(ctor_dtor) {
         std::shared_ptr<int> ptr = std::make_shared<int>(123);
-        REQUIRE(ptr.use_count() == 1);
+        assert_eq_(ptr.use_count(), 1);
         {
             auto a = Variant<Tuple<>, std::shared_ptr<int>>::create<1>(ptr);
-            REQUIRE(ptr.use_count() == 2);
-            REQUIRE(*a.get<1>() == 123);
-            REQUIRE(ptr.use_count() == 2);
+            assert_eq_(ptr.use_count(), 2);
+            assert_eq_(*a.get<1>(), 123);
+            assert_eq_(ptr.use_count(), 2);
         }
-        REQUIRE(ptr.use_count() == 1);
+        assert_eq_(ptr.use_count(), 1);
     }
-    SECTION("Move assignment") {
+    rtest_case_(move_assignment) {
         auto a = Variant<int, std::string>::create<0>(123);
-        REQUIRE(a.get<0>() == 123);
+        assert_eq_(a.get<0>(), 123);
         a = Variant<int, std::string>::create<1>("abc");
-        REQUIRE(a.get<1>() == "abc");
+        assert_eq_(a.get<1>(), "abc");
     }
-    SECTION("Copy assignment") {
+    rtest_case_(copy_assignment) {
         auto a = Variant<int, std::string>::create<0>(123);
-        REQUIRE(a.get<0>() == 123);
+        assert_eq_(a.get<0>(), 123);
         auto b = Variant<int, std::string>::create<1>("abc");
         a = b;
-        REQUIRE(a.get<1>() == "abc");
+        assert_eq_(a.get<1>(), "abc");
     }
-    SECTION("Format") {
+    rtest_case_(format) {
         auto a = Variant<int, std::string>::create<0>(123);
-        REQUIRE(format_(a) == "Variant<0>(123)");
+        assert_eq_(format_(a), "Variant<0>(123)");
         a = Variant<int, std::string>::create<1>("abc");
-        REQUIRE(format_(a) == "Variant<1>(abc)");
+        assert_eq_(format_(a), "Variant<1>(abc)");
     }
-    SECTION("Bool") {
+    rtest_case_(bool) {
         auto a = Variant<Tuple<>, int, bool>::create<1>(123);
-        REQUIRE(a.get<1>() == 123);
+        assert_eq_(a.get<1>(), 123);
 
         auto b = Variant<Tuple<>, int, bool>::create<2>(true);
-        REQUIRE(b.get<2>() == true);
+        assert_eq_(b.get<2>(), true);
     }
 }

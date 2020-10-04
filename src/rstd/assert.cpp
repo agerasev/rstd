@@ -1,15 +1,15 @@
-#include <catch.hpp>
+#include <rtest.hpp>
 #include <string>
 #include "assert.hpp"
 
 using namespace rstd;
 
 
-TEST_CASE("Assert", "[assert]") {
-    SECTION("Bool") {
+rtest_section_(assert) {
+    rtest_case_(bool) {
         assert_(1 + 1 == 2);
     }
-    SECTION("Equal") {
+    rtest_case_(equal) {
         assert_eq_("132", std::to_string(11*12));
     }
 }

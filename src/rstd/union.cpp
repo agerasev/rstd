@@ -1,4 +1,4 @@
-#include <catch.hpp>
+#include <rtest.hpp>
 #include <memory>
 
 #include "tuple.hpp"
@@ -15,47 +15,47 @@ struct TestDispatch {
     }
 };
 
-TEST_CASE("Union", "[union]") {
-    SECTION("Primitive") {
+rtest_section_(union) {
+    rtest_case_(primitive) {
         Union<bool, int, double> a;
         a.init<1>(123);
-        REQUIRE(a.size() == 3);
+        assert_eq_(a.size(), 3u);
 
-        REQUIRE(a.get<1>() == 123);
+        assert_eq_(a.get<1>(), 123);
         a.get<1>() = -321;
-        REQUIRE(a.take<1>() == -321);
+        assert_eq_(a.take<1>(), -321);
     }
-    SECTION("Move") {
+    rtest_case_(move) {
         std::unique_ptr<int> ptr = std::make_unique<int>(123);
         Union<Tuple<>, std::unique_ptr<int>> a;
         a.init<1>(std::move(ptr));
-        REQUIRE(*a.get<1>() == 123);
+        assert_eq_(*a.get<1>(), 123);
         ptr = a.take<1>();
-        REQUIRE(*ptr == 123);
+        assert_eq_(*ptr, 123);
     }
-    SECTION("Ctor Dtor") {
+    rtest_case_(ctor_dtor) {
         std::shared_ptr<int> ptr = std::make_shared<int>(123);
-        REQUIRE(ptr.use_count() == 1);
+        assert_eq_(ptr.use_count(), 1);
         Union<Tuple<>, std::shared_ptr<int>> a;
         a.init<1>(rstd::clone(ptr));
-        REQUIRE(ptr.use_count() == 2);
-        REQUIRE(*a.get<1>() == 123);
-        REQUIRE(ptr.use_count() == 2);
+        assert_eq_(ptr.use_count(), 2);
+        assert_eq_(*a.get<1>(), 123);
+        assert_eq_(ptr.use_count(), 2);
         {
             std::shared_ptr<int> cptr = a.take<1>();
-            REQUIRE(*cptr == 123);
-            REQUIRE(ptr.use_count() == 2);
+            assert_eq_(*cptr, 123);
+            assert_eq_(ptr.use_count(), 2);
         }
-        REQUIRE(ptr.use_count() == 1);
+        assert_eq_(ptr.use_count(), 1);
     }
-    SECTION("Dispatch") {
+    rtest_case_(dispatch) {
         bool mask[3] = {false, false, false};
         Union<bool, int, double> a;
         a.init<1>(123);
         rstd::Dispatcher<TestDispatch, a.size()>::dispatch(1, mask);
-        REQUIRE(mask[0] == false);
-        REQUIRE(mask[1] == true);
-        REQUIRE(mask[2] == false);
+        assert_eq_(mask[0], false);
+        assert_eq_(mask[1], true);
+        assert_eq_(mask[2], false);
         a.destroy<1>();
     }
 };

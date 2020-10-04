@@ -3,5 +3,5 @@
 mkdir -p build && \
 cd build && \
 cmake .. && \
-make test_rstd && \
-./test_rstd $@
+make rstd_test && \
+./rstd_test $@
