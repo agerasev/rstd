@@ -28,7 +28,6 @@ TEST_CASE("Mutex", "[mutex]") {
     SECTION("Ping pong") {
         _Mutex m[3];
         for (int i = 0; i < 3; ++i) {
-            m[i] = _Mutex::create();
             m[i].lock();
         }
 
