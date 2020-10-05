@@ -25,6 +25,8 @@ set(TEST_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/thread.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/mutex.cpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rtest/test.cpp"
+    
     "${CMAKE_CURRENT_SOURCE_DIR}/src/lazy_static.cpp"
 )
 set(PROJECT_TEST "${PROJECT_NAME}_test")

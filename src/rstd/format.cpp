@@ -26,7 +26,7 @@ rtest_module_(format) {
     rtest_(format_no_escape) {
         assert_eq_(format_(std::string("{abc}")), "{abc}");
     }
-    rtest_case_should_panic_(wrong_format) {
+    rtest_should_panic_(wrong_format) {
         format_("}{");
         format_("}");
         format_("{");

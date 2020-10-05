@@ -50,7 +50,7 @@ public:
     } \
     void __rtest_case__##name()
 
-#define rtest_case_should_panic_(name) \
+#define rtest_should_panic_(name) \
     extern_lazy_static_(::rstd::TestRegistrar, __rtest_registrar); \
     void __rtest_case__##name(); \
     static_block_(__rtest__##name##__registrator) { \

@@ -8,6 +8,7 @@
 #include <sstream>
 #include <rstd/prelude.hpp>
 #include <lazy_static.hpp>
+#include <ansi_color.hpp>
 #include "test.hpp"
 
 
@@ -45,7 +46,16 @@ int main(int, const char *[]) {
         signal(sig, signal_handler);
     }
 
+#ifndef RTEST_BW
+    std::string result_name[2] = {
+        ansi_color("ok", AnsiColor::FG_GREEN),
+        ansi_color("FAILED", AnsiColor::FG_RED, AnsiColor::BOLD)
+    };
+#else // RTEST_BW
     std::string result_name[2] = {"ok", "FAILED"};
+#endif // RTEST_BW
+
+    println_();
     println_("running {} tests in {} threads", test_count, workers.size());
 
     rstd::Mutex<std::ostream*> log(&std::cout);
