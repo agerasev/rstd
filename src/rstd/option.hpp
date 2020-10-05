@@ -1,5 +1,6 @@
 #pragma once
 
+#include <type_traits>
 #include "tuple.hpp"
 #include "variant.hpp"
 
@@ -77,13 +78,13 @@ public:
         if (!this->is_some()) {
             panic_("Option is None");
         }
-        return this->take_some();
+        return this->_take_some();
     }
     T expect(const std::string &message) {
         if (!this->is_some()) {
             panic_("Option expect Some:\n{}", message);
         }
-        return this->take_some();
+        return this->_take_some();
     }
 
     void unwrap_none() {
@@ -97,16 +98,39 @@ public:
         }
     }
 
-    template <typename FSome, typename FNone>
-    decltype(auto) match(FSome fsome, FNone fnone) {
+    template <
+        typename FS,
+        typename FN,
+        typename US=std::invoke_result_t<FS, T &&>,
+        typename UN=std::invoke_result_t<FN>
+    >
+    std::common_type_t<US, UN> match(FS fsome, FN fnone) {
+        if (this->is_some()) {
+            return fsome(this->_take_some());
+        } else {
+            return fnone();
+        }
+    }
+    template <
+        typename FS,
+        typename FN,
+        typename US=std::invoke_result_t<FS, T &>,
+        typename UN=std::invoke_result_t<FN>
+    >
+    std::common_type_t<US, UN> match_ref(FS fsome, FN fnone) {
         if (this->is_some()) {
             return fsome(this->_get());
         } else {
             return fnone();
         }
     }
-    template <typename FSome, typename FNone>
-    decltype(auto) match(FSome fsome, FNone fnone) const {
+    template <
+        typename FS,
+        typename FN,
+        typename US=std::invoke_result_t<FS, const T &>,
+        typename UN=std::invoke_result_t<FN>
+    >
+    std::common_type_t<US, UN> match_ref(FS fsome, FN fnone) const {
         if (this->is_some()) {
             return fsome(this->_get());
         } else {
@@ -114,13 +138,89 @@ public:
         }
     }
 
-    template <typename FSome, typename FNone>
-    decltype(auto) match_take(FSome fsome, FNone fnone) {
-        if (this->is_some()) {
-            return fsome(this->_take_some());
-        } else {
-            return fnone();
-        }
+    T unwrap_or(T &&d) {
+        return this->match(
+            [](T &&x) { return std::move(x); },
+            [d]() { return std::move(d); }
+        );
+    }
+    T unwrap_or(const T &d) {
+        return this->unwrap_or(clone(d));
+    }
+    template <typename F>
+    T unwrap_or_else(F f) {
+        return this->match(
+            [](T &&x) { return std::move(x); },
+            [f]() { return f(); }
+        );
+    }
+
+    template <
+        typename F,
+        typename U=std::invoke_result_t<F, T &&>
+    >
+    Option<U> map(F f) {
+        return this->match(
+            [f](T &&x) { return Option<U>::Some(f(std::move(x))); },
+            []() { return Option<U>::None(); }
+        );
+    }
+    template <
+        typename F,
+        typename D,
+        typename U=std::invoke_result_t<F, T &&>
+    >
+    std::common_type<U, D> map_or(D &&d, F f) {
+        return this->match(
+            [f](T &&x) { return f(std::move(x)); },
+            [d]() { return std::move(d); }
+        );
+    }
+    template <typename F, typename D>
+    decltype(auto) map_or(const D &d, F f) {
+        return this->map_or(clone(d), f);
+    }
+    template <
+        typename F,
+        typename FD,
+        typename U=std::invoke_result_t<F, T &&>,
+        typename UD=std::invoke_result_t<FD>
+    >
+    std::common_type<U, UD> map_or_else(FD fd, F f) {
+        return this->match(
+            [f](T &&x) { return f(std::move(x)); },
+            [fd]() { return fd(); }
+        );
+    }
+    template <typename U>
+    Option<U> and_(Option<U> &&optb) {
+        return this->match(
+            [optb](T &&) { return std::move(optb); },
+            []() { return Option<U>::None(); }
+        );
+    }
+    template <
+        typename F,
+        typename OU=std::invoke_result_t<F, T &&>
+    >
+    OU and_then(F f) {
+        return this->match(
+            [f](T &&x) { return f(std::move(x)); },
+            []() { return OU::None(); }
+        );
+    }
+    Option or_(Option &&optb) {
+        return this->match(
+            [](T &&x) { return Option::Some(std::move(x)); },
+            [optb]() { return std::move(optb); }
+        );
+    }
+    template <typename F>
+    Option or_else(F f) {
+        return this->match(
+            [](T &&x) { return Option::Some(std::move(x)); },
+            [f]() { return f(); }
+        );
     }
 };
 

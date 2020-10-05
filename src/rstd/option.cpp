@@ -58,9 +58,9 @@ rtest_module_(option) {
         drop(a);
         assert_(a.is_none());
     }
-    rtest_(match) {
+    rtest_(match_ref) {
         auto opt = Option<int>(123);
-        bool some = opt.match(
+        bool some = opt.match_ref(
             [](int x) {
                 assert_eq_(x, 123);
                 return true;
@@ -70,15 +70,15 @@ rtest_module_(option) {
         assert_(some);
 
         opt.take();
-        some = opt.match(
+        some = opt.match_ref(
             [](int) { return true; },
             []() { return false; }
         );
         assert_(!some);
     }
-    rtest_(match_take) {
+    rtest_(match) {
         auto opt = Option<int>(321);
-        bool some = opt.match_take(
+        bool some = opt.match(
             [](int x) {
                 assert_eq_(x, 321);
                 return true;
@@ -87,11 +87,55 @@ rtest_module_(option) {
         );
         assert_(some);
 
-        some = opt.match_take(
+        some = opt.match(
             [](int) { return true; },
             []() { return false; }
         );
         assert_(!some);
+    }
+    rtest_(map) {
+        auto src = Option<double>::Some(3.1415);
+        Option<int> dst = src.map([](double x) { return int(100*x); });
+        assert_(dst.is_some());
+        assert_eq_(dst.get(), 314);
+
+        auto none = Option<>::None();
+        assert_(none.map([](auto) { return 123; }).is_none());
+    }
+    rtest_(unwrap_or) {
+        const int x = 123;
+        assert_eq_(Option<int>(321).unwrap_or(x), 321);
+        assert_eq_(Option<int>().unwrap_or(x), 123);
+    }
+    rtest_(and_) {
+        assert_eq_(Option<bool>::Some(false).and_(Option<int>::Some(123)).get(), 123);
+        assert_(Option<bool>::Some(false).and_(Option<int>::None()).is_none());
+        assert_(Option<bool>::None().and_(Option<int>::Some(123)).is_none());
+        assert_(Option<bool>::None().and_(Option<int>::None()).is_none());
+    }
+    rtest_(or_) {
+        assert_eq_(Option<int>::Some(321).or_(Option<int>::Some(123)).get(), 321);
+        assert_eq_(Option<int>::Some(321).or_(Option<int>::None()).get(), 321);
+        assert_eq_(Option<int>::None().or_(Option<int>::Some(123)).get(), 123);
+        assert_(Option<int>::None().or_(Option<int>::None()).is_none());
+    }
+    rtest_(and_then) {
+        assert_eq_(
+            (Option<double>::Some(1.23)
+            .and_then([](double x) {
+                return Option<int>::Some(int(100*x));
+            }).get()),
+            123
+        );
+    }
+    rtest_(or_else) {
+        assert_eq_(
+            (Option<int>::None()
+            .or_else([]() {
+                return Option<int>::Some(123);
+            }).get()),
+            123
+        );
     }
     rtest_(print) {
         auto a = Option<int>::Some(123);
