@@ -13,9 +13,7 @@ private:
 
 public:
     Result() = default;
-    Result(Variant<T, E> &&v) :
-        var(std::move(v))
-    {}
+    Result(Variant<T, E> &&v) : var(std::move(v)) {}
 
     Result(const Result &) = default;
     Result &operator=(const Result &) = default;
@@ -25,8 +23,8 @@ public:
 
     ~Result() {
 #ifdef DEBUG
-        if (bool(var)) {
-            panic_("Unhandled result detected");
+        if (this->is_some()) {
+            panic_("Unhandled result");
         }
 #endif // DEBUG
     }
@@ -60,12 +58,33 @@ public:
     bool is_err() const {
         return var.id() == 1;
     }
+    bool is_some() const {
+        return var.is_some();
+    }
+    bool is_none() const {
+        return var.is_none();
+    }
+    explicit operator bool() const {
+        return this->is_some();
+    }
 
+    T &_get() {
+        return this->var.template _get<0>();
+    }
+    const T &_get() const {
+        return this->var.template _get<0>();
+    }
     T &get() {
         return this->var.template get<0>();
     }
     const T &get() const {
         return this->var.template get<0>();
+    }
+    E &_get_err() {
+        return this->var.template _get<1>();
+    }
+    const E &_get_err() const {
+        return this->var.template _get<1>();
     }
     E &get_err() {
         return this->var.template get<1>();
@@ -74,9 +93,26 @@ public:
         return this->var.template get<1>();
     }
 
+    T _take_ok() {
+        return this->var.template _take<0>();
+    }
+    T take_ok() {
+        return this->var.template take<0>();
+    }
+    E _take_err() {
+        return this->var.template _take<1>();
+    }
+    E take_err() {
+        return this->var.template take<1>();
+    }
+
+    Result take() {
+        return Result(std::move(*this));
+    }
+
     T unwrap() {
         if (!this->is_ok()) {
-            panic_("Result unwrap error:\n{}", this->get_err());
+            panic_("Result unwrap:\n{}", this->get_err());
         }
         return this->var.template take<0>();
     }
@@ -88,13 +124,15 @@ public:
     }
     T expect(const std::string &message) {
         if (!this->is_ok()) {
-            panic_("Result expect error:\n{}\n{}", this->get_err(), message);
+            panic_("Result expect:\n{}\n{}", this->get_err(), message);
         }
         return this->var.template take<0>();
     }
-
-    explicit operator bool() const {
-        return bool(var);
+    T expect_err(const std::string &message) {
+        if (!this->is_ok()) {
+            panic_("Result expect_err failed:\n{}", message);
+        }
+        return this->var.template take<0>();
     }
 };
 
@@ -102,7 +140,7 @@ template <typename T, typename E>
 struct fmt::Display<Result<T, E>> {
 public:
     static void fmt(const Result<T, E> &t, std::ostream &o) {
-        assert_(bool(t));
+        assert_(t.is_some());
         if (t.is_ok()) {
             o << "Ok(";
             write_(o, t.get());
