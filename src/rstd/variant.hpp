@@ -50,7 +50,7 @@ public:
     _Variant() = default;
 
     _Variant(_Variant &&v) {
-        if (bool(v)) {
+        if (v.is_some()) {
             Dispatcher<Mover, size()>::dispatch(v.id_, this->union_, v.union_);
         }
         this->id_ = v.id_;
@@ -58,7 +58,7 @@ public:
     }
     _Variant &operator=(_Variant &&v) {
         this->try_destroy();
-        if (bool(v)) {
+        if (v.is_some()) {
             Dispatcher<Mover, size()>::dispatch(v.id_, this->union_, v.union_);
         }
         this->id_ = v.id_;
@@ -124,7 +124,7 @@ public:
     template <size_t P>
     const nth_type<P, Elems...> &get() const {
         this->assert_variant<P>();
-        return this->template get<P>();
+        return this->template _get<P>();
     }
     template <size_t P>
     nth_type<P, Elems...> &_get() {
@@ -133,7 +133,7 @@ public:
     template <size_t P>
     nth_type<P, Elems...> &get() {
         this->assert_variant<P>();
-        return this->template get<P>();
+        return this->template _get<P>();
     }
 
     template <size_t P>
