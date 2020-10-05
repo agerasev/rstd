@@ -45,6 +45,13 @@ protected:
             dst.template move_from<P>(src);
         }
     };
+    template <size_t P>
+    struct Matcher {
+        template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, Elems>...>>
+        static R call(_Union<Elems...> &u, const Fs &...funcs) {
+            return nth_arg<P, Fs...>(funcs...)(u.template take<P>());
+        }
+    };
 
 public:
     _Variant() = default;
@@ -169,6 +176,17 @@ public:
         if (this->is_some()) {
             this->_destroy();
         }
+    }
+
+    template <
+        typename ...Fs,
+        typename R=std::common_type_t<std::invoke_result_t<Fs, Elems>...>
+    >
+    R match(const Fs &...funcs) {
+        this->assert_some();
+        int id = this->id_;
+        this->id_ = size();
+        return Dispatcher<Matcher, size()>::dispatch(id, this->union_, funcs...);
     }
 };
 

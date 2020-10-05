@@ -76,4 +76,27 @@ rtest_module_(variant) {
         auto b = Variant<Tuple<>, int, bool>::create<2>(true);
         assert_eq_(b.get<2>(), true);
     }
+    rtest_(match) {
+        int p = -1;
+        auto a = Variant<bool, int, double>::create<1>(123);
+        a.match(
+            [&](bool) { p = 0; },
+            [&](int x) {
+                p = 1;
+                assert_eq_(x, 123);
+            },
+            [&](double) { p = 2; }
+        );
+        assert_eq_(p, 1);
+        
+        auto b = Variant<std::string, double, int>::create<2>(321);
+        assert_eq_(b.match(
+            [](std::string &&) { return 0; },
+            [](double) { return 1; },
+            [](int x) {
+                assert_eq_(x, 321);
+                return 2;
+            }
+        ), 2);
+    }
 }

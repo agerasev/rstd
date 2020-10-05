@@ -18,6 +18,35 @@ struct NthType<0, T, Types...> {
 template <size_t P, typename ...Types>
 using nth_type = typename NthType<P, Types...>::type;
 
+template <size_t P, typename ...Args>
+struct NthArg {};
+template <size_t P, typename T, typename ...Args>
+struct NthArg<P, T, Args...> {
+    static nth_type<P - 1, Args...> &get(const T &, Args &...args) {
+        return NthArg<P - 1, Args...>::get(args...);
+    }
+    static const nth_type<P - 1, Args...> &get(const T &, const Args &...args) {
+        return NthArg<P - 1, Args...>::get(args...);
+    }
+};
+template <typename T, typename ...Args>
+struct NthArg<0, T, Args...> {
+    static T &get(T &t, Args &...) {
+        return t;
+    }
+    static const T &get(const T &t, const Args &...) {
+        return t;
+    }
+};
+template <size_t P, typename ...Args>
+nth_type<P, Args...> &nth_arg(Args &...args) {
+    return NthArg<P, Args...>::get(args...);
+}
+template <size_t P, typename ...Args>
+const nth_type<P, Args...> &nth_arg(const Args &...args) {
+    return NthArg<P, Args...>::get(args...);
+}
+
 template <bool ...Values>
 struct Any {
     static const bool value = false;
