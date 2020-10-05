@@ -8,15 +8,24 @@
 #include <functional>
 #include <unordered_map>
 
-namespace rstd {
+namespace rtest {
 
 class TestRegistrar {
 private:
+    struct TestCase {
+        std::string name;
+        std::function<void()> func;
+        bool should_panic;
+    };
     mutable std::string section;
-    mutable std::unordered_map<std::string, std::pair<std::function<void()>, bool>> tests;
+    mutable std::vector<TestCase> tests;
 public:
     void _register(const std::string &name, std::function<void()> func, bool should_panic=false) const {
-        tests.insert(std::make_pair(section + "::" + name, std::make_pair(func, should_panic)));
+        tests.push_back(TestCase {
+            section + "::" + name,
+            func,
+            should_panic
+        });
     }
     auto begin() const {
         return tests.cbegin();
@@ -32,18 +41,18 @@ public:
     }
 };
 
-} // namespace rstd
+} // namespace rtest
 
 // FIXME: Don't use `rtest_` without `rtest_module_`
 #define rtest_module_(name) \
-    extern_lazy_static_(::rstd::TestRegistrar, __rtest_registrar); \
+    extern_lazy_static_(::rtest::TestRegistrar, __rtest_registrar); \
     static_block_(__rtest__##name##__namespacer) { \
         __rtest_registrar->set_section(#name); \
     } \
     namespace __rtest_section__##name
 
 #define rtest_(name) \
-    extern_lazy_static_(::rstd::TestRegistrar, __rtest_registrar); \
+    extern_lazy_static_(::rtest::TestRegistrar, __rtest_registrar); \
     void __rtest_case__##name(); \
     static_block_(__rtest__##name##__registrator) { \
         ::__rtest_registrar->_register(#name, __rtest_case__##name); \
@@ -51,7 +60,7 @@ public:
     void __rtest_case__##name()
 
 #define rtest_should_panic_(name) \
-    extern_lazy_static_(::rstd::TestRegistrar, __rtest_registrar); \
+    extern_lazy_static_(::rtest::TestRegistrar, __rtest_registrar); \
     void __rtest_case__##name(); \
     static_block_(__rtest__##name##__registrator) { \
         ::__rtest_registrar->_register(#name, __rtest_case__##name, true); \

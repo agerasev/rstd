@@ -12,9 +12,11 @@
 #include "test.hpp"
 
 
-lazy_static_(::rstd::TestRegistrar, __rtest_registrar) {
-    return ::rstd::TestRegistrar();
+lazy_static_(::rtest::TestRegistrar, __rtest_registrar) {
+    return ::rtest::TestRegistrar();
 }
+
+namespace rtest {
 
 static void signal_handler(int sig) {
     std::string signame;
@@ -30,6 +32,13 @@ static void signal_handler(int sig) {
     panic_("{} caught", signame);
 }
 
+struct TestResult {
+    std::string name;
+    std::string output;
+};
+
+} // namespace rtest
+
 int main(int, const char *[]) {
     int test_count = __rtest_registrar->size();
     auto b = __rtest_registrar->begin();
@@ -43,7 +52,7 @@ int main(int, const char *[]) {
 
     std::array<int, 6> sigcodes{SIGTERM, SIGSEGV, SIGINT, SIGILL, SIGABRT, SIGFPE};
     for (int sig : sigcodes) {
-        signal(sig, signal_handler);
+        signal(sig, rtest::signal_handler);
     }
 
 #ifndef RTEST_BW
@@ -59,7 +68,7 @@ int main(int, const char *[]) {
     println_("running {} tests in {} threads", test_count, workers.size());
 
     rstd::Mutex<std::ostream*> log(&std::cout);
-    rstd::Mutex<std::unordered_map<std::string, std::string>> failures_;
+    rstd::Mutex<std::vector<rtest::TestResult>> failures_;
 
     for (auto &worker : workers) {
         worker = rstd::thread::spawn(std::function<void()>([&]() {
@@ -71,26 +80,26 @@ int main(int, const char *[]) {
                 const auto &test = **i;
                 ++*i;
                 rstd::drop(i);
-                const auto &name = test.first;
-                auto &func = test.second.first;
-                bool should_panic = test.second.second;
 
                 std::stringstream output;
                 auto res = rstd::thread::Builder()
                 .stdout_(output).stderr_(output)
                 .spawn(std::function<void()>([&]() {
-                    func();
+                    test.func();
                 })).join();
                 
                 std::string rn;
-                if (res.is_ok() == !should_panic) {
+                if (res.is_ok() == !test.should_panic) {
                     rn = result_name[0];
                 } else {
                     rn = result_name[1];
-                    failures_.lock()->insert(std::make_pair(name, output.str()));
+                    failures_.lock()->push_back(rtest::TestResult {
+                        test.name,
+                        output.str()
+                    });
                 }
                 res.clear();
-                writeln_(**log.lock(), "test {} ... {}", name, rn);
+                writeln_(**log.lock(), "test {} ... {}", test.name, rn);
             }
         }));
     }
@@ -99,19 +108,19 @@ int main(int, const char *[]) {
     }
     println_();
 
-    std::unordered_map<std::string, std::string> failures = failures_.into_inner();
+    std::vector<rtest::TestResult> failures = failures_.into_inner();
     if (!failures.empty()) {
         println_("failures:");
         println_();
         for (const auto &fail : failures) {
-            println_("---- {} output ----", fail.first);
-            println_(fail.second);
+            println_("---- {} output ----", fail.name);
+            println_(fail.output);
             println_();
         }
 
         println_("failures:");
         for (const auto &fail : failures) {
-            println_("    {}", fail.first);
+            println_("    {}", fail.name);
         }
         println_();
     }
