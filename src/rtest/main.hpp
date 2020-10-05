@@ -71,7 +71,7 @@ int main(int, const char *[]) {
     rstd::Mutex<std::vector<rtest::TestResult>> failures_;
 
     for (auto &worker : workers) {
-        worker = rstd::thread::spawn(std::function<void()>([&]() {
+        worker = rstd::thread::spawn([&]() {
             for (;;) {
                 auto i = mb.lock();
                 if (*i == e) {
@@ -84,9 +84,9 @@ int main(int, const char *[]) {
                 std::stringstream output;
                 auto res = rstd::thread::Builder()
                 .stdout_(output).stderr_(output)
-                .spawn(std::function<void()>([&]() {
+                .spawn([&]() {
                     test.func();
-                })).join();
+                }).join();
                 
                 std::string rn;
                 if (res.is_ok() == !test.should_panic) {
@@ -101,7 +101,7 @@ int main(int, const char *[]) {
                 res.clear();
                 writeln_(**log.lock(), "test {} ... {}", test.name, rn);
             }
-        }));
+        });
     }
     for (auto &worker : workers) {
         worker.join().unwrap();

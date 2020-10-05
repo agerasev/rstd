@@ -2,6 +2,7 @@
 
 #include <pthread.h>
 #include <functional>
+#include <type_traits>
 #include <core/thread.hpp>
 #include "prelude.hpp"
 
@@ -107,23 +108,23 @@ public:
     }
 
 private:
-    template <typename T>
+    template <typename F, typename T>
     struct Arg {
         core::Thread info;
-        std::function<T()> main;
+        F main;
     };
 
     template <typename T>
     static void __delete(void *obj) {
         delete (T*)obj;
     }
-    template <typename T>
+    template <typename F, typename T>
     static void *__call(void *a) {
-        Arg<T> *arg = (Arg<T> *)a;
+        Arg<F, T> *arg = (Arg<F, T> *)a;
         T *ret = nullptr;
         core::thread::current() = arg->info;
 
-        pthread_cleanup_push((__delete<Arg<T>>), (void*)arg);
+        pthread_cleanup_push((__delete<Arg<F, T>>), (void*)arg);
         ret = new T((arg->main)());
         pthread_cleanup_pop(1);
 
@@ -131,36 +132,43 @@ private:
     }
 
 public:
-    template <typename T>
-    JoinHandle<T> spawn(std::function<T()> main) const {
+    template <
+        typename F,
+        typename T=std::invoke_result_t<F>,
+        typename X=std::enable_if_t<!std::is_void_v<T>, void>
+    >
+    JoinHandle<T> spawn(F main) const {
         pthread_t thread_;
-        Arg<T> *arg = new Arg<T>();
-        arg->info = info;
-        arg->main = std::move(main);
+        Arg<F, T> *arg = new Arg<F, T>{
+            info,
+            std::move(main)
+        };
 
         assert_(pthread_create(
             &thread_,
             nullptr,
-            (__call<T>),
+            (__call<F, T>),
             (void*)arg
         ) == 0);
 
         return JoinHandle<T>(thread_);
     }
 
-    inline JoinHandle<> spawn(std::function<void()> main) const {
-        return this->spawn(std::function<Tuple<>()>([main]() {
+    template <
+        typename F,
+        typename T=std::invoke_result_t<F>,
+        typename X=std::enable_if_t<std::is_void_v<T>, void>
+    >
+    inline JoinHandle<> spawn(F main) const {
+        return this->spawn([main]() {
             main();
             return Tuple<>();
-        }));
+        });
     }
 };
 
-template <typename T>
-JoinHandle<T> spawn(std::function<T()> main) {
-    return Builder().spawn(main);
-}
-inline JoinHandle<> spawn(std::function<void()> main) {
+template <typename F>
+decltype(auto) spawn(F main) {
     return Builder().spawn(main);
 }
 

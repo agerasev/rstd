@@ -8,9 +8,9 @@ using namespace rstd;
 rtest_module_(thread) {
     rtest_(run) {
         int x = 321;
-        auto jh = thread::spawn(std::function<void()>([&x]() {
+        auto jh = thread::spawn([&x]() {
             x = 123;
-        }));
+        });
         auto res = jh.join();
         assert_(res.is_ok());
         res.clear();
@@ -18,16 +18,16 @@ rtest_module_(thread) {
     }
     rtest_(input_and_output) {
         int x = 321;
-        auto jh = thread::spawn(std::function<int()>([x]() -> int {
+        auto jh = thread::spawn([x]() -> int {
             assert_eq_(x, 321);
             return 123;
-        }));
+        });
         assert_eq_(jh.join().unwrap(), 123);
     }
     rtest_(thread_panic) {
-        auto jh = thread::spawn(std::function<void()>([]() {
+        auto jh = thread::spawn([]() {
             panic_("Panic!");
-        }));
+        });
         auto res = jh.join();
         assert_(res.is_err());
         res.clear();
