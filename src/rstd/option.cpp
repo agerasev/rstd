@@ -58,6 +58,41 @@ rtest_module_(option) {
         drop(a);
         assert_(a.is_none());
     }
+    rtest_(match) {
+        auto opt = Option<int>(123);
+        bool some = opt.match(
+            [](int x) {
+                assert_eq_(x, 123);
+                return true;
+            },
+            []() { return false; }
+        );
+        assert_(some);
+
+        opt.take();
+        some = opt.match(
+            [](int) { return true; },
+            []() { return false; }
+        );
+        assert_(!some);
+    }
+    rtest_(match_take) {
+        auto opt = Option<int>(321);
+        bool some = opt.match_take(
+            [](int x) {
+                assert_eq_(x, 321);
+                return true;
+            },
+            []() { return false; }
+        );
+        assert_(some);
+
+        some = opt.match_take(
+            [](int) { return true; },
+            []() { return false; }
+        );
+        assert_(!some);
+    }
     rtest_(print) {
         auto a = Option<int>::Some(123);
         assert_eq_(format_(a), "Some(123)");

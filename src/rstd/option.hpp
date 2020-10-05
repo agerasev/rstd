@@ -97,10 +97,31 @@ public:
         }
     }
 
-    //template <typename RetT, typename FSome, typename FNone>
-    //RetT match(FSome fsome, FNone fnone) {
-    //    if ()
-    //}
+    template <typename FSome, typename FNone>
+    decltype(auto) match(FSome fsome, FNone fnone) {
+        if (this->is_some()) {
+            return fsome(this->_get());
+        } else {
+            return fnone();
+        }
+    }
+    template <typename FSome, typename FNone>
+    decltype(auto) match(FSome fsome, FNone fnone) const {
+        if (this->is_some()) {
+            return fsome(this->_get());
+        } else {
+            return fnone();
+        }
+    }
+
+    template <typename FSome, typename FNone>
+    decltype(auto) match_take(FSome fsome, FNone fnone) {
+        if (this->is_some()) {
+            return fsome(this->_take_some());
+        } else {
+            return fnone();
+        }
+    }
 };
 
 template <typename T>
