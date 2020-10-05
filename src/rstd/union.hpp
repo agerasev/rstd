@@ -4,13 +4,14 @@
 #include <cassert>
 #include "traits.hpp"
 #include "container.hpp"
+#include "assert.hpp"
 
 
 namespace rstd {
 
 // Union for types with non-trivial ctors/dtors
 template <typename ...Elems>
-class Union final {
+class _Union final {
 private:
     struct __attribute__((aligned(rstd::common_align<Elems...>))) {
         char bytes[rstd::common_size<Elems...>];
@@ -20,17 +21,17 @@ private:
 #endif // DEBUG
 
 public:
-    Union() = default;
+    _Union() = default;
 
-    Union(const Union &) = delete;
-    Union &operator=(const Union &) = delete;
+    _Union(const _Union &) = delete;
+    _Union &operator=(const _Union &) = delete;
 
-    Union(Union &&u) = delete;
-    Union &operator=(Union &&u) = delete;
+    _Union(_Union &&u) = delete;
+    _Union &operator=(_Union &&u) = delete;
 
-    ~Union() {
+    ~_Union() {
 #ifdef DEBUG
-        assert(!this->stored_);
+        assert_(!this->stored_);
 #endif // DEBUG
     }
 
@@ -46,7 +47,7 @@ public:
     template <size_t P>
     void put(nth_type<P, Elems...> &&x) {
 #ifdef DEBUG
-        assert(!this->stored_);
+        assert_(!this->stored_);
         this->stored_ = true;
 #endif // DEBUG
         new (reinterpret_cast<nth_type<P, Elems...> *>(&this->data))
@@ -61,14 +62,14 @@ public:
     template <size_t P>
     const nth_type<P, Elems...> &get() const {
 #ifdef DEBUG
-        assert(this->stored_);
+        assert_(this->stored_);
 #endif // DEBUG
         return *reinterpret_cast<const nth_type<P, Elems...> *>(&this->data);
     }
     template <size_t P>
     nth_type<P, Elems...> &get() {
 #ifdef DEBUG
-        assert(this->stored_);
+        assert_(this->stored_);
 #endif // DEBUG
         return *reinterpret_cast<nth_type<P, Elems...> *>(&this->data);
     }
@@ -86,7 +87,7 @@ public:
     template <size_t P>
     nth_type<P, Elems...> take() {
 #ifdef DEBUG
-        assert(this->stored_);
+        assert_(this->stored_);
         this->stored_ = false;
 #endif // DEBUG
         typedef nth_type<P, Elems...> T;
@@ -101,7 +102,7 @@ public:
     }
 
     template <size_t P>
-    void move_from(Union &u) {
+    void move_from(_Union &u) {
         this->template put<P>(u.template take<P>());
     }
 };

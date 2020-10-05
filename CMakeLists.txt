@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(rstd VERSION 0.2.0 DESCRIPTION "Rust-like types and routines for C++17")
 
 set(CMAKE_C_FLAGS "-g -Wall -Wextra")
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++17") #-fno-exceptions
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++17 -fno-exceptions")
 include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )

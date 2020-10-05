@@ -12,7 +12,10 @@ private:
     Variant<T> var;
 
 public:
-    Option() : Option(Variant<T>()) {}
+    Option() = default;
+    Option(Variant<T> &&v) : var(std::move(v)) {}
+    Option(T &&x) : Option(Variant<T>::template create<0>(std::move(x))) {}
+    Option(const T &x) : Option(Variant<T>::template create<0>(x)) {}
 
     Option(const Option &) = default;
     Option &operator=(const Option &) = default;
@@ -22,11 +25,6 @@ public:
 
     ~Option() = default;
 
-private:
-    Option(Variant<T> &&v) :
-        var(std::move(v))
-    {}
-
     const Variant<T> &as_variant() const {
         return var;
     }
@@ -34,24 +32,29 @@ private:
         return var;
     }
 
-public:
     static Option None() {
         return Option();
     }
     static Option Some(T &&x) {
-        return Option(Variant<T>::template create<0>(std::move(x)));
+        return Option(std::move(x));
     }
     static Option Some(const T &x) {
-        return Option(Variant<T>::template create<0>(x));
+        return Option(x);
     }
 
     bool is_some() const {
-        return var.id() == 0;
+        return var.is_some();
     }
     bool is_none() const {
-        return var.id() == 1;
+        return var.is_none();
     }
 
+    T &_get() {
+        return this->var.template _get<0>();
+    }
+    const T &_get() const {
+        return this->var.template _get<0>();
+    }
     T &get() {
         return this->var.template get<0>();
     }
@@ -59,17 +62,15 @@ public:
         return this->var.template get<0>();
     }
 
-private:
+    T _take_some() {
+        return this->var.template _take<0>();
+    }
     T take_some() {
-#ifdef DEBUG
-        assert_(this->is_some());
-#endif // DEBUG
         return this->var.template take<0>();
     }
 
-public:
     Option take() {
-        return Option<T>(std::move(var));
+        return Option(std::move(*this));
     }
 
     T unwrap() {
