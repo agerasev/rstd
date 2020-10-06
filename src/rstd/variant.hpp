@@ -175,21 +175,21 @@ protected:
     template <size_t P>
     struct Matcher {
         template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, Elems>...>>
-        static R call(_Union<Elems...> &u, const Fs &...funcs) {
+        static R call(_Union<Elems...> &u, Fs ...funcs) {
             return nth_arg<P, Fs...>(funcs...)(u.template take<P>());
         }
     };
     template <size_t P>
     struct MatcherRef {
         template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &>...>>
-        static R call(_Union<Elems...> &u, const Fs &...funcs) {
+        static R call(_Union<Elems...> &u, Fs ...funcs) {
             return nth_arg<P, Fs...>(funcs...)(u.template get<P>());
         }
     };
     template <size_t P>
     struct MatcherRefConst {
         template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, const Elems &>...>>
-        static R call(const _Union<Elems...> &u, const Fs &...funcs) {
+        static R call(const _Union<Elems...> &u, Fs ...funcs) {
             return nth_arg<P, Fs...>(funcs...)(u.template get<P>());
         }
     };
@@ -197,7 +197,7 @@ protected:
 public:
     template <
         typename ...Fs,
-        typename R=std::common_type_t<std::invoke_result_t<Fs, Elems>...>
+        typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &&>...>
     >
     R match(Fs ...funcs) {
         this->assert_some();
@@ -209,7 +209,7 @@ public:
         typename ...Fs,
         typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &>...>
     >
-    R match_ref(const Fs &...funcs) {
+    R match_ref(Fs ...funcs) {
         this->assert_some();
         return Dispatcher<MatcherRef, size()>::dispatch(this->id_, this->union_, funcs...);
     }
@@ -217,7 +217,7 @@ public:
         typename ...Fs,
         typename R=std::common_type_t<std::invoke_result_t<Fs, const Elems &>...>
     >
-    R match_ref(const Fs &...funcs) const {
+    R match_ref(Fs ...funcs) const {
         this->assert_some();
         return Dispatcher<MatcherRefConst, size()>::dispatch(this->id_, this->union_, funcs...);
     }

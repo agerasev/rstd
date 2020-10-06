@@ -193,10 +193,13 @@ public:
         );
     }
     template <typename U>
-    Option<U> and_(Option<U> &&optb) {
+    Option<U> and_(Option<U> &&opt) {
         return this->match(
-            [optb](T &&) { return std::move(optb); },
-            []() { return Option<U>::None(); }
+            [&](T &&) { return std::move(opt); },
+            [&]() {
+                drop(opt);
+                return Option<U>::None();
+            }
         );
     }
     template <
@@ -209,10 +212,13 @@ public:
             []() { return OU::None(); }
         );
     }
-    Option or_(Option &&optb) {
+    Option or_(Option &&opt) {
         return this->match(
-            [](T &&x) { return Option::Some(std::move(x)); },
-            [optb]() { return std::move(optb); }
+            [&](T &&x) {
+                drop(opt);
+                return Option::Some(std::move(x));
+            },
+            [&]() { return std::move(opt); }
         );
     }
     template <typename F>

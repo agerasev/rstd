@@ -2,6 +2,7 @@
 
 #include "tuple.hpp"
 #include "variant.hpp"
+#include "option.hpp"
 
 
 namespace rstd {
@@ -24,7 +25,7 @@ public:
     ~Result() {
 #ifdef DEBUG
         if (this->is_some()) {
-            panic_("Unhandled result");
+            panic_("Unhandled Result");
         }
 #endif // DEBUG
     }
@@ -133,6 +134,134 @@ public:
             panic_("Result expect_err failed:\n{}", message);
         }
         return this->var.template take<0>();
+    }
+
+    template <typename FT, typename FE>
+    decltype(auto) match(FT fok, FE ferr) {
+        return this->var.match(fok, ferr);
+    }
+    template <typename FT, typename FE>
+    decltype(auto) match_ref(FT fok, FE ferr) {
+        return this->var.match_ref(fok, ferr);
+    }
+    template <typename FT, typename FE>
+    decltype(auto) match_ref(FT fok, FE ferr) const {
+        return this->var.match_ref(fok, ferr);
+    }
+
+    Option<T> ok() {
+        return this->match(
+            [](T &&t) { return Option<T>::Some(t); },
+            [](E &&) { return Option<T>::None(); }
+        );
+    }
+    Option<E> err() {
+        return this->match(
+            [](T &&) { return Option<E>::None(); },
+            [](E &&e) { return Option<E>::Some(e); }
+        );
+    }
+
+    template <
+        typename F,
+        typename U=std::invoke_result_t<F, T &&>
+    >
+    Result<U, E> map(F f) {
+        return this->match(
+            [f](T &&x) { return Result<U, E>::Ok(f(std::move(x))); },
+            [](E &&e) { return Result<U, E>::Err(e); }
+        );
+    }
+    template <
+        typename F,
+        typename D,
+        typename U=std::invoke_result_t<F, T &&>
+    >
+    std::common_type<U, D> map_or(D &&d, F f) {
+        return this->match(
+            [f](T &&x) { return f(std::move(x)); },
+            [d](E &&) { return std::move(d); }
+        );
+    }
+    template <typename F, typename D>
+    decltype(auto) map_or(const D &d, F f) {
+        return this->map_or(clone(d), f);
+    }
+    template <
+        typename F,
+        typename FD,
+        typename U=std::invoke_result_t<F, T &&>,
+        typename UD=std::invoke_result_t<FD>
+    >
+    std::common_type<U, UD> map_or_else(FD fd, F f) {
+        return this->match(
+            [f](T &&x) { return f(std::move(x)); },
+            [fd](E &&) { return fd(); }
+        );
+    }
+    template <
+        typename F,
+        typename U=std::invoke_result_t<F, E &&>
+    >
+    Result<T, U> map_err(F f) {
+        return this->match(
+            [](T &&t) { return Result<U, E>::Ok(t); },
+            [f](E &&e) { return Result<U, E>::Err(f(std::move(e))); }
+        );
+    }
+
+    template <typename U>
+    Result<U, E> and_(Result<U, E> &&res) {
+        return this->match(
+            [&](T &&) { return std::move(res); },
+            [&](E &&e) {
+                res.clear();
+                return Result<U, E>::Err(e);
+            }
+        );
+    }
+    template <
+        typename F,
+        typename RU=std::invoke_result_t<F, T &&>
+    >
+    RU and_then(F f) {
+        return this->match(
+            [f](T &&x) { return f(std::move(x)); },
+            [](E &&e) { return RU::Err(e); }
+        );
+    }
+    Result or_(Result &&res) {
+        return this->match(
+            [&](T &&x) {
+                res.clear();
+                return Result::Ok(std::move(x)); 
+            },
+            [&](E &&) { return std::move(res); }
+        );
+    }
+    template <typename F>
+    Result or_else(F f) {
+        return this->match(
+            [](T &&x) { return Result::Ok(std::move(x)); },
+            [f](E &&) { return f(); }
+        );
+    }
+
+    T unwrap_or(T &&d) {
+        return this->match(
+            [](T &&x) { return std::move(x); },
+            [d](E &&) { return std::move(d); }
+        );
+    }
+    T unwrap_or(const T &d) {
+        return this->unwrap_or(clone(d));
+    }
+    template <typename F>
+    T unwrap_or_else(F f) {
+        return this->match(
+            [](T &&x) { return std::move(x); },
+            [f](E &&) { return f(); }
+        );
     }
 };
 

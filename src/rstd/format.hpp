@@ -23,6 +23,22 @@ void display(std::ostream &o, const T &t) {
     fmt::Display<T>::fmt(t, o);
 }
 
+//template<typename T>
+//struct IsDisplay {
+//private:
+//    template<typename TT>
+//    static auto test(int)
+//    -> decltype( std::declval<std::ostream &>() << std::declval<TT>(), std::true_type() );
+//
+//    template<typename, typename>
+//    static auto test(...) -> std::false_type;
+//
+//public:
+//    static const bool value = decltype(test<T>(0))::value;
+//};
+//template <typename T>
+//inline constexpr bool is_display = IsDisplay<T>::value;
+
 } // namespace fmt
 
 class FmtRes {
