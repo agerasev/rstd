@@ -142,11 +142,11 @@ public:
     explicit Mutex(T &&v) : value(std::move(v)) {}
     ~Mutex() = default;
 
-    Guard lock() {
+    Guard lock() const {
         mutex.lock();
         return Guard(*this);
     }
-    Result<Guard> try_lock() {
+    Result<Guard> try_lock() const {
         if (mutex.try_lock()) {
             return Result<Guard>::Ok(Guard(*this));
         } else {
