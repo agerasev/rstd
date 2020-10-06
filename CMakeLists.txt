@@ -11,8 +11,6 @@ set(SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core/thread.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core/panic.cpp"
 )
-
-enable_testing()
 set(TEST_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/format.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/assert.cpp"
@@ -29,6 +27,11 @@ set(TEST_SOURCE
     
     "${CMAKE_CURRENT_SOURCE_DIR}/src/lazy_static.cpp"
 )
+
+add_library(${PROJECT_NAME} OBJECT ${SOURCE})
+target_link_libraries(${PROJECT_NAME} "pthread")
+
+enable_testing()
 set(PROJECT_TEST "${PROJECT_NAME}_test")
 add_executable("${PROJECT_TEST}"
     ${SOURCE}
