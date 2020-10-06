@@ -88,6 +88,7 @@ rtest_module_(variant) {
             [&](double) { p = 2; }
         );
         assert_eq_(p, 1);
+        assert_(a.is_none());
         
         auto b = Variant<std::string, double, int>::create<2>(321);
         assert_eq_(b.match(
@@ -98,5 +99,22 @@ rtest_module_(variant) {
                 return 2;
             }
         ), 2);
+        assert_(b.is_none());
+    }
+    rtest_(match_ref) {
+        int p = -1;
+        auto a = Variant<bool, int, double>::create<1>(123);
+        a.match_ref(
+            [&](bool&) { p = 0; },
+            [&](int &x) {
+                p = 1;
+                assert_eq_(x, 123);
+                x = 321;
+            },
+            [&](double&) { p = 2; }
+        );
+        assert_eq_(p, 1);
+        assert_(a.is_some());
+        assert_eq_(a.template get<1>(), 321);
     }
 }

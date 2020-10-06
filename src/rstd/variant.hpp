@@ -45,13 +45,6 @@ protected:
             dst.template move_from<P>(src);
         }
     };
-    template <size_t P>
-    struct Matcher {
-        template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, Elems>...>>
-        static R call(_Union<Elems...> &u, const Fs &...funcs) {
-            return nth_arg<P, Fs...>(funcs...)(u.template take<P>());
-        }
-    };
 
 public:
     _Variant() = default;
@@ -178,15 +171,55 @@ public:
         }
     }
 
+protected:
+    template <size_t P>
+    struct Matcher {
+        template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, Elems>...>>
+        static R call(_Union<Elems...> &u, const Fs &...funcs) {
+            return nth_arg<P, Fs...>(funcs...)(u.template take<P>());
+        }
+    };
+    template <size_t P>
+    struct MatcherRef {
+        template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &>...>>
+        static R call(_Union<Elems...> &u, const Fs &...funcs) {
+            return nth_arg<P, Fs...>(funcs...)(u.template get<P>());
+        }
+    };
+    template <size_t P>
+    struct MatcherRefConst {
+        template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, const Elems &>...>>
+        static R call(const _Union<Elems...> &u, const Fs &...funcs) {
+            return nth_arg<P, Fs...>(funcs...)(u.template get<P>());
+        }
+    };
+
+public:
     template <
         typename ...Fs,
         typename R=std::common_type_t<std::invoke_result_t<Fs, Elems>...>
     >
-    R match(const Fs &...funcs) {
+    R match(Fs ...funcs) {
         this->assert_some();
         int id = this->id_;
         this->id_ = size();
         return Dispatcher<Matcher, size()>::dispatch(id, this->union_, funcs...);
+    }
+    template <
+        typename ...Fs,
+        typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &>...>
+    >
+    R match_ref(const Fs &...funcs) {
+        this->assert_some();
+        return Dispatcher<MatcherRef, size()>::dispatch(this->id_, this->union_, funcs...);
+    }
+    template <
+        typename ...Fs,
+        typename R=std::common_type_t<std::invoke_result_t<Fs, const Elems &>...>
+    >
+    R match_ref(const Fs &...funcs) const {
+        this->assert_some();
+        return Dispatcher<MatcherRefConst, size()>::dispatch(this->id_, this->union_, funcs...);
     }
 };
 
