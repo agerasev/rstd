@@ -14,8 +14,8 @@ private:
 
 public:
     Box() = default;
-    Box(T &&v) : base(new T(std::move(v))) {}
-    Box(const T &v) : base(new T(v)) {}
+    explicit Box(T &&v) : base(new T(std::move(v))) {}
+    explicit Box(const T &v) : base(new T(v)) {}
     ~Box() = default;
 
     Box(Box &&) = default;

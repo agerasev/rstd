@@ -27,7 +27,7 @@ public:
     JoinHandle() : thread_(Option<pthread_t>::None()) {}
 
 private:
-    JoinHandle(pthread_t thread_) : thread_(Option<pthread_t>::Some(thread_)) {}
+    explicit JoinHandle(pthread_t thread_) : thread_(Option<pthread_t>::Some(thread_)) {}
 
 public:
     JoinHandle(const JoinHandle &) = delete;
@@ -73,6 +73,7 @@ private:
 
 public:
     Builder() : info(core::thread::current()) {}
+    
     void set_stdin(std::istream &stream) {
         this->info.stdio.in = &stream;
     }

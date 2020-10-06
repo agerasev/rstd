@@ -14,8 +14,8 @@ private:
 
 public:
     Rc() = default;
-    Rc(T &&v) : base(new T(std::move(v))) {}
-    Rc(const T &v) : base(new T(v)) {}
+    explicit Rc(T &&v) : base(new T(std::move(v))) {}
+    explicit Rc(const T &v) : base(new T(v)) {}
     ~Rc() = default;
 
     Rc(Rc &&) = default;

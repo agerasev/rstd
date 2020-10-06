@@ -87,7 +87,7 @@ public:
 
     public:
         Guard() = default;
-        Guard(const Mutex &m) : origin(Option<const Mutex *>::Some(&m)) {}
+        explicit Guard(const Mutex &m) : origin(Option<const Mutex *>::Some(&m)) {}
 
         Guard(Guard &&) = default;
         Guard &operator=(Guard &&other) {
@@ -139,7 +139,7 @@ private:
 
 public:
     Mutex() = default;
-    Mutex(T &&v) : value(std::move(v)) {}
+    explicit Mutex(T &&v) : value(std::move(v)) {}
     ~Mutex() = default;
 
     Guard lock() {

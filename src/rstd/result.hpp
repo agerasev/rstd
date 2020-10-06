@@ -14,7 +14,7 @@ private:
 
 public:
     Result() = default;
-    Result(Variant<T, E> &&v) : var(std::move(v)) {}
+    explicit Result(Variant<T, E> &&v) : var(std::move(v)) {}
 
     Result(const Result &) = default;
     Result &operator=(const Result &) = default;

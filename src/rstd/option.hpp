@@ -14,9 +14,9 @@ private:
 
 public:
     Option() = default;
-    Option(Variant<T> &&v) : var(std::move(v)) {}
-    Option(T &&x) : Option(Variant<T>::template create<0>(std::move(x))) {}
-    Option(const T &x) : Option(Variant<T>::template create<0>(x)) {}
+    explicit Option(Variant<T> &&v) : var(std::move(v)) {}
+    explicit Option(T &&x) : Option(Variant<T>::template create<0>(std::move(x))) {}
+    explicit Option(const T &x) : Option(Variant<T>::template create<0>(x)) {}
 
     Option(const Option &) = default;
     Option &operator=(const Option &) = default;
