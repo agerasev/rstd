@@ -12,6 +12,7 @@ class Thread {
 public:
     rcore::StdIo stdio;
     std::function<void(const std::string &)> panic_hook;
+    bool is_main = true;
 };
 
 template <typename T, void (*FO)(), T (*FT)()>

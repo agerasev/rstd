@@ -1,5 +1,6 @@
 #include "panic.hpp"
 
+#include <cstdlib>
 #include <pthread.h>
 #include <iostream>
 #include "io.hpp"
@@ -27,5 +28,9 @@ std::function<void(const std::string &)> rcore::panic_hook() {
 // FIXME: Print call stack trace
 [[ noreturn ]] void rcore::panic(const std::string &message) {
     panic_hook()(message);
-    pthread_exit(nullptr);
+    if (!thread::current().is_main) {
+        pthread_exit(nullptr);
+    } else {
+        exit(1);
+    }
 }

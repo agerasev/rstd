@@ -72,7 +72,9 @@ private:
     rcore::Thread info;
 
 public:
-    Builder() : info(rcore::thread::current()) {}
+    Builder() : info(rcore::thread::current()) {
+        info.is_main = false;
+    }
     
     void set_stdin(std::istream &stream) {
         this->info.stdio.in = &stream;
