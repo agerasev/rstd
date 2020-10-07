@@ -1,69 +1,84 @@
 #pragma once
 
+#include <pthread.h>
+#include <core/once.hpp>
 #include <rstd/prelude.hpp>
-#include <atomic>
-#include <type_traits>
 
-namespace rstd {
 
-// FIXME: In C++20 atomic pointer is not POD
-static_assert(std::is_pod<std::atomic<const void *>>::value);
-
-template <typename T, T (*F)()>
+template <typename T, void(*F)()>
 class LazyStatic {
 private:
-    std::atomic<const T *> content;
+    core::Once once;
+    const T *content = nullptr;
+
+public:
+    void __init(T &&x) {
+        assert_(content == nullptr);
+        content = new T(std::move(x));
+    }
+    void __clear() {
+        if (content != nullptr) {
+            delete content;
+            content = nullptr;
+        }
+    }
 
 public:
     LazyStatic() = default;
     ~LazyStatic() = default;
 
+    LazyStatic(const LazyStatic &) = delete;
+    LazyStatic &operator=(const LazyStatic &) = delete;
+
     const T &operator*() {
-        const T *ptr = content.load(std::memory_order_acquire);
-        if (ptr == nullptr) {
-            ptr = new T(F());
-            content.store(ptr, std::memory_order_release);
-        }
-        return *ptr;
+        once.call_once(F);
+        return *content;
     }
     const T *operator->() {
         return &this->operator*();
     }
-
-    void _clear() {
-        const T *ptr = content.load(std::memory_order_acquire);
-        if (ptr != nullptr) {
-            content.store(nullptr, std::memory_order_release);
-            delete ptr;
-        }
-    }
 };
 
-static_assert(std::is_pod<LazyStatic<int, nullptr>>::value);
+// FIXME: Make LazyStatic to be a POD
+//static_assert(std::is_pod<LazyStatic<int, nullptr>>::value);
 
-} // namespace rstd
 
-
-#define static_block_(name) \
-    struct __static_block__##name##__struct { \
+#define __static_block_(prefix, name) \
+    prefix struct __static_block__##name##__struct { \
         __static_block__##name##__struct(); \
     } __static_block__##name##__instance; \
     __static_block__##name##__struct::__static_block__##name##__struct()
 
-#define static_atexit_(name) \
-    struct __static_atexit__##name##__struct { \
+#define __static_atexit_(prefix, name) \
+    prefix struct __static_atexit__##name##__struct { \
         ~__static_atexit__##name##__struct(); \
     } __static_atexit__##name##__instance; \
     __static_atexit__##name##__struct::~__static_atexit__##name##__struct()
 
-#define lazy_static_(Type, name) \
-    Type __##name##__create(); \
-    ::rstd::LazyStatic<Type, __##name##__create> name; \
-    static_atexit_(name##__destroyer) { \
-        name._clear(); \
+#define static_block_(name) \
+    __static_block_(, name)
+
+#define static_atexit_(name) \
+    __static_atexit_(, name)
+
+#define __lazy_static_(prefix, Type, name) \
+    prefix Type __##name##__create(); \
+    prefix void __##name##__init(); \
+    prefix ::LazyStatic<Type, __##name##__init> name; \
+    prefix void __##name##__init() { \
+        name.__init(__##name##__create()); \
     } \
-    Type __##name##__create()
+    __static_atexit_(prefix, name##__destroyer) { \
+        name.__clear(); \
+    } \
+    prefix Type __##name##__create()
+
+#define lazy_static_(Type, name) \
+    __lazy_static_(, Type, name) \
+
+#define static_lazy_static_(Type, name) \
+    __lazy_static_(static, Type, name) \
 
 #define extern_lazy_static_(Type, name) \
-    extern Type __##name##__create(); \
-    extern ::rstd::LazyStatic<Type, __##name##__create> name
+    extern void __##name##__init(); \
+    extern ::LazyStatic<Type, __##name##__init> name
