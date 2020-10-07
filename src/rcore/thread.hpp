@@ -6,18 +6,18 @@
 #include "io.hpp"
 
 
-namespace core {
+namespace rcore {
 
 class Thread {
 public:
-    core::StdIo stdio;
+    rcore::StdIo stdio;
     std::function<void(const std::string &)> panic_hook;
 };
 
 template <typename T, void (*FO)(), T (*FT)()>
 class ThreadLocal {
 private:
-    core::Once once;
+    rcore::Once once;
     pthread_key_t key;
 
 public:
@@ -56,13 +56,13 @@ Thread &current();
 
 } // namespace thread
 
-} // namespace core
+} // namespace rcore
 
 
 #define __thread_local_(prefix, Type, name) \
     prefix void __##name##__init(); \
     prefix Type __##name##__create(); \
-    prefix ::core::ThreadLocal<Type, __##name##__init, __##name##__create> name; \
+    prefix ::rcore::ThreadLocal<Type, __##name##__init, __##name##__create> name; \
     prefix void __##name##__init() { \
         name.__init(); \
     } \
@@ -77,5 +77,5 @@ Thread &current();
 #define extern_thread_local_(Type, name) \
     extern void __##name##__init(); \
     extern Type __##name##__create(); \
-    extern ::core::ThreadLocal<Type, __##name##__init, __##name##__create> name
+    extern ::rcore::ThreadLocal<Type, __##name##__init, __##name##__create> name
 

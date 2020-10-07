@@ -6,7 +6,7 @@
 #include "thread.hpp"
 
 
-using namespace core;
+using namespace rcore;
 
 static void default_panic_hook(const std::string &message) {
     stderr_()
@@ -15,7 +15,7 @@ static void default_panic_hook(const std::string &message) {
     << message << std::endl;
 }
 
-std::function<void(const std::string &)> core::panic_hook() {
+std::function<void(const std::string &)> rcore::panic_hook() {
     auto hook = thread::current().panic_hook;
     if (hook) {
         return hook;
@@ -25,7 +25,7 @@ std::function<void(const std::string &)> core::panic_hook() {
 }
 
 // FIXME: Print call stack trace
-[[ noreturn ]] void core::panic(const std::string &message) {
+[[ noreturn ]] void rcore::panic(const std::string &message) {
     panic_hook()(message);
     pthread_exit(nullptr);
 }

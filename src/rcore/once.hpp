@@ -3,7 +3,7 @@
 #include <pthread.h>
 
 
-namespace core {
+namespace rcore {
 
 class Once {
 private:

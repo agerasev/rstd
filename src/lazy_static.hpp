@@ -1,14 +1,14 @@
 #pragma once
 
 #include <pthread.h>
-#include <core/once.hpp>
+#include <rcore/once.hpp>
 #include <rstd/prelude.hpp>
 
 
 template <typename T, void(*F)()>
 class LazyStatic {
 private:
-    core::Once once;
+    rcore::Once once;
     const T *content = nullptr;
 
 public:

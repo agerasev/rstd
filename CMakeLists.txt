@@ -7,9 +7,9 @@ include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 set(SOURCE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/io.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/thread.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/panic.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rcore/io.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rcore/thread.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rcore/panic.cpp"
 )
 set(TEST_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/format.cpp"
@@ -23,9 +23,9 @@ set(TEST_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/thread.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/mutex.cpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/rtest/test.cpp"
-    
     "${CMAKE_CURRENT_SOURCE_DIR}/src/lazy_static.cpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rtest/test.cpp"
 )
 
 add_library(${PROJECT_NAME} OBJECT ${SOURCE})

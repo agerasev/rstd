@@ -3,8 +3,8 @@
 #include <iostream>
 #include <sstream>
 
-#include <core/io.hpp>
-#include <core/panic.hpp>
+#include <rcore/io.hpp>
+#include <rcore/panic.hpp>
 #include "macros.hpp"
 
 
@@ -154,7 +154,7 @@ void write(std::ostream &o, const char (&fstr)[N], const Args &...args) {
     if (res.type == FmtRes::OK){
         return;
     }
-    core::panic("Format error: " + res.message());
+    rcore::panic("Format error: " + res.message());
 }
 
 template <typename ...Args>
@@ -173,29 +173,29 @@ std::string format(const Args &...args) {
 
 template <typename ...Args>
 void print(const Args &...args) {
-    write(core::stdout_(), args...);
+    write(rcore::stdout_(), args...);
 }
 
 template <typename ...Args>
 void println(const Args &...args) {
     print(args...);
-    core::stdout_() << std::endl;
+    rcore::stdout_() << std::endl;
 }
 
 template <typename ...Args>
 void eprint(const Args &...args) {
-    write(core::stderr_(), args...);
+    write(rcore::stderr_(), args...);
 }
 
 template <typename ...Args>
 void eprintln(const Args &...args) {
     eprint(args...);
-    core::stderr_() << std::endl;
+    rcore::stderr_() << std::endl;
 }
 
 template <typename ...Args>
 void panic(const Args &...args) {
-    core::panic(format(args...));
+    rcore::panic(format(args...));
 }
 
 } // namespace rstd

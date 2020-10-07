@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-namespace core {
+namespace rcore {
 
 class StdIo {
 public:
@@ -16,4 +16,4 @@ std::istream &stdin_();
 std::ostream &stdout_();
 std::ostream &stderr_();
 
-} // namespace core
+} // namespace rcore

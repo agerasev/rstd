@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <functional>
 #include <type_traits>
-#include <core/thread.hpp>
+#include <rcore/thread.hpp>
 #include "prelude.hpp"
 
 
@@ -69,10 +69,10 @@ namespace thread {
 
 class Builder final {
 private:
-    core::Thread info;
+    rcore::Thread info;
 
 public:
-    Builder() : info(core::thread::current()) {}
+    Builder() : info(rcore::thread::current()) {}
     
     void set_stdin(std::istream &stream) {
         this->info.stdio.in = &stream;
@@ -111,7 +111,7 @@ public:
 private:
     template <typename F, typename T>
     struct Arg {
-        core::Thread info;
+        rcore::Thread info;
         F main;
     };
 
@@ -123,7 +123,7 @@ private:
     static void *__call(void *a) {
         Arg<F, T> *arg = (Arg<F, T> *)a;
         T *ret = nullptr;
-        core::thread::current() = arg->info;
+        rcore::thread::current() = arg->info;
 
         pthread_cleanup_push((__delete<Arg<F, T>>), (void*)arg);
         ret = new T((arg->main)());

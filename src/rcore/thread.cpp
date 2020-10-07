@@ -3,7 +3,7 @@
 #include <pthread.h>
 
 
-using namespace core;
+using namespace rcore;
 
 static_thread_local_(Thread, current_thread) {
     return Thread();

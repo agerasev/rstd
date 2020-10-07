@@ -3,9 +3,9 @@
 #include "thread.hpp"
 
 
-using namespace core;
+using namespace rcore;
 
-std::istream &core::stdin_() {
+std::istream &rcore::stdin_() {
     Thread &ct = thread::current();
     if (ct.stdio.in != nullptr) {
         return *ct.stdio.in;
@@ -13,7 +13,7 @@ std::istream &core::stdin_() {
         return std::cin;
     }
 }
-std::ostream &core::stdout_() {
+std::ostream &rcore::stdout_() {
     Thread &ct = thread::current();
     if (ct.stdio.out != nullptr) {
         return *ct.stdio.out;
@@ -21,7 +21,7 @@ std::ostream &core::stdout_() {
         return std::cout;
     }
 }
-std::ostream &core::stderr_() {
+std::ostream &rcore::stderr_() {
     Thread &ct = thread::current();
     if (ct.stdio.err != nullptr) {
         return *ct.stdio.err;
