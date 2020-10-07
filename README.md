@@ -84,7 +84,7 @@ using namespace rstd;
 
 rtest_module_(my_test) {
     rtest_(dummy) {
-        
+
     }
     rtest_should_panic_(panic) {
         panic_("Panic!");
@@ -99,4 +99,8 @@ And include the following header in your single main `.cpp` file:
 
 ```cpp
 #include <rtest/main.hpp>
+
+int main(int argc, char *argv[]) {
+    return rtest::main(argc, argv);
+}
 ```

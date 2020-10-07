@@ -2,7 +2,7 @@
 
 #include <csignal>
 #include <vector>
-#include <array>
+#include <map>
 #include <thread>
 #include <functional>
 #include <sstream>
@@ -18,28 +18,42 @@ lazy_static_(::rtest::TestRegistrar, __rtest_registrar) {
 
 namespace rtest {
 
-static void signal_handler(int sig) {
+namespace __main {
+
+#define __rtest_sigpair(sig) \
+    std::make_pair(sig, #sig)
+
+typedef std::map<int, std::string> SigMap;
+static_lazy_static_(SigMap, signals) {
+    return SigMap{
+        __rtest_sigpair(SIGTERM),
+        __rtest_sigpair(SIGSEGV),
+        __rtest_sigpair(SIGINT),
+        __rtest_sigpair(SIGILL),
+        __rtest_sigpair(SIGABRT),
+        __rtest_sigpair(SIGFPE)
+    };
+}
+
+void signal_handler(int sig) {
     std::string signame;
-    switch (sig) {
-        case SIGTERM: signame = "SIGTERM"; break;
-        case SIGSEGV: signame = "SIGSEGV"; break;
-        case SIGINT: signame = "SIGINT"; break;
-        case SIGILL: signame = "SIGILL"; break;
-        case SIGABRT: signame = "SIGABRT"; break;
-        case SIGFPE: signame = "SIGFPE"; break;
-        default: signame = "Unknown signal"; break;
+    auto entry = signals->find(sig);
+    if (entry != signals->end()) {
+        signame = entry->second;
+    } else {
+        signame = format_("Unknown signal {}", sig);
     }
     panic_("{} caught", signame);
 }
+
+} // namespace __main
 
 struct TestResult {
     std::string name;
     std::string output;
 };
 
-} // namespace rtest
-
-int main(int, const char *[]) {
+int main(int, const char * const *) {
     int test_count = __rtest_registrar->size();
     auto b = __rtest_registrar->begin();
     auto e = __rtest_registrar->end();
@@ -49,11 +63,6 @@ int main(int, const char *[]) {
         std::thread::hardware_concurrency(),
         unsigned(test_count)
     ));
-
-    std::array<int, 6> sigcodes{SIGTERM, SIGSEGV, SIGINT, SIGILL, SIGABRT, SIGFPE};
-    for (int sig : sigcodes) {
-        signal(sig, rtest::signal_handler);
-    }
 
 #ifndef RTEST_BW
     std::string result_name[2] = {
@@ -68,8 +77,11 @@ int main(int, const char *[]) {
     println_("running {} tests in {} threads", test_count, workers.size());
 
     rstd::Mutex<std::ostream*> log(&std::cout);
-    rstd::Mutex<std::vector<rtest::TestResult>> failures_;
+    rstd::Mutex<std::vector<TestResult>> failures_;
 
+    for (auto sig : *__main::signals) {
+        signal(sig.first, __main::signal_handler);
+    }
     for (auto &worker : workers) {
         worker = rstd::thread::spawn([&]() {
             for (;;) {
@@ -106,6 +118,9 @@ int main(int, const char *[]) {
     for (auto &worker : workers) {
         worker.join().unwrap();
     }
+    for (auto sig : *__main::signals) {
+        signal(sig.first, nullptr);
+    }
     println_();
 
     std::vector<rtest::TestResult> failures = failures_.into_inner();
@@ -131,3 +146,5 @@ int main(int, const char *[]) {
 
     return int(fails != 0);
 }
+
+} // namespace rtest
