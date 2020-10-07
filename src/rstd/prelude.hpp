@@ -1,5 +1,7 @@
 #pragma once
 
+#include <rcore/prelude.hpp>
+
 #include "format.hpp"
 
 #include "traits.hpp"
