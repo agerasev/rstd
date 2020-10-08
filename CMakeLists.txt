@@ -1,10 +1,40 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.16)
 project(rstd VERSION 0.3.1 DESCRIPTION "Rust-like types and routines for C++17")
 
 set(CMAKE_C_FLAGS "-g -Wall -Wextra")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++17 -fno-exceptions")
 include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
+)
+set(HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rcore/once.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rcore/thread.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rcore/io.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rcore/panic.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rcore/prelude.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/macros.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/format.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/assert.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/traits.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/container.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/tuple.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/union.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/variant.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/option.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/result.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/box.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/rc.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/thread.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/mutex.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/prelude.hpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rtest/test.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rtest/prelude.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rtest.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/lazy_static.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/ansi_color.hpp"
 )
 set(SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rcore/io.cpp"
@@ -29,6 +59,7 @@ set(TEST_SOURCE
 )
 
 add_library(${PROJECT_NAME} OBJECT ${SOURCE})
+target_precompile_headers(${PROJECT_NAME} PUBLIC ${HEADERS})
 target_link_libraries(${PROJECT_NAME} "pthread")
 
 enable_testing()
@@ -39,5 +70,6 @@ add_executable("${PROJECT_TEST}"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/self_test.cpp"
 )
 target_compile_definitions("${PROJECT_TEST}" PRIVATE "DEBUG")
+target_precompile_headers(${PROJECT_TEST} PRIVATE ${HEADERS})
 target_link_libraries("${PROJECT_TEST}" PRIVATE "pthread")
 add_test("${PROJECT_TEST}" "${PROJECT_TEST}")

@@ -1,3 +1,3 @@
 #pragma once
 
-#include <rtest/test.hpp>
+#include <rtest/prelude.hpp>
