@@ -2,6 +2,6 @@
 
 mkdir -p build && \
 cd build && \
-cmake .. && \
+cmake .. -DUSE_PCH=ON && \
 make rstd_test && \
 ./rstd_test $@

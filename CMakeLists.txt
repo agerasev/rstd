@@ -59,7 +59,9 @@ set(TEST_SOURCE
 )
 
 add_library(${PROJECT_NAME} OBJECT ${SOURCE})
-target_precompile_headers(${PROJECT_NAME} PUBLIC ${HEADERS})
+if (USE_PCH)
+    target_precompile_headers(${PROJECT_NAME} PUBLIC ${HEADERS}) 
+endif()
 target_link_libraries(${PROJECT_NAME} "pthread")
 
 enable_testing()
@@ -70,6 +72,8 @@ add_executable("${PROJECT_TEST}"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/self_test.cpp"
 )
 target_compile_definitions("${PROJECT_TEST}" PRIVATE "DEBUG")
-target_precompile_headers(${PROJECT_TEST} PRIVATE ${HEADERS})
+if (USE_PCH)
+    target_precompile_headers(${PROJECT_TEST} PRIVATE ${HEADERS})
+endif()
 target_link_libraries("${PROJECT_TEST}" PRIVATE "pthread")
 add_test("${PROJECT_TEST}" "${PROJECT_TEST}")
