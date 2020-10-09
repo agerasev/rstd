@@ -249,6 +249,7 @@ public:
             }
         );
     }
+    // FIXME: Handle case when OU is not Option
     template <
         typename F,
         typename OU=std::invoke_result_t<F, T &&>

@@ -290,6 +290,7 @@ public:
             }
         );
     }
+    // FIXME: Handle case when RU is not Result
     template <
         typename F,
         typename RU=std::invoke_result_t<F, T &&>
