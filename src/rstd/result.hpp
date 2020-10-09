@@ -151,14 +151,14 @@ public:
 
     Option<T> ok() {
         return this->match(
-            [](T &&t) { return Option<T>::Some(t); },
+            [](T &&t) { return Option<T>::Some(std::move(t)); },
             [](E &&) { return Option<T>::None(); }
         );
     }
     Option<E> err() {
         return this->match(
             [](T &&) { return Option<E>::None(); },
-            [](E &&e) { return Option<E>::Some(e); }
+            [](E &&e) { return Option<E>::Some(std::move(e)); }
         );
     }
 
@@ -169,7 +169,7 @@ public:
     Result<U, E> map(F f) {
         return this->match(
             [f](T &&x) { return Result<U, E>::Ok(f(std::move(x))); },
-            [](E &&e) { return Result<U, E>::Err(e); }
+            [](E &&e) { return Result<U, E>::Err(std::move(e)); }
         );
     }
     template <
@@ -205,8 +205,8 @@ public:
     >
     Result<T, U> map_err(F f) {
         return this->match(
-            [](T &&t) { return Result<U, E>::Ok(t); },
-            [f](E &&e) { return Result<U, E>::Err(f(std::move(e))); }
+            [](T &&t) { return Result<T, U>::Ok(std::move(t)); },
+            [f](E &&e) { return Result<T, U>::Err(f(std::move(e))); }
         );
     }
 
@@ -227,7 +227,7 @@ public:
     RU and_then(F f) {
         return this->match(
             [f](T &&x) { return f(std::move(x)); },
-            [](E &&e) { return RU::Err(e); }
+            [](E &&e) { return RU::Err(std::move(e)); }
         );
     }
     Result or_(Result &&res) {
