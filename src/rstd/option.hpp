@@ -8,6 +8,41 @@
 namespace rstd {
 
 template <typename T=Tuple<>>
+class Some final {
+private:
+    T value;
+public:
+    Some(const Some &) = default;
+    Some &operator=(const Some &) = default;
+    Some(Some &&) = default;
+    Some &operator=(Some &&) = default;
+
+    explicit Some(const T &v) : value(v) {}
+    explicit Some(T &&v) : value(std::move(v)) {}
+    template <typename _T=T, typename X=std::enable_if_t<std::is_same_v<_T, Tuple<>>, void>>
+    Some() : value(Tuple<>()) {}
+
+    T &get() {
+        return value;
+    }
+    const T &get() const {
+        return value;
+    }
+    T take() {
+        return std::move(value);
+    }
+};
+
+class None final {
+public:
+    None() = default;
+    None(const None &) = default;
+    None &operator=(const None &) = default;
+    None(None &&) = default;
+    None &operator=(None &&) = default;
+};
+
+template <typename T=Tuple<>>
 class Option final {
 private:
     Variant<T> var;
@@ -33,6 +68,14 @@ public:
         return var;
     }
 
+    Option(Some<T> &&some) : Option(some.take()) {}
+    Option(const Some<T> &some) : Option(some.get()) {}
+    Option(None none) : Option() {}
+
+    Option &operator=(Some<T> &&some) { return *this = Option(some); }
+    Option &operator=(const Some<T> &some) { return *this = Option(std::move(some)); }
+    Option &operator=(None none) { return *this = Option(none); }
+
     static Option None() {
         return Option();
     }
@@ -41,6 +84,10 @@ public:
     }
     static Option Some(const T &x) {
         return Option(x);
+    }
+    template <typename _T=T, typename X=std::enable_if_t<std::is_same_v<_T, Tuple<>>, void>>
+    static Option Some() {
+        return Option(Tuple<>());
     }
 
     bool is_some() const {

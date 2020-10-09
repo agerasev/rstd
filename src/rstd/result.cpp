@@ -107,6 +107,11 @@ rtest_module_(result) {
         assert_eq_(a.ok().unwrap(), 123);
         a = Result<int, float>::Ok(123);
         assert_(a.err().is_none());
+
+        auto b = Result<int>::Err();
+        b.unwrap_err();
+        auto c = Result<>::Ok();
+        c.unwrap();
     }
     rtest_(map) {
         auto src = Result<double>::Ok(3.1415);
@@ -151,5 +156,31 @@ rtest_module_(result) {
             }).unwrap(),
             123
         );
+    }
+    rtest_(ok_err_class) {
+        Result<int, std::string> a = Ok(123);
+        assert_eq_(a.ok().unwrap(), 123);
+        a = Err<std::string>("abc");
+        assert_eq_(a.err().unwrap(), "abc");
+
+        Result<int> b = Err();
+        b.unwrap_err();
+        Result<> c = Ok();
+        c.unwrap();
+    }
+    rtest_(try_assign) {
+        auto fn = [](Result<int, std::string> &&res) -> Result<Tuple<>, std::string> {
+            int x;
+            try_assign_(x, res);
+            if (x == 123) {
+                return Ok();
+            } else {
+                return Err(std::string("!123"));
+            }
+        };
+
+        fn(Ok(123)).unwrap();
+        assert_eq_(fn(Ok(321)).unwrap_err(), "!123");
+        assert_eq_(fn(Err(std::string("abc"))).unwrap_err(), "abc");
     }
 }

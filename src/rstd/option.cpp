@@ -137,6 +137,16 @@ rtest_module_(option) {
             123
         );
     }
+    rtest_(some_none_class) {
+        Option<int> s = Some(123);
+        assert_eq_(s.unwrap(), 123);
+
+        Option<int> n = None();
+        assert_(s.is_none());
+
+        Option<> se = Some();
+        assert_(se.is_some());
+    }
     rtest_(print) {
         auto a = Option<int>::Some(123);
         assert_eq_(format_(a), "Some(123)");

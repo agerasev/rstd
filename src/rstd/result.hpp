@@ -7,6 +7,58 @@
 
 namespace rstd {
 
+template <typename T=Tuple<>>
+class Ok final {
+private:
+    T value;
+public:
+    Ok(const Ok &) = default;
+    Ok &operator=(const Ok &) = default;
+    Ok(Ok &&) = default;
+    Ok &operator=(Ok &&) = default;
+
+    explicit Ok(const T &v) : value(v) {}
+    explicit Ok(T &&v) : value(std::move(v)) {}
+    template <typename _T=T, typename X=std::enable_if_t<std::is_same_v<_T, Tuple<>>, void>>
+    Ok() : value(Tuple<>()) {}
+
+    T &get() {
+        return value;
+    }
+    const T &get() const {
+        return value;
+    }
+    T take() {
+        return std::move(value);
+    }
+};
+
+template <typename E=Tuple<>>
+class Err final {
+private:
+    E value;
+public:
+    Err(const Err &) = default;
+    Err &operator=(const Err &) = default;
+    Err(Err &&) = default;
+    Err &operator=(Err &&) = default;
+
+    explicit Err(const E &v) : value(v) {}
+    explicit Err(E &&v) : value(std::move(v)) {}
+    template <typename _E=E, typename X=std::enable_if_t<std::is_same_v<_E, Tuple<>>, void>>
+    Err() : value(Tuple<>()) {}
+
+    E &get() {
+        return value;
+    }
+    const E &get() const {
+        return value;
+    }
+    E take() {
+        return std::move(value);
+    }
+};
+
 template <typename T=Tuple<>, typename E=Tuple<>>
 class Result final {
 private:
@@ -40,17 +92,35 @@ public:
         return var;
     }
 
+    Result(const Ok<T> &ok) : Result(Variant<T, E>::template create<0>(ok.get())) {}
+    Result(Ok<T> &&ok) : Result(Variant<T, E>::template create<0>(ok.take())) {}
+    Result(const Err<E> &err) : Result(Variant<T, E>::template create<1>(err.get())) {}
+    Result(Err<E> &&err) : Result(Variant<T, E>::template create<1>(err.take())) {}
+
+    Result &operator=(const Ok<T> &ok) { return *this = Result(ok); }
+    Result &operator=(Ok<T> &&ok) { return *this = Result(std::move(ok)); }
+    Result &operator=(const Err<E> &err) { return *this = Result(err); }
+    Result &operator=(Err<E> &&err) { return *this = Result(std::move(err)); }
+
     static Result Ok(T &&x) {
-        return Result(Variant<T, E>::template create<0>(std::move(x)));
+        return rstd::Ok(std::move(x));
     }
     static Result Ok(const T &x) {
-        return Result(Variant<T, E>::template create<0>(x));
+        return rstd::Ok(x);
+    }
+    template <typename _T=T, typename X=std::enable_if_t<std::is_same_v<_T, Tuple<>>, void>>
+    static Result Ok() {
+        return rstd::Ok(Tuple<>());
     }
     static Result Err(E &&x) {
-        return Result(Variant<T, E>::template create<1>(std::move(x)));
+        return rstd::Err(std::move(x));
     }
     static Result Err(const E &x) {
-        return Result(Variant<T, E>::template create<1>(x));
+        return rstd::Err(x);
+    }
+    template <typename _E=E, typename X=std::enable_if_t<std::is_same_v<_E, Tuple<>>, void>>
+    static Result Err() {
+        return rstd::Err(Tuple<>());
     }
 
     bool is_ok() const {
@@ -283,3 +353,12 @@ public:
 };
 
 } // namespace rstd
+
+#define try_assign_(ok, res) do { \
+    auto lres = ::rstd::move((res)); \
+    if (lres.is_ok()) { \
+        (ok) = lres._take_ok(); \
+    } else { \
+        return Err(lres._take_err()); \
+    } \
+} while(false)
