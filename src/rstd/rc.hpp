@@ -42,11 +42,11 @@ public:
     }
     Option<T> try_take() {
         if (base.use_count() == 1) {
-            auto ret = Option<T>::Some(T(std::move(*base)));
+            auto ret = Option<T>::some(T(std::move(*base)));
             drop();
             return ret;
         } else {
-            return Option<T>::None();
+            return Option<T>::none();
         }
     }
 

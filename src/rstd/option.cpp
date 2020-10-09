@@ -9,16 +9,16 @@ using namespace rstd;
 
 rtest_module_(option) {
     rtest_(create) {
-        auto a = Option<int>::Some(123);
+        auto a = Option<int>::some(123);
         assert_(a.is_some());
         assert_eq_(a.unwrap(), 123);
 
-        auto b = Option<int>::None();
+        auto b = Option<int>::none();
         assert_(b.is_none());
     }
     rtest_(move) {
         std::unique_ptr<int> ptr = std::make_unique<int>(123);
-        auto a = Option<std::unique_ptr<int>>::Some(std::move(ptr));
+        auto a = Option<std::unique_ptr<int>>::some(std::move(ptr));
         assert_eq_(*a.get(), 123);
         ptr = a.unwrap();
         assert_eq_(*ptr, 123);
@@ -26,7 +26,7 @@ rtest_module_(option) {
     rtest_(destroy) {
         std::shared_ptr<int> ptr = std::make_shared<int>(123);
         assert_eq_(ptr.use_count(), 1);
-        auto a = Option<std::shared_ptr<int>>::Some(ptr);
+        auto a = Option<std::shared_ptr<int>>::some(ptr);
         assert_eq_(ptr.use_count(), 2);
         assert_eq_(*a.get(), 123);
         assert_eq_(ptr.use_count(), 2);
@@ -40,7 +40,7 @@ rtest_module_(option) {
     rtest_(tuple_of_non_copy_option) {
         std::unique_ptr<int> ptr = std::make_unique<int>(123);
         Tuple<Option<std::unique_ptr<int>>, int> a(
-            Option<std::unique_ptr<int>>::Some(std::move(ptr)),
+            Option<std::unique_ptr<int>>::some(std::move(ptr)),
             321
         );
         assert_eq_(*a.get<0>().get(), 123);
@@ -51,7 +51,7 @@ rtest_module_(option) {
     rtest_(empty_option_is_none) {
         assert_(Option<>().is_none());
 
-        auto a = Option<int>::Some(123);
+        auto a = Option<int>::some(123);
         assert_(a.is_some());
         assert_eq_(a.get(), 123);
 
@@ -94,12 +94,12 @@ rtest_module_(option) {
         assert_(!some);
     }
     rtest_(map) {
-        auto src = Option<double>::Some(3.1415);
+        auto src = Option<double>::some(3.1415);
         Option<int> dst = src.map([](double x) { return int(100*x); });
         assert_(dst.is_some());
         assert_eq_(dst.get(), 314);
 
-        auto none = Option<>::None();
+        auto none = Option<>::none();
         assert_(none.map([](auto) { return 123; }).is_none());
     }
     rtest_(unwrap_or) {
@@ -108,31 +108,31 @@ rtest_module_(option) {
         assert_eq_(Option<int>().unwrap_or(x), 123);
     }
     rtest_(and_) {
-        assert_eq_(Option<bool>::Some(false).and_(Option<int>::Some(123)).get(), 123);
-        assert_(Option<bool>::Some(false).and_(Option<int>::None()).is_none());
-        assert_(Option<bool>::None().and_(Option<int>::Some(123)).is_none());
-        assert_(Option<bool>::None().and_(Option<int>::None()).is_none());
+        assert_eq_(Option<bool>::some(false).and_(Option<int>::some(123)).get(), 123);
+        assert_(Option<bool>::some(false).and_(Option<int>::none()).is_none());
+        assert_(Option<bool>::none().and_(Option<int>::some(123)).is_none());
+        assert_(Option<bool>::none().and_(Option<int>::none()).is_none());
     }
     rtest_(or_) {
-        assert_eq_(Option<int>::Some(321).or_(Option<int>::Some(123)).get(), 321);
-        assert_eq_(Option<int>::Some(321).or_(Option<int>::None()).get(), 321);
-        assert_eq_(Option<int>::None().or_(Option<int>::Some(123)).get(), 123);
-        assert_(Option<int>::None().or_(Option<int>::None()).is_none());
+        assert_eq_(Option<int>::some(321).or_(Option<int>::some(123)).get(), 321);
+        assert_eq_(Option<int>::some(321).or_(Option<int>::none()).get(), 321);
+        assert_eq_(Option<int>::none().or_(Option<int>::some(123)).get(), 123);
+        assert_(Option<int>::none().or_(Option<int>::none()).is_none());
     }
     rtest_(and_then) {
         assert_eq_(
-            (Option<double>::Some(1.23)
+            (Option<double>::some(1.23)
             .and_then([](double x) {
-                return Option<int>::Some(int(100*x));
+                return Option<int>::some(int(100*x));
             }).get()),
             123
         );
     }
     rtest_(or_else) {
         assert_eq_(
-            (Option<int>::None()
+            (Option<int>::none()
             .or_else([]() {
-                return Option<int>::Some(123);
+                return Option<int>::some(123);
             }).get()),
             123
         );
@@ -144,14 +144,14 @@ rtest_module_(option) {
         Option<int> n = None();
         assert_(s.is_none());
 
-        Option<> se = Some();
+        Option<> se = Some<>();
         assert_(se.is_some());
     }
     rtest_(print) {
-        auto a = Option<int>::Some(123);
+        auto a = Option<int>::some(123);
         assert_eq_(format_(a), "Some(123)");
 
-        auto b = Option<int>::None();
+        auto b = Option<int>::none();
         assert_eq_(format_(b), "None");
     }
 }

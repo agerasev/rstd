@@ -17,7 +17,7 @@ public:
     _Mutex() {
         pthread_mutex_t m;
         assert_(pthread_mutex_init(&m, nullptr) == 0);
-        raw = Option<pthread_mutex_t>::Some(m);
+        raw = Option<pthread_mutex_t>::some(m);
     }
     ~_Mutex() {
         if (raw.is_some()) {
@@ -87,7 +87,7 @@ public:
 
     public:
         Guard() = default;
-        explicit Guard(const Mutex &m) : origin(Option<const Mutex *>::Some(&m)) {}
+        explicit Guard(const Mutex &m) : origin(Option<const Mutex *>::some(&m)) {}
 
         Guard(Guard &&) = default;
         Guard &operator=(Guard &&other) {
@@ -148,9 +148,9 @@ public:
     }
     Result<Guard> try_lock() const {
         if (mutex.try_lock()) {
-            return Result<Guard>::Ok(Guard(*this));
+            return Result<Guard>::ok(Guard(*this));
         } else {
-            return Result<Guard>::Err(Tuple<>());
+            return Result<Guard>::err(Tuple<>());
         }
     }
 

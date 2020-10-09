@@ -76,17 +76,17 @@ public:
     Option &operator=(const Some<T> &some) { return *this = Option(std::move(some)); }
     Option &operator=(None none) { return *this = Option(none); }
 
-    static Option None() {
+    static Option none() {
         return Option();
     }
-    static Option Some(T &&x) {
+    static Option some(T &&x) {
         return Option(std::move(x));
     }
-    static Option Some(const T &x) {
+    static Option some(const T &x) {
         return Option(x);
     }
     template <typename _T=T, typename X=std::enable_if_t<std::is_same_v<_T, Tuple<>>, void>>
-    static Option Some() {
+    static Option some() {
         return Option(Tuple<>());
     }
 
@@ -208,8 +208,8 @@ public:
     >
     Option<U> map(F f) {
         return this->match(
-            [f](T &&x) { return Option<U>::Some(f(std::move(x))); },
-            []() { return Option<U>::None(); }
+            [f](T &&x) { return Option<U>::some(f(std::move(x))); },
+            []() { return Option<U>::none(); }
         );
     }
     template <
@@ -245,7 +245,7 @@ public:
             [&](T &&) { return std::move(opt); },
             [&]() {
                 drop(opt);
-                return Option<U>::None();
+                return Option<U>::none();
             }
         );
     }
@@ -257,14 +257,14 @@ public:
     OU and_then(F f) {
         return this->match(
             [f](T &&x) { return f(std::move(x)); },
-            []() { return OU::None(); }
+            []() { return OU::none(); }
         );
     }
     Option or_(Option &&opt) {
         return this->match(
             [&](T &&x) {
                 drop(opt);
-                return Option::Some(std::move(x));
+                return Option::some(std::move(x));
             },
             [&]() { return std::move(opt); }
         );
@@ -272,7 +272,7 @@ public:
     template <typename F>
     Option or_else(F f) {
         return this->match(
-            [](T &&x) { return Option::Some(std::move(x)); },
+            [](T &&x) { return Option::some(std::move(x)); },
             [f]() { return f(); }
         );
     }

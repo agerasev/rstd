@@ -41,7 +41,7 @@ public:
         base = std::unique_ptr<T>();
     }
     Option<T> take() {
-        auto ret = Option<T>::Some(T(std::move(*base)));
+        auto ret = Option<T>::some(T(std::move(*base)));
         drop();
         return ret;
     }

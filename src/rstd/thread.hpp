@@ -24,10 +24,10 @@ private:
     Option<pthread_t> thread_;
 
 public:
-    JoinHandle() : thread_(Option<pthread_t>::None()) {}
+    JoinHandle() : thread_(Option<pthread_t>::none()) {}
 
 private:
-    explicit JoinHandle(pthread_t thread_) : thread_(Option<pthread_t>::Some(thread_)) {}
+    explicit JoinHandle(pthread_t thread_) : thread_(Option<pthread_t>::some(thread_)) {}
 
 public:
     JoinHandle(const JoinHandle &) = delete;
@@ -44,11 +44,11 @@ public:
         T *rv = nullptr;
         assert_(pthread_join(thread_.take().unwrap(), (void**)&rv) == 0);
         if (rv != nullptr) {
-            auto ret = Result<T>::Ok(std::move(*rv));
+            auto ret = Result<T>::ok(std::move(*rv));
             delete rv;
             return ret;
         } else {
-            return Result<T>::Err(Tuple<>());
+            return Result<T>::err(Tuple<>());
         }
     }
 
