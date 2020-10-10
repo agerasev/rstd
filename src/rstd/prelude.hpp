@@ -4,7 +4,8 @@
 
 #include "format.hpp"
 
-#include "traits.hpp"
+#include "functions.hpp"
+#include "templates.hpp"
 
 #include "tuple.hpp"
 #include "variant.hpp"

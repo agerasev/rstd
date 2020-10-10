@@ -4,10 +4,10 @@ else()
     cmake_minimum_required(VERSION 3.0)
 endif()
 
-project(rstd VERSION 0.3.1 DESCRIPTION "Rust-like types and routines for C++17")
+project(rstd VERSION 0.3.2 DESCRIPTION "Rust-like types and routines for C++17")
 
 set(CMAKE_C_FLAGS "-g -Wall -Wextra")
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++17 -fno-exceptions")
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++17 -fno-exceptions") # -std=c++17 -pedantic
 include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
@@ -21,7 +21,8 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/macros.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/format.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/assert.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/traits.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/functions.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/templates.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/container.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/tuple.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/union.hpp"
@@ -49,7 +50,8 @@ set(SOURCE
 set(TEST_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/format.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/assert.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/traits.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/functions.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/templates.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/tuple.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/union.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/variant.cpp"

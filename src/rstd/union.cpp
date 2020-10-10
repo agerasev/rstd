@@ -3,7 +3,6 @@
 
 #include "tuple.hpp"
 #include "union.hpp"
-#include "traits.hpp"
 
 using namespace rstd;
 
@@ -58,4 +57,4 @@ rtest_module_(union) {
         assert_eq_(mask[2], false);
         a.destroy<1>();
     }
-};
+}

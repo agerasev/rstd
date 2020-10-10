@@ -1,11 +1,11 @@
 #include <rtest.hpp>
 
-#include "traits.hpp"
+#include "templates.hpp"
 
 using namespace rstd;
 
 
-rtest_module_(traits) {
+rtest_module_(templates) {
     rtest_(any_all) {
         assert_eq_((any_v<false, false, true>), true);
         assert_eq_((any_v<false, false, false>), false);
