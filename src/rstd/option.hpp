@@ -8,19 +8,19 @@
 namespace rstd {
 
 template <typename T=Tuple<>>
-class Some final {
+class _Some final {
 private:
     T value;
 public:
-    Some(const Some &) = default;
-    Some &operator=(const Some &) = default;
-    Some(Some &&) = default;
-    Some &operator=(Some &&) = default;
+    _Some(const _Some &) = default;
+    _Some &operator=(const _Some &) = default;
+    _Some(_Some &&) = default;
+    _Some &operator=(_Some &&) = default;
 
-    explicit Some(const T &v) : value(v) {}
-    explicit Some(T &&v) : value(std::move(v)) {}
+    explicit _Some(const T &v) : value(v) {}
+    explicit _Some(T &&v) : value(std::move(v)) {}
     template <typename _T=T, typename X=std::enable_if_t<std::is_same_v<_T, Tuple<>>, void>>
-    Some() : value(Tuple<>()) {}
+    _Some() : value(Tuple<>()) {}
 
     T &get() {
         return value;
@@ -32,15 +32,29 @@ public:
         return std::move(value);
     }
 };
+template <typename T>
+_Some<T> Some(T &&t) {
+    return _Some<T>(std::move(t));
+}
+template <typename T>
+_Some<T> Some(const T &t) {
+    return _Some<T>(t);
+}
+inline _Some<Tuple<>> Some() {
+    return _Some(Tuple<>());
+}
 
-class None final {
+class _None final {
 public:
-    None() = default;
-    None(const None &) = default;
-    None &operator=(const None &) = default;
-    None(None &&) = default;
-    None &operator=(None &&) = default;
+    _None() = default;
+    _None(const _None &) = default;
+    _None &operator=(const _None &) = default;
+    _None(_None &&) = default;
+    _None &operator=(_None &&) = default;
 };
+inline _None None() {
+    return _None();
+}
 
 template <typename T=Tuple<>>
 class Option final {
@@ -68,13 +82,13 @@ public:
         return var;
     }
 
-    Option(Some<T> &&some) : Option(some.take()) {}
-    Option(const Some<T> &some) : Option(some.get()) {}
-    Option(None none) : Option() {}
+    Option(_Some<T> &&some) : Option(some.take()) {}
+    Option(const _Some<T> &some) : Option(some.get()) {}
+    Option(_None none) : Option() {}
 
-    Option &operator=(Some<T> &&some) { return *this = Option(some); }
-    Option &operator=(const Some<T> &some) { return *this = Option(std::move(some)); }
-    Option &operator=(None none) { return *this = Option(none); }
+    Option &operator=(_Some<T> &&some) { return *this = Option(some); }
+    Option &operator=(const _Some<T> &some) { return *this = Option(std::move(some)); }
+    Option &operator=(_None none) { return *this = Option(none); }
 
     static Option None() {
         return Option();

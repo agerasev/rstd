@@ -8,19 +8,19 @@
 namespace rstd {
 
 template <typename T=Tuple<>>
-class Ok final {
+class _Ok final {
 private:
     T value;
 public:
-    Ok(const Ok &) = default;
-    Ok &operator=(const Ok &) = default;
-    Ok(Ok &&) = default;
-    Ok &operator=(Ok &&) = default;
+    _Ok(const _Ok &) = default;
+    _Ok &operator=(const _Ok &) = default;
+    _Ok(_Ok &&) = default;
+    _Ok &operator=(_Ok &&) = default;
 
-    explicit Ok(const T &v) : value(v) {}
-    explicit Ok(T &&v) : value(std::move(v)) {}
+    explicit _Ok(const T &v) : value(v) {}
+    explicit _Ok(T &&v) : value(std::move(v)) {}
     template <typename _T=T, typename X=std::enable_if_t<std::is_same_v<_T, Tuple<>>, void>>
-    Ok() : value(Tuple<>()) {}
+    _Ok() : value(Tuple<>()) {}
 
     T &get() {
         return value;
@@ -32,21 +32,32 @@ public:
         return std::move(value);
     }
 };
+template <typename T>
+_Ok<T> Ok(T &&t) {
+    return _Ok<T>(std::move(t));
+}
+template <typename T>
+_Ok<T> Ok(const T &t) {
+    return _Ok<T>(t);
+}
+inline _Ok<Tuple<>> Ok() {
+    return _Ok(Tuple<>());
+}
 
 template <typename E=Tuple<>>
-class Err final {
+class _Err final {
 private:
     E value;
 public:
-    Err(const Err &) = default;
-    Err &operator=(const Err &) = default;
-    Err(Err &&) = default;
-    Err &operator=(Err &&) = default;
+    _Err(const _Err &) = default;
+    _Err &operator=(const _Err &) = default;
+    _Err(_Err &&) = default;
+    _Err &operator=(_Err &&) = default;
 
-    explicit Err(const E &v) : value(v) {}
-    explicit Err(E &&v) : value(std::move(v)) {}
+    explicit _Err(const E &v) : value(v) {}
+    explicit _Err(E &&v) : value(std::move(v)) {}
     template <typename _E=E, typename X=std::enable_if_t<std::is_same_v<_E, Tuple<>>, void>>
-    Err() : value(Tuple<>()) {}
+    _Err() : value(Tuple<>()) {}
 
     E &get() {
         return value;
@@ -58,6 +69,17 @@ public:
         return std::move(value);
     }
 };
+template <typename T>
+_Err<T> Err(T &&t) {
+    return _Err<T>(std::move(t));
+}
+template <typename T>
+_Err<T> Err(const T &t) {
+    return _Err<T>(t);
+}
+inline _Err<Tuple<>> Err() {
+    return _Err(Tuple<>());
+}
 
 template <typename T=Tuple<>, typename E=Tuple<>>
 class Result final {
@@ -92,35 +114,35 @@ public:
         return var;
     }
 
-    Result(const Ok<T> &ok) : Result(Variant<T, E>::template create<0>(ok.get())) {}
-    Result(Ok<T> &&ok) : Result(Variant<T, E>::template create<0>(ok.take())) {}
-    Result(const Err<E> &err) : Result(Variant<T, E>::template create<1>(err.get())) {}
-    Result(Err<E> &&err) : Result(Variant<T, E>::template create<1>(err.take())) {}
+    Result(const _Ok<T> &ok) : Result(Variant<T, E>::template create<0>(ok.get())) {}
+    Result(_Ok<T> &&ok) : Result(Variant<T, E>::template create<0>(ok.take())) {}
+    Result(const _Err<E> &err) : Result(Variant<T, E>::template create<1>(err.get())) {}
+    Result(_Err<E> &&err) : Result(Variant<T, E>::template create<1>(err.take())) {}
 
-    Result &operator=(const Ok<T> &ok) { return *this = Result(ok); }
-    Result &operator=(Ok<T> &&ok) { return *this = Result(std::move(ok)); }
-    Result &operator=(const Err<E> &err) { return *this = Result(err); }
-    Result &operator=(Err<E> &&err) { return *this = Result(std::move(err)); }
+    Result &operator=(const _Ok<T> &ok) { return *this = Result(ok); }
+    Result &operator=(_Ok<T> &&ok) { return *this = Result(std::move(ok)); }
+    Result &operator=(const _Err<E> &err) { return *this = Result(err); }
+    Result &operator=(_Err<E> &&err) { return *this = Result(std::move(err)); }
 
     static Result Ok(T &&x) {
-        return rstd::Ok(std::move(x));
+        return _Ok(std::move(x));
     }
     static Result Ok(const T &x) {
-        return rstd::Ok(x);
+        return _Ok(x);
     }
     template <typename _T=T, typename X=std::enable_if_t<std::is_same_v<_T, Tuple<>>, void>>
     static Result Ok() {
-        return rstd::Ok(Tuple<>());
+        return _Ok(Tuple<>());
     }
     static Result Err(E &&x) {
-        return rstd::Err(std::move(x));
+        return _Err(std::move(x));
     }
     static Result Err(const E &x) {
-        return rstd::Err(x);
+        return _Err(x);
     }
     template <typename _E=E, typename X=std::enable_if_t<std::is_same_v<_E, Tuple<>>, void>>
     static Result Err() {
-        return rstd::Err(Tuple<>());
+        return _Err(Tuple<>());
     }
 
     bool is_ok() const {
