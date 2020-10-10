@@ -10,8 +10,14 @@
 using namespace rcore;
 
 static void default_panic_hook(const std::string &message) {
+    std::string thread_name;
+    if (thread::current().is_main) {
+        thread_name = "Main";
+    } else {
+        thread_name = std::to_string(pthread_self());
+    }
     stderr_()
-    << "Thread " << pthread_self()
+    << "Thread " << thread_name
     << " panicked: " << std::endl
     << message << std::endl;
 }
