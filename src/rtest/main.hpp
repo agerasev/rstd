@@ -53,10 +53,23 @@ struct TestResult {
     std::string output;
 };
 
-int main(int, const char * const *) {
-    int test_count = __rtest_registrar->size();
-    auto b = __rtest_registrar->begin();
-    auto e = __rtest_registrar->end();
+int main(int argc, const char *const *argv) {
+    std::vector<rtest::TestCase> tests;
+    for (const TestCase &c : *__rtest_registrar) {
+        bool add = argc < 2;
+        for (int j = 1; j < argc; ++j) {
+            if (c.name.find(argv[j]) != std::string::npos) {
+                add = true;
+            }
+        }
+        if (add) {
+            tests.push_back(c);
+        }
+    }
+
+    int test_count = tests.size();
+    auto b = tests.cbegin();
+    auto e = tests.cend();
     rstd::Mutex<decltype(b)> mb(std::move(b));
 
     std::vector<rstd::JoinHandle<>> workers(std::min(

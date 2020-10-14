@@ -10,13 +10,14 @@
 
 namespace rtest {
 
+struct TestCase {
+    std::string name;
+    std::function<void()> func;
+    bool should_panic;
+};
+
 class TestRegistrar {
 private:
-    struct TestCase {
-        std::string name;
-        std::function<void()> func;
-        bool should_panic;
-    };
     mutable std::string section;
     mutable std::vector<TestCase> tests;
 public:
