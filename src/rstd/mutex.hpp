@@ -139,8 +139,14 @@ private:
 
 public:
     Mutex() = default;
-    explicit Mutex(T &&v) : value(std::move(v)) {}
     ~Mutex() = default;
+
+    Mutex(const Mutex &) = delete;
+    Mutex &operator=(const Mutex &) = delete;
+    Mutex(Mutex &&) = default;
+    Mutex &operator=(Mutex &&) = default;
+    
+    explicit Mutex(T &&v) : value(std::move(v)) {}
 
     Guard lock() const {
         mutex.lock();

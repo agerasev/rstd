@@ -80,4 +80,17 @@ rtest_module_(mutex) {
         drop(guard);
         assert_eq_(x.into_inner(), 444);
     }
+    rtest_(move_mutex) {
+        Mutex<int> x(123);
+        {
+            auto guard = x.lock();
+            *guard += 321;
+        }
+        Mutex<int> y = std::move(x);
+        {
+            auto guard = y.lock();
+            *guard += 123;
+        }
+        assert_eq_(y.into_inner(), 567);
+    }
 }
