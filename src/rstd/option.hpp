@@ -84,11 +84,11 @@ public:
 
     Option(_Some<T> &&some) : Option(some.take()) {}
     Option(const _Some<T> &some) : Option(some.get()) {}
-    Option(_None none) : Option() {}
+    Option(_None) : Option() {}
 
     Option &operator=(_Some<T> &&some) { return *this = Option(some); }
     Option &operator=(const _Some<T> &some) { return *this = Option(std::move(some)); }
-    Option &operator=(_None none) { return *this = Option(none); }
+    Option &operator=(_None) { return *this = Option(); }
 
     static Option None() {
         return Option();
