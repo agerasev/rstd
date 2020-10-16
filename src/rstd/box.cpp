@@ -9,22 +9,29 @@ rtest_module_(box) {
     class Base {
     public:
         virtual int foo() = 0;
+        //virtual Box<Base> copy() const = 0;
     };
     class One : public Base {
     public:
         int val = 123;
         explicit One(int v) : val(v) {}
-        int foo() override {
+        virtual int foo() override {
             return this->val;
         }
+        //virtual Box<One> copy() const override {
+        //    return Box(*this);
+        //}
     };
     class Two : public Base {
     public:
         double val = 0.0;
         explicit Two(double v) : val(v) {}
-        int foo() override {
+        virtual int foo() override {
             return int(this->val);
         }
+        //virtual Box<Two> copy() const override {
+        //    return Box(*this);
+        //}
     };
 
     rtest_(move) {
@@ -47,7 +54,7 @@ rtest_module_(box) {
         Box<One> dbox(std::move(derived));
         assert_eq_(dbox->foo(), 123);
 
-        Box<Base> bbox = dbox;
+        Box<Base> bbox = std::move(dbox);
         assert_(!bool(dbox));
         assert_eq_(bbox->foo(), 123);
     }

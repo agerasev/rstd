@@ -93,7 +93,7 @@ public:
         return bool(base);
     }
 
-    template <typename U, typename X=std::enable_if_t<std::is_base_of_v<U, T>, void>>
+    template <typename U>
     Box<U> upcast() {
         return Box<U>::_from_raw(static_cast<U*>(this->into_raw()));
     }
@@ -108,9 +108,11 @@ public:
         }
     }
 
-    template <typename U, typename X=std::enable_if_t<std::is_base_of_v<U, T>, void>>
-    operator Box<U>() {
-        return this->upcast<U>();
+    template <typename U>
+    Box(Box<U> &&derived) : Box(derived.template upcast<T>()) {}
+    template <typename U>
+    Box &operator=(Box<U> &&derived) {
+        return *this = derived.template upcast<T>();
     }
 };
 
