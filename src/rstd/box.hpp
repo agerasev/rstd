@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <type_traits>
 #include "prelude.hpp"
 
 
@@ -12,6 +13,11 @@ class Box final {
 private:
     std::unique_ptr<T> base;
 
+    void assert_store() const {
+        assert_(bool(base));
+    }
+    explicit Box(T *ptr) : base(ptr) {}
+
 public:
     Box() = default;
     explicit Box(T &&v) : base(new T(std::move(v))) {}
@@ -21,33 +27,90 @@ public:
     Box(Box &&) = default;
     Box &operator=(Box &&) = default;
 
-    Box(const Box &) = default;
-    Box &operator=(const Box &) = default;
+    Box(const Box &) = delete;
+    Box &operator=(const Box &) = delete;
+
+    static Box _from_raw(T *ptr) {
+        return Box(ptr);
+    }
+
+    T *_raw() {
+        return base.get();
+    }
+    const T *_raw() const {
+        return base.get();
+    }
+    T *raw() {
+        assert_store();
+        return base.get();
+    }
+    const T *raw() const {
+        assert_store();
+        return base.get();
+    }
+    
+    T &_get() {
+        return *base;
+    }
+    const T &_get() const {
+        return *base;
+    }
+    T &get() {
+        assert_store();
+        return _get();
+    }
+    const T &get() const {
+        assert_store();
+        return _get();
+    }
 
     T &operator*() {
-        return *base;
+        return get();
     }
     const T &operator*() const {
-        return *base;
+        return get();
     }
     T *operator->() {
-        return &*base;
+        return &get();
     }
     const T *operator->() const {
-        return &*base;
+        return &get();
     }
 
     void drop() {
         base = std::unique_ptr<T>();
     }
-    Option<T> take() {
-        auto ret = Option<T>::Some(T(std::move(*base)));
-        drop();
-        return ret;
+
+    T *_into_raw() {
+        return base.release();
+    }
+    T *into_raw() {
+        assert_store();
+        return _into_raw();
     }
 
     operator bool() const {
         return bool(base);
+    }
+
+    template <typename U, typename X=std::enable_if_t<std::is_base_of_v<U, T>, void>>
+    Box<U> upcast() {
+        return Box<U>::_from_raw(static_cast<U*>(this->into_raw()));
+    }
+    template <typename U, typename X=std::enable_if_t<std::is_base_of_v<T, U>, void>>
+    Result<Box<U>, Box<T>> downcast() {
+        T *ptr = this->into_raw();
+        U *dptr = dynamic_cast<U *>(ptr);
+        if (dptr != nullptr) {
+            return Ok(Box<U>::_from_raw(dptr));
+        } else {
+            return Err(Box<T>::_from_raw(ptr));
+        }
+    }
+
+    template <typename U, typename X=std::enable_if_t<std::is_base_of_v<U, T>, void>>
+    operator Box<U>() {
+        return this->upcast<U>();
     }
 };
 
