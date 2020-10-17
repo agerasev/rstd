@@ -1,7 +1,7 @@
 #pragma once
 
 #include <tuple>
-#include <cassert>
+#include <utility>
 #include "templates.hpp"
 #include "format.hpp"
 #include "container.hpp"
@@ -11,38 +11,15 @@ namespace rstd {
 
 template <typename ...Elems>
 class Tuple {
-public:
-    static constexpr int size() {
-        return 0;
-    }
-};
-
-template <size_t P, typename T, typename ...Elems>
-struct _TupleGetter;
-
-template <typename T, typename ...Elems>
-class Tuple<T, Elems...> {
 private:
-    template <size_t P, typename T_, typename ...Elems_>
-    friend struct _TupleGetter;
-    template <size_t P>
-    using Getter = _TupleGetter<P, T, Elems...>;
-
-    T value_;
-    Tuple<Elems...> tail_;
+    typedef std::tuple<Elems...> Base;
+    Base base;
 
 public:
-    Tuple() = default;
+    explicit Tuple(Elems &&...args) :
+        base(std::forward<Elems>(args)...)
+    {}
     
-    explicit Tuple(const T &v, Elems &&...args) :
-        value_(v),
-        tail_(std::forward<Elems>(args)...)
-    {}
-    explicit Tuple(T &&v, Elems &&...args) :
-        value_(std::move(v)),
-        tail_(std::forward<Elems>(args)...)
-    {}
-
     Tuple(const Tuple &t) = default;
     Tuple &operator=(const Tuple &t) = default;
 
@@ -52,45 +29,18 @@ public:
     ~Tuple() = default;
 
     static constexpr size_t size() {
-        return 1 + sizeof...(Elems);
-    }
-
-    Tuple<Elems...> &tail() {
-        return tail_;
-    }
-    const Tuple<Elems...> &tail() const {
-        return tail_;
+        return std::tuple_size_v<Base>;
     }
     
     template <size_t P>
-    const nth_type<P, T, Elems...> &get() const {
-        return Getter<P>::get(*this);
+    const std::tuple_element_t<P, Base> &get() const {
+        return std::get<P>(base);
     }
     template <size_t P>
-    nth_type<P, T, Elems...> &get() {
-        return Getter<P>::get(*this);
+    std::tuple_element_t<P, Base> &get() {
+        return std::get<P>(base);
     }
 };
-
-template <size_t P, typename T, typename ...Elems>
-struct _TupleGetter {
-    static const nth_type<P - 1, Elems...> &get(const Tuple<T, Elems...> &t) {
-        return _TupleGetter<P - 1, Elems...>::get(t.tail_);
-    }
-    static nth_type<P - 1, Elems...> &get(Tuple<T, Elems...> &t) {
-        return _TupleGetter<P - 1, Elems...>::get(t.tail_);
-    }
-};
-template <typename T, typename ...Elems>
-struct _TupleGetter<0, T, Elems...> {
-    static const T &get(const Tuple<T, Elems...> &t) {
-        return t.value_;
-    }
-    static T &get(Tuple<T, Elems...> &t) {
-        return t.value_;
-    }
-};
-
 
 template <typename ...Elems>
 struct _TuplePrinter {
@@ -112,10 +62,16 @@ struct _TuplePrinter<T> {
 
 template <typename ...Elems>
 struct fmt::Display<Tuple<Elems...>> {
+private:
+    template <size_t ...I>
+    static void print(std::ostream &o, const Tuple<Elems...> &t, std::index_sequence<I...>) {
+        (..., write_(o, "{}{}", (I == 0 ? "" : ", "), t.template get<I>()));
+    }
+
 public:
     static void fmt(const Tuple<Elems...> &t, std::ostream &o) {
         o << "(";
-        _TuplePrinter<Elems...>::print(o, t);
+        print(o, t, std::make_index_sequence<Tuple<Elems...>::size()>());
         o << ")";
     }
 };
