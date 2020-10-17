@@ -51,7 +51,7 @@ public:
 
     _Variant(_Variant &&v) {
         if (v.is_some()) {
-            Dispatcher<Mover, size()>::dispatch(v.id_, this->union_, v.union_);
+            Visitor<Mover, size()>::visit(v.id_, this->union_, v.union_);
         }
         this->id_ = v.id_;
         v.id_ = size();
@@ -59,7 +59,7 @@ public:
     _Variant &operator=(_Variant &&v) {
         this->try_destroy();
         if (v.is_some()) {
-            Dispatcher<Mover, size()>::dispatch(v.id_, this->union_, v.union_);
+            Visitor<Mover, size()>::visit(v.id_, this->union_, v.union_);
         }
         this->id_ = v.id_;
         v.id_ = size();
@@ -158,7 +158,7 @@ public:
     }
 
     void _destroy() {
-        Dispatcher<Destroyer, size()>::dispatch(this->id_, this->union_);
+        Visitor<Destroyer, size()>::visit(this->id_, this->union_);
         this->id_ = size();
     }
     void destroy() {
@@ -203,7 +203,7 @@ public:
         this->assert_some();
         int id = this->id_;
         this->id_ = size();
-        return Dispatcher<Matcher, size()>::dispatch(id, this->union_, funcs...);
+        return Visitor<Matcher, size()>::visit(id, this->union_, funcs...);
     }
     template <
         typename ...Fs,
@@ -211,7 +211,7 @@ public:
     >
     R match_ref(Fs ...funcs) {
         this->assert_some();
-        return Dispatcher<MatcherRef, size()>::dispatch(this->id_, this->union_, funcs...);
+        return Visitor<MatcherRef, size()>::visit(this->id_, this->union_, funcs...);
     }
     template <
         typename ...Fs,
@@ -219,7 +219,7 @@ public:
     >
     R match_ref(Fs ...funcs) const {
         this->assert_some();
-        return Dispatcher<MatcherRefConst, size()>::dispatch(this->id_, this->union_, funcs...);
+        return Visitor<MatcherRefConst, size()>::visit(this->id_, this->union_, funcs...);
     }
 };
 
@@ -241,14 +241,14 @@ public:
 
     _Variant(const _Variant &var) {
         if (var) {
-            Dispatcher<Copier, _Variant::size()>::dispatch(var.id_, this->union_, var.union_);
+            Visitor<Copier, _Variant::size()>::visit(var.id_, this->union_, var.union_);
             this->id_ = var.id_;
         }
     }
     _Variant &operator=(const _Variant &var) {
         this->try_destroy();
         if (var) {
-            Dispatcher<Copier, _Variant::size()>::dispatch(var.id_, this->union_, var.union_);
+            Visitor<Copier, _Variant::size()>::visit(var.id_, this->union_, var.union_);
             this->id_ = var.id_;
         }
         return *this;
@@ -300,7 +300,7 @@ public:
     static void fmt(const Variant<Elems...> &v, std::ostream &o) {
         assert_(bool(v));
         o << "Variant<" << v.id() << ">(";
-        Dispatcher<Printer, Variant<Elems...>::size()>::dispatch(v.id(), o, v);
+        Visitor<Printer, Variant<Elems...>::size()>::visit(v.id(), o, v);
         o << ")";
     }
 };

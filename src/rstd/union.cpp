@@ -8,7 +8,7 @@ using namespace rstd;
 
 
 template <size_t P>
-struct TestDispatch {
+struct TestVisit {
     static void call(bool mask[]) {
         mask[P] = true;
     }
@@ -47,11 +47,11 @@ rtest_module_(union) {
         }
         assert_eq_(ptr.use_count(), 1);
     }
-    rtest_(dispatch) {
+    rtest_(visit) {
         bool mask[3] = {false, false, false};
         _Union<bool, int, double> a;
         a.init<1>(123);
-        rstd::Dispatcher<TestDispatch, a.size()>::dispatch(1, mask);
+        rstd::Visitor<TestVisit, a.size()>::visit(1, mask);
         assert_eq_(mask[0], false);
         assert_eq_(mask[1], true);
         assert_eq_(mask[2], false);

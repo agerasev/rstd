@@ -40,21 +40,21 @@ inline constexpr size_t common_align = CommonAlign<Types...>::value;
 
 
 template <template <size_t> typename F, size_t S, size_t Q = S - 1>
-struct Dispatcher {
+struct Visitor {
     static const size_t P = S - Q - 1;
     template <typename ...Args>
-    static decltype(auto) dispatch(size_t i, Args &&...args) {
+    static decltype(auto) visit(size_t i, Args &&...args) {
         if (i == P) {
             return F<P>::call(std::forward<Args>(args)...);
         } else {
-            return Dispatcher<F, S, Q - 1>::dispatch(i, std::forward<Args>(args)...);
+            return Visitor<F, S, Q - 1>::visit(i, std::forward<Args>(args)...);
         }
     }
 };
 template <template <size_t> typename F, size_t S>
-struct Dispatcher<F, S, 0> {
+struct Visitor<F, S, 0> {
     template <typename ...Args>
-    static decltype(auto) dispatch(size_t, Args &&...args) {
+    static decltype(auto) visit(size_t, Args &&...args) {
         return F<S - 1>::call(std::forward<Args>(args)...);
     }
 };
