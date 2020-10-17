@@ -29,6 +29,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/variant.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/option.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/result.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/hash.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/box.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/rc.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/thread.hpp"
