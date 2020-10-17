@@ -57,4 +57,15 @@ rtest_module_(union) {
         assert_eq_(mask[2], false);
         a.destroy<1>();
     }
+    rtest_(ponter) {
+        int x = 123;
+        _Union<bool, int*, const double*> a;
+        a.init<1>(&x);
+        assert_eq_(a.size(), 3u);
+
+        assert_eq_(*a.get<1>(), 123);
+        int y = -321;
+        a.get<1>() = &y;
+        assert_eq_(*a.take<1>(), -321);
+    }
 }

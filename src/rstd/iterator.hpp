@@ -10,7 +10,36 @@ template <typename I>
 class Iterator {
 public:
     typedef I Item;
+
     virtual rstd::Option<Item> next() = 0;
+
+private:
+    class End {};
+    class Cur {
+    private:
+        Iterator *owner;
+        Option<I> value;
+    public:
+        Cur(Iterator *o) : owner(o), value(o->next()) {}
+        bool operator!=(End) const {
+            return value.is_some();
+        }
+        Cur &operator++() {
+            value = owner->next();
+            return *this;
+        }
+        I &operator*() {
+            return value.get();
+        }
+    };
+    
+public:
+    Cur begin() {
+        return Cur(this);
+    }
+    End end() {
+        return End();
+    }
 };
 /*
 template <template <typename> typename C>
@@ -21,10 +50,10 @@ struct FromIterator {
     }
 };
 */
-template <template <typename...> typename C, typename T>
-class Iter : public Iterator<const T *> {
+template <template <typename...> typename C, typename T, typename I=const T *>
+class Iter : public Iterator<I> {
 public:
-    typedef typename Iterator<const T *>::Item Item;
+    typedef I Item;
 private:
     typename C<T>::const_iterator cur;
     typename C<T>::const_iterator end;
@@ -33,65 +62,79 @@ public:
         cur = cont.cbegin();
         end = cont.cend();
     }
-    virtual rstd::Option<Item> next() override {
+    virtual rstd::Option<I> next() override {
         if (cur != end) {
-            Item i = &*cur;
+            I i = &*cur;
             ++cur;
-            return Some(i);
+            return Option<I>::Some(i);
         } else {
-            return None();
+            return Option<I>::None();
         }
     }
 };
-/*
-template <template <typename...> typename C, typename T>
-class IterMut : public Iterator<T *> {
+
+template <template <typename...> typename C, typename T, typename I=T *>
+class IterMut : public Iterator<I> {
+public:
+    typedef I Item;
 private:
-    C<T>::iterator cur;
-    C<T>::iterator end;
+    typename C<T>::iterator cur;
+    typename C<T>::iterator end;
 public:
     explicit IterMut(C<T> &cont) {
         cur = cont.begin();
         end = cont.end();
     }
-    virtual rstd::Option<Item> next() override {
+    virtual rstd::Option<I> next() override {
         if (cur != end) {
-            Item i = &*cur;
+            I i = &*cur;
             ++cur;
-            return Some(i);
+            return Option<I>::Some(i);
         } else {
-            return None();
+            return Option<I>::None();
         }
     }
 };
 
-template <template <typename...> typename C, typename T>
-class IntoIter : public Iterator<T> {
-private:
-    C<T>::iterator cur;
-    C<T>::iterator end;
+template <template <typename...> typename C, typename T, typename I=T>
+class IntoIter : public Iterator<I> {
 public:
-    explicit Iter(C<T> &cont) {
+    typedef I Item;
+private:
+    typename C<T>::iterator cur;
+    typename C<T>::iterator end;
+public:
+    explicit IntoIter(C<T> &cont) {
         cur = cont.begin();
         end = cont.end();
     }
-    virtual rstd::Option<Item> next() override {
+    virtual rstd::Option<I> next() override {
         if (cur != end) {
-            Item i = std::move(*cur);
+            I i = std::move(*cur);
             ++cur;
-            return Some(std::move(i));
+            return Option<I>::Some(std::move(i));
         } else {
-            return None();
+            return Option<I>::None();
         }
     }
 };
 
 template <typename T>
 struct Range : public Iterator<T> {
-    T start = 0, end = 0;
+    T start_ = 0, end_ = 0;
 
-    explicit Range(T end) : Range(0, end) {}
-    Range(T start, T end) start(start), end(end) {}
-}
-*/
+    explicit Range(T e) : Range(0, e) {}
+    Range(T s, T e) : start_(s), end_(e) {}
+
+    virtual rstd::Option<T> next() override {
+        if (start_ < end_) {
+            T i = start_;
+            ++start_;
+            return Option<T>::Some(i);
+        } else {
+            return Option<T>::None();
+        }
+    }
+};
+
 } // namespace rstd

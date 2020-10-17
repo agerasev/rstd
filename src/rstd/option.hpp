@@ -32,7 +32,7 @@ public:
         return std::move(value);
     }
 };
-template <typename T>
+template <typename T, typename X=std::enable_if_t<!std::is_pointer_v<T>, void>>
 _Some<T> Some(T &&t) {
     return _Some<T>(std::move(t));
 }

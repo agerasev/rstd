@@ -154,4 +154,9 @@ rtest_module_(option) {
         auto b = Option<int>::None();
         assert_eq_(format_(b), "None");
     }
+    rtest_(pointer) {
+        int x = 123;
+        Option<int*> a = Some(&x);
+        assert_eq_(*a.get(), 123);
+    }
 }

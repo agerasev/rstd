@@ -117,16 +117,9 @@ rtest_module_(variant) {
         assert_(a.is_some());
         assert_eq_(a.template get<1>(), 321);
     }
-    rtest_(store_ptr) {
+    rtest_(pointer) {
         int x = 123;
-        auto a = Variant<bool, int*, double>::create<1>(&x);
+        auto a = Variant<bool, int*, const double*>::create<1>(&x);
         assert_eq_(*a.get<1>(), x);
     }
-    /*
-    rtest_(store_ref) {
-        int x = 123;
-        auto a = Variant<bool, int&, double>::create<1>(x);
-        assert_eq_(a.template get<1>(), x);
-    }
-    */
 }
