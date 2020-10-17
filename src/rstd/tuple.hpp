@@ -10,7 +10,7 @@
 namespace rstd {
 
 template <typename ...Elems>
-class Tuple {
+class Tuple final {
 private:
     typedef std::tuple<Elems...> Base;
     Base base;
