@@ -7,9 +7,30 @@
 #include "container.hpp"
 #include "format.hpp"
 #include "assert.hpp"
+#include "tuple.hpp"
 
 
 namespace rstd2 {
+
+template <size_t S, size_t Q = S - 1>
+struct _Visit {
+    static const size_t P = S - Q - 1;
+    template <typename F>
+    static decltype(auto) visit(size_t i, F &&f) {
+        if (i == P) {
+            return f.template operator()<P>();
+        } else {
+            return _Visit<S, Q - 1>::visit(i, std::forward<F>(f));
+        }
+    }
+};
+template <size_t S>
+struct _Visit<S, 0> {
+    template <typename F>
+    static decltype(auto) visit(size_t, F &&f) {
+        return f.template operator()<S - 1>();
+    }
+};
 
 template <typename ...Elems>
 class Variant final {
@@ -146,59 +167,100 @@ public:
         rstd::nth_type<P, Elems...> cx(x);
         return create<P>(std::move(cx));
     }
-};
 
-
-/*
+private:
+    template <typename O, typename F>
+    struct Visitor {
+        O owner;
+        F func;
+        Visitor(O o, F &&f) :
+            owner(o),
+            func(std::move(f))
+        {}
+        template <size_t P>
+        decltype(auto) operator()() {
+            return func.template operator()<P>(owner->template get<P>());
+        }
+    };
 
 public:
-    template <
-        typename ...Fs,
-        typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &&>...>
-    >
-    R match(Fs ...funcs) {
-        this->assert_some();
-        int id = this->id_;
-        this->id_ = size();
-        return Visitor<Matcher, size()>::visit(id, this->union_, funcs...);
+    template <typename F>
+    decltype(auto) visit(F &&f) {
+        return _Visit<size()>::visit(id(), Visitor<Variant *, F>(this, std::move(f)));
     }
-    template <
-        typename ...Fs,
-        typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &>...>
-    >
-    R match_ref(Fs ...funcs) {
-        this->assert_some();
-        return Visitor<MatcherRef, size()>::visit(this->id_, this->union_, funcs...);
+    template <typename F>
+    decltype(auto) visit(F &&f) const {
+        return _Visit<size()>::visit(id(), Visitor<const Variant *, F>(this, std::move(f)));
     }
-    template <
-        typename ...Fs,
-        typename R=std::common_type_t<std::invoke_result_t<Fs, const Elems &>...>
-    >
-    R match_ref(Fs ...funcs) const {
-        this->assert_some();
-        return Visitor<MatcherRefConst, size()>::visit(this->id_, this->union_, funcs...);
+
+
+private:
+    template <typename ...Fs>
+    struct Matcher {
+        Variant *owner;
+        rstd::Tuple<Fs...> funcs;
+        Matcher(Variant *o, Fs &&...fs) :
+            owner(o),
+            funcs(std::forward<Fs>(fs)...)
+        {}
+        template <size_t P>
+        decltype(auto) operator()() {
+            return funcs.template get<P>()(owner->template take<P>());
+        }
+    };
+    template <typename O, typename ...Fs>
+    struct MatcherRef {
+        O owner;
+        rstd::Tuple<Fs...> funcs;
+        MatcherRef(O o, Fs &&...fs) :
+            owner(o),
+            funcs(std::forward<Fs>(fs)...)
+        {}
+        template <size_t P>
+        decltype(auto) operator()() {
+            return funcs.template get<P>()(owner->template get<P>());
+        }
+    };
+
+public:
+    template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &&>...>>
+    R match(Fs &&...fs) {
+        assert_some();
+        return _Visit<size()>::visit(id(), Matcher<Fs...>(this, std::forward<Fs>(fs)...));
+    }
+    template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &>...>>
+    R match_ref(Fs &&...fs) {
+        assert_some();
+        return _Visit<size()>::visit(id(), MatcherRef<Variant *, Fs...>(this, std::forward<Fs>(fs)...));
+    }
+    template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, const Elems &>...>>
+    R match_ref(Fs &&...fs) const {
+        assert_some();
+        return _Visit<size()>::visit(id(), MatcherRef<const Variant *, Fs...>(this, std::forward<Fs>(fs)...));
     }
 };
 
-*/
-/*
+} // namespace rstd2
+
+namespace rstd {
+
 template <typename ...Elems>
-struct fmt::Display<Variant<Elems...>> {
+struct fmt::Display<rstd2::Variant<Elems...>> {
 private:
-    template <size_t P>
     struct Printer {
-        static void call(std::ostream &o, const Variant<Elems...> &v) {
-            write_(o, v.template get<P>());
+        std::ostream *o;
+        template <size_t, typename T>
+        void operator()(const T &v) {
+            write_(*o, v);
         }
     };
 public:
-    static void fmt(const Variant<Elems...> &v, std::ostream &o) {
+    static void fmt(const rstd2::Variant<Elems...> &v, std::ostream &o) {
         assert_(v.is_some());
         o << "Variant<" << v.id() << ">(";
-        Visitor<Printer, Variant<Elems...>::size()>::visit(v.id(), o, v);
+        v.visit(Printer{&o});
         o << ")";
     }
 };
-*/
 
 } // namespace rstd

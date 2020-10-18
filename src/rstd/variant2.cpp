@@ -65,7 +65,25 @@ rtest_module_(variant2) {
         a = b;
         assert_eq_(a.get<1>(), "abc");
     }
-    /*
+    struct Visitor {
+        size_t *p;
+        template <size_t P, typename T>
+        void operator()(const T &) {
+            assert_eq_(*p, 2);
+            *p = P;
+        }
+    };
+    rtest_(visit) {
+        size_t p = 2;
+        auto a = Variant<int, std::string>::create<0>(123);
+        a.visit(Visitor{&p});
+        assert_eq_(p, 0);
+
+        p = 2;
+        a = Variant<int, std::string>::create<1>("abc");
+        a.visit(Visitor{&p});
+        assert_eq_(p, 1);
+    }
     rtest_(format) {
         auto a = Variant<int, std::string>::create<0>(123);
         assert_eq_(format_(a), "Variant<0>(123)");
@@ -120,7 +138,6 @@ rtest_module_(variant2) {
         assert_(a.is_some());
         assert_eq_(a.template get<1>(), 321);
     }
-    */
     rtest_(pointer) {
         int x = 123;
         auto a = Variant<bool, int*, const double*>::create<1>(&x);
