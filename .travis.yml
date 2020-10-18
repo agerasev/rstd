@@ -16,5 +16,5 @@ script:
   - mkdir build
   - cd build
   - cmake ..
-  - make rstd_test
+  - make rstd_test -j $(grep -c ^processor /proc/cpuinfo)
   - ./rstd_test
