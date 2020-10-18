@@ -142,7 +142,7 @@ rtest_module_(option) {
         assert_eq_(s.unwrap(), 123);
 
         Option<int> n = None();
-        assert_(s.is_none());
+        assert_(n.is_none());
 
         Option<> se = Some();
         assert_(se.is_some());
