@@ -4,7 +4,7 @@ else()
     cmake_minimum_required(VERSION 3.0)
 endif()
 
-project(rstd VERSION 0.3.2 DESCRIPTION "Rust-like types and routines for C++17")
+project(rstd VERSION 0.4.0 DESCRIPTION "Rust-like types and routines for C++17")
 
 set(CMAKE_C_FLAGS "-g -Wall -Wextra")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++17 -fno-exceptions") # -std=c++17 -pedantic
@@ -25,9 +25,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/templates.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/container.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/tuple.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/union.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/variant.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/variant2.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/option.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/result.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/hash.hpp"
@@ -56,9 +54,7 @@ set(TEST_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/functions.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/templates.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/tuple.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/union.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/variant.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/variant2.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/option.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/result.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rstd/iterator.cpp"
