@@ -62,4 +62,19 @@ rtest_module_(iterator) {
             assert_eq_(vec[i], i);
         }
     }
+    rtest_(map) {
+        auto iter = Range(0, 5).map([](int x) { return x*x; });
+        for (int i = 0; i < 5; ++i) {
+            assert_eq_(iter.next().unwrap(), i*i);
+        }
+        assert_(iter.next().is_none());
+    }
+    rtest_(copied) {
+        std::vector<int> data = {0, 1, 2, 3, 4};
+        auto iter = Iter<std::vector, int>(data).copied();
+        for (int i = 0; i < int(data.size()); ++i) {
+            assert_eq_(iter.next().unwrap(), i);
+        }
+        assert_(iter.next().is_none());
+    }
 }
