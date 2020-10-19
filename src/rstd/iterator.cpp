@@ -205,6 +205,26 @@ rtest_module_(iterator) {
         assert_(iter_rev.next().is_none());
         assert_(iter_rev.rev().next().is_none());
     }
+    rtest_(cycle) {
+        auto iter = Range(0, 10).cycle();
+        for (int i = 0; i < 33; ++i) {
+            assert_eq_(iter.next().unwrap(), i % 10);
+        }
+    }
+    rtest_(chain) {
+        auto iter = Range(0, 10).chain(Range(10, 20));
+        for (int i = 0; i < 20; ++i) {
+            assert_eq_(iter.next().unwrap(), i);
+        }
+        iter.next().unwrap_none();
+    }
+    rtest_(chain_rev) {
+        auto iter = Range(0, 10).chain(Range(10, 20)).rev();
+        for (int i = 0; i < 20; ++i) {
+            assert_eq_(iter.next().unwrap(), 19 - i);
+        }
+        iter.next().unwrap_none();
+    }
     rtest_(copied) {
         std::vector<int> data = {0, 1, 2, 3, 4};
         auto iter = iter_ref(data).copied();

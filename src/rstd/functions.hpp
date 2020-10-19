@@ -7,16 +7,16 @@ namespace rstd {
 
 template <typename T>
 T clone(const T &x) {
-    return T(x);
+    return x;
 }
 
 template <typename T>
 T move(T &x) {
-    return T(std::move(x));
+    return std::move(x);
 }
 template <typename T>
 T move(T &&x) {
-    return T(std::move(x));
+    return std::move(x);
 }
 
 template <typename T>

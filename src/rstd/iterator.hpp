@@ -31,6 +31,10 @@ template <typename T, typename I, typename F>
 class Filter;
 template <typename T, typename I, typename F>
 class FilterMap;
+template <typename T, typename I>
+class Cycle;
+template <typename T, typename I, typename J>
+class Chain;
 
 } // namespace iter
 
@@ -91,6 +95,13 @@ public:
     iter::FilterMap<T, Self, F> filter_map(F &&f) {
         return iter::FilterMap<T, Self, F>(std::move(self()), std::move(f));
     }
+    iter::Cycle<T, Self> cycle() {
+        return iter::Cycle<T, Self>(std::move(self()));
+    }
+    template <typename J>
+    iter::Chain<T, Self, J> chain(J &&other) {
+        return iter::Chain<T, Self, J>(std::move(self()), std::move(other));
+    }
 
     template <typename T_=T, typename X=std::enable_if_t<std::is_pointer_v<T_>, void>>
     decltype(auto) copied() {
@@ -134,7 +145,9 @@ private:
     I iter;
     F func;
 public:
-    Map(I &&i, F &&f) : iter(i), func(f) {}
+    Map(I &&i, F &&f) :
+        iter(std::move(i)), func(std::move(f))
+    {}
     rstd::Option<std::invoke_result_t<F, T>> next() {
         return iter.next().map(func);
     }
@@ -149,7 +162,9 @@ private:
     I iter;
     F func;
 public:
-    Filter(I &&i, F &&f) : iter(i), func(f) {}
+    Filter(I &&i, F &&f) :
+        iter(std::move(i)), func(std::move(f))
+    {}
     rstd::Option<T> next() {
         return iter.find(func);
     }
@@ -164,13 +179,52 @@ private:
     I iter;
     F func;
 public:
-    FilterMap(I &&i, F &&f) : iter(i), func(f) {}
+    FilterMap(I &&i, F &&f) :
+        iter(std::move(i)), func(std::move(f))
+    {}
     rstd::Option<option_some_type<std::invoke_result_t<F, T>>> next() {
         return iter.find_map(func);
     }
     typedef FilterMap<T, typename I::Rev, F> Rev;
     Rev rev() {
         return Rev(iter.rev(), std::move(func));
+    }
+};
+template <typename T, typename I>
+class Cycle final : public Iterator<T, Cycle<T, I>> {
+private:
+    I origin, iter;
+public:
+    Cycle(I &&i) :
+        origin(clone(i)),
+        iter(std::move(i))
+    {}
+    rstd::Option<T> next() {
+        auto ox = iter.next();
+        if (ox.is_some()) {
+            return ox;
+        } else {
+            iter = clone(origin);
+            return iter.next();
+        }
+    }
+};
+template <typename T, typename I, typename J>
+class Chain final : public Iterator<T, Chain<T, I, J>> {
+private:
+    I first;
+    J second;
+public:
+    Chain(I &&i, J &&j) :
+        first(std::move(i)),
+        second(std::move(j))
+    {}
+    rstd::Option<T> next() {
+        return first.next().or_else([&]() { return second.next(); });
+    }
+    typedef Chain<T, typename J::Rev, typename I::Rev> Rev;
+    Rev rev() {
+        return Rev(second.rev(), first.rev());
     }
 };
 
@@ -184,6 +238,20 @@ public:
     Iter(J begin, J end) :
         cur(begin), end(end)
     {}
+    Iter(const Iter &) = default;
+    Iter &operator=(const Iter &) = default;
+    Iter(Iter &&other) :
+        cur(std::move(other.cur)),
+        end(std::move(other.end))
+    {
+        other.cur = other.end;
+    }
+    Iter &operator=(Iter &&other) {
+        cur = std::move(other.cur);
+        end = std::move(other.end);
+        other.cur = other.end;
+        return *this;
+    }
     rstd::Option<U> next() {
         if (cur != end) {
             U i = &*cur;
@@ -231,6 +299,22 @@ public:
         cont(std::move(c)),
         cur(begin), end(end)
     {}
+    IntoIter(const IntoIter &) = default;
+    IntoIter &operator=(const IntoIter &) = default;
+    IntoIter(IntoIter &&other) :
+        cont(std::move(other.cont)),
+        cur(std::move(other.cur)),
+        end(std::move(other.end))
+    {
+        other.cur = other.end;
+    }
+    IntoIter &operator=(IntoIter &&other) {
+        cont = std::move(other.cont);
+        cur = std::move(other.cur);
+        end = std::move(other.end);
+        other.cur = other.end;
+        return *this;
+    }
     rstd::Option<T> next() {
         if (cur != end) {
             T t = std::move(*cur);
@@ -269,7 +353,22 @@ private:
 public:
     explicit Range(T e) : Range(0, e) {}
     Range(T s, T e) : start_(s), end_(e) {}
-
+    Range(const Range &) = default;
+    Range &operator=(const Range &) = default;
+    Range(Range &&other) :
+        start_(other.start_),
+        end_(other.end_),
+        rev_(other.rev_)
+    {
+        other.start_ = other.end_;
+    }
+    Range &operator=(Range &&other) {
+        start_ = other.start_;
+        end_ = other.end_;
+        rev_ = other.rev_;
+        other.start_ = other.end_;
+        return *this;
+    }
     rstd::Option<T> next() {
         if (start_ < end_) {
             T i;
@@ -287,9 +386,9 @@ public:
     }
     typedef Range Rev;
     Range rev() {
-        Range r = *this;
+        Range r = clone(*this);
         r.rev_ = !rev_;
-        end_ = start_;
+        start_ = end_;
         return r;
     }
 };
