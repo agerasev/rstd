@@ -192,6 +192,19 @@ rtest_module_(iterator) {
         }
         assert_(iter.next().is_none());
     }
+    rtest_(map_rev) {
+        auto iter = Range(0, 10).map([](int x) { return 2*x; });
+        for (int i = 0; i < 5; ++i) {
+            assert_eq_(iter.next().unwrap(), 2*i);
+        }
+        auto iter_rev = iter.rev();
+        assert_(iter.next().is_none());
+        for (int i = 0; i < 5; ++i) {
+            assert_eq_(iter_rev.next().unwrap(), 18 - 2*i);
+        }
+        assert_(iter_rev.next().is_none());
+        assert_(iter_rev.rev().next().is_none());
+    }
     rtest_(copied) {
         std::vector<int> data = {0, 1, 2, 3, 4};
         auto iter = iter_ref(data).copied();

@@ -138,6 +138,10 @@ public:
     rstd::Option<std::invoke_result_t<F, T>> next() {
         return iter.next().map(func);
     }
+    typedef Map<T, typename I::Rev, F> Rev;
+    Rev rev() {
+        return Rev(iter.rev(), std::move(func));
+    }
 };
 template <typename T, typename I, typename F>
 class Filter final : public Iterator<T, Filter<T, I, F>> {
@@ -149,6 +153,10 @@ public:
     rstd::Option<T> next() {
         return iter.find(func);
     }
+    typedef Filter<T, typename I::Rev, F> Rev;
+    Rev rev() {
+        return Rev(iter.rev(), std::move(func));
+    }
 };
 template <typename T, typename I, typename F>
 class FilterMap final : public Iterator<T, FilterMap<T, I, F>> {
@@ -159,6 +167,10 @@ public:
     FilterMap(I &&i, F &&f) : iter(i), func(f) {}
     rstd::Option<option_some_type<std::invoke_result_t<F, T>>> next() {
         return iter.find_map(func);
+    }
+    typedef FilterMap<T, typename I::Rev, F> Rev;
+    Rev rev() {
+        return Rev(iter.rev(), std::move(func));
     }
 };
 
@@ -181,8 +193,9 @@ public:
             return Option<U>::None();
         }
     }
-    Iter<C, T, U, std::reverse_iterator<J>> rev() {
-        auto r = Iter<C, T, U, std::reverse_iterator<J>>(
+    typedef Iter<C, T, U, std::reverse_iterator<J>> Rev;
+    Rev rev() {
+        auto r = Rev(
             std::reverse_iterator<J>(end),
             std::reverse_iterator<J>(cur)
         );
@@ -227,8 +240,9 @@ public:
             return Option<T>::None();
         }
     }
-    IntoIter<C, T, std::reverse_iterator<J>> rev() {
-        auto r = IntoIter<C, T, std::reverse_iterator<J>>(
+    typedef IntoIter<C, T, std::reverse_iterator<J>> Rev;
+    Rev rev() {
+        auto r = Rev(
             std::move(cont),
             std::reverse_iterator<J>(end),
             std::reverse_iterator<J>(cur)
@@ -271,6 +285,7 @@ public:
             return Option<T>::None();
         }
     }
+    typedef Range Rev;
     Range rev() {
         Range r = *this;
         r.rev_ = !rev_;
