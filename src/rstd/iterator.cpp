@@ -9,7 +9,7 @@ using namespace rstd;
 
 
 rtest_module_(iterator) {
-    rtest_(iter) {
+    rtest_(iter_const) {
         const std::vector<int> data = {0, 1, 2, 3, 4};
         auto iter = iter_ref(data);
         for (int i = 0; i < int(data.size()); ++i) {
@@ -29,6 +29,23 @@ rtest_module_(iterator) {
         for (int i = 0; i < int(data.size()); ++i) {
             assert_eq_(data[i], -i);
         }
+    }
+    rtest_(iter_rev) {
+        std::vector<int> data;
+        for (int i = 0; i < 10; ++i) {
+            data.push_back(i);
+        }
+        auto iter = iter_ref(data);
+        for (int i = 0; i < 5; ++i) {
+            assert_eq_(*iter.next().unwrap(), i);
+        }
+        auto iter_rev = iter.rev();
+        assert_(iter.next().is_none());
+        for (int i = 0; i < 5; ++i) {
+            assert_eq_(*iter_rev.next().unwrap(), 9 - i);
+        }
+        assert_(iter_rev.next().is_none());
+        assert_(iter_rev.rev().next().is_none());
     }
     rtest_(into_iter) {
         std::vector<int> data = {0, 1, 2, 3, 4};
@@ -60,7 +77,7 @@ rtest_module_(iterator) {
         std::vector<std::shared_ptr<int>> copy = origin;
         for (const auto &sh : origin) { assert_eq_(sh.use_count(), 2); }
 
-        auto iter = IntoIter<std::vector, std::shared_ptr<int>>(std::move(copy));
+        auto iter = into_iter(std::move(copy));
         assert_(copy.empty());
         for (const auto &sh : origin) { assert_eq_(sh.use_count(), 2); }
 
@@ -70,6 +87,23 @@ rtest_module_(iterator) {
         assert_(iter.next().is_none());
 
         for (const auto &sh : origin) { assert_eq_(sh.use_count(), 1); }
+    }
+    rtest_(into_iter_rev) {
+        std::vector<int> data;
+        for (int i = 0; i < 10; ++i) {
+            data.push_back(i);
+        }
+        auto iter = into_iter(std::move(data));
+        for (int i = 0; i < 5; ++i) {
+            assert_eq_(iter.next().unwrap(), i);
+        }
+        auto iter_rev = iter.rev();
+        assert_(iter.next().is_none());
+        for (int i = 0; i < 5; ++i) {
+            assert_eq_(iter_rev.next().unwrap(), 9 - i);
+        }
+        assert_(iter_rev.next().is_none());
+        assert_(iter_rev.rev().next().is_none());
     }
     rtest_(range) {
         auto iter = Range(1, 6);
@@ -88,6 +122,19 @@ rtest_module_(iterator) {
         }
         assert_eq_(i, 10);
         assert_(iter.next().is_none());
+    }
+    rtest_(range_rev) {
+        auto iter = Range(10);
+        for (int i = 0; i < 5; ++i) {
+            assert_eq_(iter.next().unwrap(), i);
+        }
+        auto iter_rev = iter.rev();
+        assert_(iter.next().is_none());
+        for (int i = 0; i < 5; ++i) {
+            assert_eq_(iter_rev.next().unwrap(), 9 - i);
+        }
+        assert_(iter_rev.next().is_none());
+        assert_(iter_rev.rev().next().is_none());
     }
     rtest_(find) {
         auto iter = Range(10);
@@ -147,7 +194,7 @@ rtest_module_(iterator) {
     }
     rtest_(copied) {
         std::vector<int> data = {0, 1, 2, 3, 4};
-        auto iter = Iter<std::vector, int>(data).copied();
+        auto iter = iter_ref(data).copied();
         for (int i = 0; i < int(data.size()); ++i) {
             assert_eq_(iter.next().unwrap(), i);
         }

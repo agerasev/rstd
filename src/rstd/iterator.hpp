@@ -164,96 +164,118 @@ public:
 
 } // namespace iter
 
-template <template <typename...> typename C, typename T, typename U=const T *>
-class Iter : public Iterator<U, Iter<C, T>> {
+template <template <typename...> typename C, typename T, typename U, typename J>
+class Iter : public Iterator<U, Iter<C, T, U, J>> {
 private:
-    typename C<T>::const_iterator cur;
-    typename C<T>::const_iterator end;
+    J cur, end;
 public:
-    explicit Iter(const C<T> &cont) {
-        cur = cont.cbegin();
-        end = cont.cend();
-    }
-    rstd::Option<U> next() {
-        if (cur != end) {
-            U i = &*cur;
-            ++cur;
-            return Option<U>::Some(i);
-        } else {
-            return Option<U>::None();
-        }
-    }
-};
-template <template <typename...> typename C, typename T>
-Iter<C, T> iter_ref(const C<T> &cont) {
-    return Iter<C, T>(cont);
-}
-
-template <template <typename...> typename C, typename T, typename U=T *>
-class IterMut : public Iterator<U, IterMut<C, T>> {
-private:
-    typename C<T>::iterator cur;
-    typename C<T>::iterator end;
-public:
-    explicit IterMut(C<T> &cont) {
-        cur = cont.begin();
-        end = cont.end();
-    }
-    rstd::Option<U> next() {
-        if (cur != end) {
-            U i = &*cur;
-            ++cur;
-            return Option<U>::Some(i);
-        } else {
-            return Option<U>::None();
-        }
-    }
-};
-template <template <typename...> typename C, typename T>
-IterMut<C, T> iter_ref(C<T> &cont) {
-    return IterMut<C, T>(cont);
-}
-
-template <template <typename...> typename C, typename T, typename U=T>
-class IntoIter : public Iterator<U, IterMut<C, T>> {
-private:
-    C<T> cont;
-    typename C<T>::iterator cur;
-public:
-    explicit IntoIter(C<T> &&c) :
-        cont(std::move(c)),
-        cur(cont.begin())
+    Iter(J begin, J end) :
+        cur(begin), end(end)
     {}
     rstd::Option<U> next() {
-        if (cur != cont.end()) {
-            U i = std::move(*cur);
+        if (cur != end) {
+            U i = &*cur;
             ++cur;
-            return Option<U>::Some(std::move(i));
+            return Option<U>::Some(i);
         } else {
             return Option<U>::None();
         }
     }
+    Iter<C, T, U, std::reverse_iterator<J>> rev() {
+        auto r = Iter<C, T, U, std::reverse_iterator<J>>(
+            std::reverse_iterator<J>(end),
+            std::reverse_iterator<J>(cur)
+        );
+        cur = end;
+        return r;
+    }
 };
-template <template <typename...> typename C, typename T>
-IntoIter<C, T> into_iter(C<T> &&cont) {
-    return IntoIter<C, T>(std::move(cont));
+
+template <
+    template <typename...> typename C,
+    typename T,
+    typename I=Iter<C, T, const T *, typename C<T>::const_iterator>
+>
+I iter_ref(const C<T> &cont) {
+    return I(cont.begin(), cont.end());
+}
+template <
+    template <typename...> typename C,
+    typename T,
+    typename I=Iter<C, T, T *, typename C<T>::iterator>
+>
+I iter_ref(C<T> &cont) {
+    return I(cont.begin(), cont.end());
+}
+
+template <template <typename...> typename C, typename T, typename J>
+class IntoIter : public Iterator<T, IntoIter<C, T, J>> {
+private:
+    C<T> cont;
+    J cur, end;
+public:
+    IntoIter(C<T> &&c, J begin, J end) :
+        cont(std::move(c)),
+        cur(begin), end(end)
+    {}
+    rstd::Option<T> next() {
+        if (cur != end) {
+            T t = std::move(*cur);
+            ++cur;
+            return Option<T>::Some(std::move(t));
+        } else {
+            return Option<T>::None();
+        }
+    }
+    IntoIter<C, T, std::reverse_iterator<J>> rev() {
+        auto r = IntoIter<C, T, std::reverse_iterator<J>>(
+            std::move(cont),
+            std::reverse_iterator<J>(end),
+            std::reverse_iterator<J>(cur)
+        );
+        cur = end;
+        return r;
+    }
+};
+template <
+    template <typename...> typename C,
+    typename T,
+    typename I=IntoIter<C, T, typename C<T>::iterator>
+>
+I into_iter(C<T> &&cont) {
+    return I(std::move(cont), cont.begin(), cont.end());
 }
 
 template <typename T>
 struct Range : public Iterator<T, Range<T>> {
+private:
     T start_ = 0, end_ = 0;
+    bool rev_ = false;
 
+public:
     explicit Range(T e) : Range(0, e) {}
     Range(T s, T e) : start_(s), end_(e) {}
 
     rstd::Option<T> next() {
         if (start_ < end_) {
-            T i = start_;
-            ++start_;
+            T i;
+            if (!rev_) {
+                i = start_;
+                ++start_;
+            } else {
+                --end_;
+                i = end_;
+            }
             return Option<T>::Some(i);
         } else {
             return Option<T>::None();
         }
+    }
+    Range rev() {
+        Range r = *this;
+        r.rev_ = !rev_;
+        end_ = start_;
+        return r;
     }
 };
 
