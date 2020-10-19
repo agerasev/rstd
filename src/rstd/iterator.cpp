@@ -55,4 +55,11 @@ rtest_module_(iterator) {
         assert_eq_(i, 10);
         assert_(iter.next().is_none());
     }
+    rtest_(collect) {
+        std::vector<int> vec = Range(5).collect<std::vector>();
+        assert_eq_(vec.size(), 5);
+        for (int i = 0; i < int(vec.size()); ++i) {
+            assert_eq_(vec[i], i);
+        }
+    }
 }
