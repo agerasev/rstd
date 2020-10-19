@@ -211,19 +211,13 @@ rtest_module_(iterator) {
             assert_eq_(iter.next().unwrap(), i % 10);
         }
     }
-    rtest_(chain) {
-        auto iter = Range(0, 10).chain(Range(10, 20));
-        for (int i = 0; i < 20; ++i) {
-            assert_eq_(iter.next().unwrap(), i);
-        }
-        iter.next().unwrap_none();
+    rtest_(fold) {
+        int fac = Range(1, 10).fold(1, [](int x, int y) { return x*y; });
+        assert_eq_(fac, 362880);
     }
-    rtest_(chain_rev) {
-        auto iter = Range(0, 10).chain(Range(10, 20)).rev();
-        for (int i = 0; i < 20; ++i) {
-            assert_eq_(iter.next().unwrap(), 19 - i);
-        }
-        iter.next().unwrap_none();
+    rtest_(count) {
+        size_t cnt = Range(0, 10).count();
+        assert_eq_(cnt, 10);
     }
     rtest_(copied) {
         std::vector<int> data = {0, 1, 2, 3, 4};

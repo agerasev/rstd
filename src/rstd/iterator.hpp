@@ -78,9 +78,23 @@ public:
             }
         }
     }
+    template <typename B, typename F>
+    B fold(B init, F &&f) {
+        for (;;) {
+            auto ox = self().next();
+            if (ox.is_some()) {
+                init = f(init, ox.unwrap());
+            } else {
+                return init;
+            }
+        }
+    }
     template <template <typename...> typename C>
     C<T> collect() {
         return FromIterator<C>::template from_iter<T>(std::move(self()));
+    }
+    size_t count() {
+        return self().fold((size_t)0, [](size_t a, auto _) { return a + 1; });
     }
     
     template <typename F>
