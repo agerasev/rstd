@@ -7,6 +7,11 @@
 
 namespace rstd {
 
+template <typename T>
+struct _OptionSomeType;
+template <typename T>
+using option_some_type = typename _OptionSomeType<T>::type;
+
 template <typename T=Tuple<>>
 class Option final {
 private:
@@ -208,15 +213,15 @@ public:
             }
         );
     }
-    // FIXME: Handle case when OU is not Option
     template <
         typename F,
-        typename OU=std::invoke_result_t<F, T &&>
+        typename OU=std::invoke_result_t<F, T &&>,
+        typename U=option_some_type<OU>
     >
-    OU and_then(F f) {
+    Option<U> and_then(F f) {
         return this->match(
             [f](T &&x) { return f(std::move(x)); },
-            []() { return OU::None(); }
+            []() { return Option<U>::None(); }
         );
     }
     Option or_(Option &&opt) {
@@ -251,6 +256,11 @@ inline Option<Tuple<>> Some() {
 inline std::nullopt_t None() {
     return std::nullopt;
 }
+
+template <typename T>
+struct _OptionSomeType<Option<T>> {
+    typedef T type;
+};
 
 template <typename T>
 struct fmt::Display<Option<T>> {
