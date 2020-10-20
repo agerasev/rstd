@@ -25,16 +25,27 @@ struct FromIterator {
 
 namespace iter {
 
-template <typename T, typename I, typename F>
+template <
+    typename T, typename I, typename F,
+    typename R=std::invoke_result_t<F, T>
+>
 class Map;
 template <typename T, typename I, typename F>
 class Filter;
-template <typename T, typename I, typename F>
+template <
+    typename T, typename I, typename F,
+    typename R=option_some_type<std::invoke_result_t<F, T>>
+>
 class FilterMap;
 template <typename T, typename I>
 class Cycle;
 template <typename T, typename I, typename J>
 class Chain;
+template <
+    typename T, typename I, typename S, typename F,
+    typename R=option_some_type<std::invoke_result_t<F, S*, T>>
+>
+class Scan;
 
 } // namespace iter
 
@@ -116,6 +127,10 @@ public:
     iter::Chain<T, Self, J> chain(J &&other) {
         return iter::Chain<T, Self, J>(std::move(self()), std::move(other));
     }
+    template <typename S, typename F>
+    iter::Scan<T, Self, S, F> scan(S &&s, F &&f) {
+        return iter::Scan<T, Self, S, F>(std::move(self()), std::move(s), std::move(f));
+    }
 
     template <typename T_=T, typename X=std::enable_if_t<std::is_pointer_v<T_>, void>>
     decltype(auto) copied() {
@@ -153,8 +168,8 @@ public:
 
 namespace iter {
 
-template <typename T, typename I, typename F>
-class Map final : public Iterator<T, Map<T, I, F>> {
+template <typename T, typename I, typename F, typename R>
+class Map final : public Iterator<R, Map<T, I, F, R>> {
 private:
     I iter;
     F func;
@@ -162,7 +177,7 @@ public:
     Map(I &&i, F &&f) :
         iter(std::move(i)), func(std::move(f))
     {}
-    rstd::Option<std::invoke_result_t<F, T>> next() {
+    rstd::Option<R> next() {
         return iter.next().map(func);
     }
     typedef Map<T, typename I::Rev, F> Rev;
@@ -187,8 +202,8 @@ public:
         return Rev(iter.rev(), std::move(func));
     }
 };
-template <typename T, typename I, typename F>
-class FilterMap final : public Iterator<T, FilterMap<T, I, F>> {
+template <typename T, typename I, typename F, typename R>
+class FilterMap final : public Iterator<R, FilterMap<T, I, F, R>> {
 private:
     I iter;
     F func;
@@ -196,7 +211,7 @@ public:
     FilterMap(I &&i, F &&f) :
         iter(std::move(i)), func(std::move(f))
     {}
-    rstd::Option<option_some_type<std::invoke_result_t<F, T>>> next() {
+    rstd::Option<R> next() {
         return iter.find_map(func);
     }
     typedef FilterMap<T, typename I::Rev, F> Rev;
@@ -239,6 +254,33 @@ public:
     typedef Chain<T, typename J::Rev, typename I::Rev> Rev;
     Rev rev() {
         return Rev(second.rev(), first.rev());
+    }
+};
+template <typename T, typename I, typename S, typename F, typename R>
+class Scan final : public Iterator<R, Scan<T, I, S, F, R>> {
+private:
+    I iter;
+    S state;
+    F func;
+public:
+    Scan(I &&i, S &&s, F &&f) :
+        iter(std::move(i)),
+        state(std::move(s)),
+        func(std::move(f))
+    {}
+    rstd::Option<R> next() {
+        auto ox = iter.next();
+        if (ox.is_some()) {
+            auto res = func(&state, ox.unwrap());
+            if (res.is_some()) {
+                return res;
+            } else {
+                drop(iter);
+                return None();
+            }
+        } else {
+            return None();
+        }
     }
 };
 

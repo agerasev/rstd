@@ -205,6 +205,33 @@ rtest_module_(iterator) {
         assert_(iter_rev.next().is_none());
         assert_(iter_rev.rev().next().is_none());
     }
+    rtest_(scan) {
+        std::vector<int> data = Range(0, 100)
+        .map([](int x) { return (257*x + 123) % 10; })
+        .collect<std::vector>();
+
+        auto iter = iter_ref(data).copied()
+        .scan(0, [](int *s, int x) {
+            int p = *s;
+            if (p < 50) {
+                *s += x;
+                return Option<int>::Some(p);
+            } else {
+                return Option<int>::None();
+            }
+        });
+        
+        int state = 0;
+        for (int i = 0; i < int(data.size()); ++i) {
+            assert_eq_(iter.next().unwrap(), state);
+            state += data[i];
+            if (state >= 50) {
+                break;
+            }
+        }
+        assert_(iter.next().is_none());
+        assert_(iter.next().is_none());
+    }
     rtest_(cycle) {
         auto iter = Range(0, 10).cycle();
         for (int i = 0; i < 33; ++i) {
