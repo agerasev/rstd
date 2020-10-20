@@ -192,6 +192,28 @@ rtest_module_(iterator) {
         }
         assert_(iter.next().is_none());
     }
+    rtest_(take) {
+        auto iter = Range(10).take(5);
+        for (int i = 0; i < 5; ++i) {
+            assert_eq_(iter.next().unwrap(), i);
+        }
+        assert_(iter.next().is_none());
+    }
+    rtest_(skip) {
+        auto iter = Range(10).skip(5);
+        for (int i = 0; i < 5; ++i) {
+            assert_eq_(iter.next().unwrap(), i + 5);
+        }
+        assert_(iter.next().is_none());
+    }
+    rtest_(min) {
+        assert_eq_(Range(10).chain(Range(-10, 0)).min().unwrap(), -10);
+        iter::empty<int>().min().unwrap_none();
+    }
+    rtest_(max) {
+        assert_eq_(Range(10).chain(Range(-10, 0)).max().unwrap(), 9);
+        iter::empty<int>().max().unwrap_none();
+    }
     rtest_(empty) {
         iter::empty<int>().next().unwrap_none();
     }

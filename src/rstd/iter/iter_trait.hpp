@@ -32,6 +32,70 @@ private:
 public:
     typedef T Item;
 
+    
+    template <typename F>
+    iter::Map<T, Self, F> map(F &&f) {
+        return iter::Map<T, Self, F>(std::move(self()), std::move(f));
+    }
+    template <typename F>
+    iter::MapWhile<T, Self, F> map_while(F &&f) {
+        return iter::MapWhile<T, Self, F>(std::move(self()), std::move(f));
+    }
+    template <typename F>
+    iter::Filter<T, Self, F> filter(F &&f) {
+        return iter::Filter<T, Self, F>(std::move(self()), std::move(f));
+    }
+    template <typename F>
+    iter::FilterMap<T, Self, F> filter_map(F &&f) {
+        return iter::FilterMap<T, Self, F>(std::move(self()), std::move(f));
+    }
+    iter::Cycle<T, Self> cycle() {
+        return iter::Cycle<T, Self>(std::move(self()));
+    }
+    template <typename J>
+    iter::Chain<T, Self, J> chain(J &&other) {
+        return iter::Chain<T, Self, J>(std::move(self()), std::move(other));
+    }
+    template <typename S, typename F>
+    iter::Scan<T, Self, S, F> scan(S &&s, F &&f) {
+        return iter::Scan<T, Self, S, F>(std::move(self()), std::move(s), std::move(f));
+    }
+    iter::Fuse<T, Self> fuse() {
+        return iter::Fuse<T, Self>(std::move(self()));
+    }
+    template <typename J, typename U=iterator_item<J>>
+    iter::Zip<T, U, Self, J> zip(J &&other) {
+        return iter::Zip<T, U, Self, J>(std::move(self()), std::move(other));
+    }
+    template <typename T_=T, typename X=std::enable_if_t<std::is_pointer_v<T_>, void>>
+    decltype(auto) cloned() {
+        return self().map([](T_ x) { return *x; });
+    }
+    decltype(auto) enumerate() {
+        auto endless = iter::successors(Some<size_t>(0), [](size_t x) {
+            return Option<size_t>::Some(x + 1);
+        });
+        return endless.zip(std::move(self()));
+    }
+    decltype(auto) take(size_t n) {
+        return self().scan((size_t)0, [n](size_t *p, T &&x) -> Option<T> {
+            if (*p < n) {
+                *p += 1;
+                return Some(std::move(x));
+            } else {
+                return None();
+            }
+        });
+    }
+    decltype(auto) skip(size_t n) {
+        for (size_t i = 0; i < n; ++i) {
+            if (self().next().is_none()) {
+                break;
+            }
+        }
+        return std::move(self());
+    }
+
     template <typename F>
     Option<T> find(F &&f) {
         static_assert(std::is_same_v<std::invoke_result_t<F, T>, bool>);
@@ -80,42 +144,6 @@ public:
     size_t count() {
         return self().fold((size_t)0, [](size_t a, auto _) { return a + 1; });
     }
-    
-    template <typename F>
-    iter::Map<T, Self, F> map(F &&f) {
-        return iter::Map<T, Self, F>(std::move(self()), std::move(f));
-    }
-    template <typename F>
-    iter::MapWhile<T, Self, F> map_while(F &&f) {
-        return iter::MapWhile<T, Self, F>(std::move(self()), std::move(f));
-    }
-    template <typename F>
-    iter::Filter<T, Self, F> filter(F &&f) {
-        return iter::Filter<T, Self, F>(std::move(self()), std::move(f));
-    }
-    template <typename F>
-    iter::FilterMap<T, Self, F> filter_map(F &&f) {
-        return iter::FilterMap<T, Self, F>(std::move(self()), std::move(f));
-    }
-    iter::Cycle<T, Self> cycle() {
-        return iter::Cycle<T, Self>(std::move(self()));
-    }
-    template <typename J>
-    iter::Chain<T, Self, J> chain(J &&other) {
-        return iter::Chain<T, Self, J>(std::move(self()), std::move(other));
-    }
-    template <typename S, typename F>
-    iter::Scan<T, Self, S, F> scan(S &&s, F &&f) {
-        return iter::Scan<T, Self, S, F>(std::move(self()), std::move(s), std::move(f));
-    }
-    iter::Fuse<T, Self> fuse() {
-        return iter::Fuse<T, Self>(std::move(self()));
-    }
-    template <typename J, typename U=iterator_item<J>>
-    iter::Zip<T, U, Self, J> zip(J &&other) {
-        return iter::Zip<T, U, Self, J>(std::move(self()), std::move(other));
-    }
-
     template <typename F>
     bool any(F f=[](bool x) { return x; }) {
         return self().find(f).is_some();
@@ -124,16 +152,21 @@ public:
     bool all(F f=[](bool x) { return x; }) {
         return self().find([&f](const T &x) { return !f(x); }).is_none();
     }
-
-    template <typename T_=T, typename X=std::enable_if_t<std::is_pointer_v<T_>, void>>
-    decltype(auto) cloned() {
-        return self().map([](T_ x) { return *x; });
-    }
-    decltype(auto) enumerate() {
-        auto endless = iter::successors(Some<size_t>(0), [](size_t x) {
-            return Option<size_t>::Some(x + 1);
+    Option<T> min() {
+        return self().fold(Option<T>::None(), [](Option<T> op, T &&x) {
+            return Option<T>::Some(op.match(
+                [&](T &&w) { return w <= x ? w : x; },
+                [&]() { return x; }
+            ));
         });
-        return endless.zip(std::move(self()));
+    }
+    Option<T> max() {
+        return self().fold(Option<T>::None(), [](Option<T> op, T &&x) {
+            return Option<T>::Some(op.match(
+                [&](T &&w) { return w >= x ? w : x; },
+                [&]() { return x; }
+            ));
+        });
     }
 
 private:
