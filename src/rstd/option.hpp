@@ -1,160 +1,110 @@
 #pragma once
 
 #include <type_traits>
+#include <optional>
 #include "tuple.hpp"
-#include "variant.hpp"
 
 
 namespace rstd {
 
-template <typename T=Tuple<>>
-class _Some final {
-private:
-    T value;
-public:
-    _Some(const _Some &) = default;
-    _Some &operator=(const _Some &) = default;
-    _Some(_Some &&) = default;
-    _Some &operator=(_Some &&) = default;
-
-    explicit _Some(const T &v) : value(v) {}
-    explicit _Some(T &&v) : value(std::move(v)) {}
-    template <typename _T=T, typename X=std::enable_if_t<std::is_same_v<_T, Tuple<>>, void>>
-    _Some() : value(Tuple<>()) {}
-
-    T &get() {
-        return value;
-    }
-    const T &get() const {
-        return value;
-    }
-    T take() {
-        return std::move(value);
-    }
-};
 template <typename T>
-_Some<T> Some(T &&t) {
-    return _Some<T>(std::move(t));
-}
+struct _OptionSomeType;
 template <typename T>
-_Some<T> Some(const T &t) {
-    return _Some<T>(t);
-}
-inline _Some<Tuple<>> Some() {
-    return _Some(Tuple<>());
-}
-
-class _None final {
-public:
-    _None() = default;
-    _None(const _None &) = default;
-    _None &operator=(const _None &) = default;
-    _None(_None &&) = default;
-    _None &operator=(_None &&) = default;
-};
-inline _None None() {
-    return _None();
-}
+using option_some_type = typename _OptionSomeType<T>::type;
 
 template <typename T=Tuple<>>
 class Option final {
 private:
-    Variant<T> var;
+    std::optional<T> base;
 
 public:
     Option() = default;
-    explicit Option(Variant<T> &&v) : var(std::move(v)) {}
-    explicit Option(T &&x) : Option(Variant<T>::template create<0>(std::move(x))) {}
-    explicit Option(const T &x) : Option(Variant<T>::template create<0>(x)) {}
+    explicit Option(T &&x) : base(std::move(x)) {}
+    explicit Option(const T &x) : base(x) {}
 
     Option(const Option &) = default;
     Option &operator=(const Option &) = default;
 
-    Option(Option &&other) = default;
-    Option &operator=(Option &&other) = default;
+    Option(Option &&other) :
+        base(std::move(other.base))
+    {
+        other.base = std::nullopt;
+    }
+    Option &operator=(Option &&other) {
+        base = std::move(other.base);
+        other.base = std::nullopt;
+        return *this;
+    }
+
+    Option(std::nullopt_t none) : base(none) {}
+    Option &operator=(std::nullopt_t none) {
+        base = none;
+        return *this;
+    }
 
     ~Option() = default;
 
-    const Variant<T> &as_variant() const {
-        return var;
-    }
-    Variant<T> &as_variant() {
-        return var;
-    }
-
-    Option(_Some<T> &&some) : Option(some.take()) {}
-    Option(const _Some<T> &some) : Option(some.get()) {}
-    Option(_None) : Option() {}
-
-    Option &operator=(_Some<T> &&some) { return *this = Option(some); }
-    Option &operator=(const _Some<T> &some) { return *this = Option(std::move(some)); }
-    Option &operator=(_None) { return *this = Option(); }
-
-    static Option None() {
-        return Option();
-    }
-    static Option Some(T &&x) {
-        return Option(std::move(x));
-    }
-    static Option Some(const T &x) {
-        return Option(x);
-    }
+    static Option None() { return Option(); }
+    static Option Some(T &&x) { return Option(std::move(x)); }
+    static Option Some(const T &x) { return Option(x); }
     template <typename _T=T, typename X=std::enable_if_t<std::is_same_v<_T, Tuple<>>, void>>
-    static Option Some() {
-        return Option(Tuple<>());
-    }
+    static Option Some() { return Option(Tuple<>()); }
 
     bool is_some() const {
-        return var.is_some();
+        return base.has_value();
     }
     bool is_none() const {
-        return var.is_none();
+        return !base.has_value();
     }
 
     T &_get() {
-        return this->var.template _get<0>();
+        return base.value();
     }
     const T &_get() const {
-        return this->var.template _get<0>();
+        return base.value();
     }
     T &get() {
-        return this->var.template get<0>();
+        assert_(is_some());
+        return base.value();
     }
     const T &get() const {
-        return this->var.template get<0>();
+        assert_(is_some());
+        return base.value();
     }
 
     T _take_some() {
-        return this->var.template _take<0>();
+        T x(std::move(_get()));
+        base = std::nullopt;
+        return x;
     }
     T take_some() {
-        return this->var.template take<0>();
+        assert_(is_some());
+        return _take_some();
     }
-
     Option take() {
-        return Option(std::move(*this));
+        return std::move(*this);
     }
 
     T unwrap() {
-        if (!this->is_some()) {
+        if (!is_some()) {
             panic_("Option is None");
         }
-        return this->_take_some();
+        return _take_some();
     }
     T expect(const std::string &message) {
-        if (!this->is_some()) {
+        if (!is_some()) {
             panic_("Option expect Some:\n{}", message);
         }
-        return this->_take_some();
+        return _take_some();
     }
 
     void unwrap_none() {
-        if (!this->is_none()) {
+        if (!is_none()) {
             panic_("Option is Some");
         }
     }
     void expect_none(const std::string &message) {
-        if (!this->is_none()) {
+        if (!is_none()) {
             panic_("Option expect None:\n{}", message);
         }
     }
@@ -263,15 +213,15 @@ public:
             }
         );
     }
-    // FIXME: Handle case when OU is not Option
     template <
         typename F,
-        typename OU=std::invoke_result_t<F, T &&>
+        typename OU=std::invoke_result_t<F, T &&>,
+        typename U=option_some_type<OU>
     >
-    OU and_then(F f) {
+    Option<U> and_then(F f) {
         return this->match(
             [f](T &&x) { return f(std::move(x)); },
-            []() { return OU::None(); }
+            []() { return Option<U>::None(); }
         );
     }
     Option or_(Option &&opt) {
@@ -292,6 +242,26 @@ public:
     }
 };
 
+template <typename T, typename X=std::enable_if_t<!std::is_pointer_v<T>, void>>
+Option<T> Some(T &&t) {
+    return Option<T>(std::move(t));
+}
+template <typename T>
+Option<T> Some(const T &t) {
+    return Option<T>(t);
+}
+inline Option<Tuple<>> Some() {
+    return Option(Tuple<>());
+}
+inline std::nullopt_t None() {
+    return std::nullopt;
+}
+
+template <typename T>
+struct _OptionSomeType<Option<T>> {
+    typedef T type;
+};
+
 template <typename T>
 struct fmt::Display<Option<T>> {
 public:
@@ -306,4 +276,4 @@ public:
     }
 };
 
-} // namespace rstd
+} // namespace rstd2

@@ -39,23 +39,23 @@ template <typename ...Types>
 inline constexpr size_t common_align = CommonAlign<Types...>::value;
 
 
-template <template <size_t> typename F, size_t S, size_t Q = S - 1>
-struct Dispatcher {
+template <size_t S, size_t Q = S - 1>
+struct _Visit {
     static const size_t P = S - Q - 1;
-    template <typename ...Args>
-    static decltype(auto) dispatch(size_t i, Args &&...args) {
+    template <typename F>
+    static decltype(auto) visit(size_t i, F &&f) {
         if (i == P) {
-            return F<P>::call(std::forward<Args>(args)...);
+            return f.template operator()<P>();
         } else {
-            return Dispatcher<F, S, Q - 1>::dispatch(i, std::forward<Args>(args)...);
+            return _Visit<S, Q - 1>::visit(i, std::forward<F>(f));
         }
     }
 };
-template <template <size_t> typename F, size_t S>
-struct Dispatcher<F, S, 0> {
-    template <typename ...Args>
-    static decltype(auto) dispatch(size_t, Args &&...args) {
-        return F<S - 1>::call(std::forward<Args>(args)...);
+template <size_t S>
+struct _Visit<S, 0> {
+    template <typename F>
+    static decltype(auto) visit(size_t, F &&f) {
+        return f.template operator()<S - 1>();
     }
 };
 

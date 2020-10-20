@@ -6,18 +6,20 @@
 
 using namespace rstd;
 
-template <typename T>
-void print_mem(const T &t) {
-    const unsigned char *mem = reinterpret_cast<const unsigned char*>(&t);
-    for (size_t i = 0; i < sizeof(T); ++i) {
-        unsigned char c = mem[i];
-        static const char *cmap = "0123456789abcdef";
-        std::cout << cmap[c / 16] << cmap[c % 16] << " ";
-    }
-    std::cout << std::endl;
-}
 
 rtest_module_(variant) {
+    rtest_(base) {
+        auto a = std::variant<std::monostate, int, std::string>(123);
+        assert_eq_(std::get<1>(a), 123);
+        auto b = std::variant<std::monostate, int, std::string>("abc");
+        a = std::move(b);
+        b = std::variant<std::monostate, int, std::string>();
+        assert_eq_(std::get<2>(a), "abc");
+    }
+    rtest_(base_repeated_types) {
+        auto a = std::variant<std::monostate, int, int>(std::in_place_index<1>, 123);
+        assert_eq_(std::get<1>(a), 123);
+    }
     rtest_(primitive) {
         auto a = Variant<bool, int, double>::create<1>(123);
         assert_eq_(a.size(), 3u);
@@ -62,6 +64,25 @@ rtest_module_(variant) {
         auto b = Variant<int, std::string>::create<1>("abc");
         a = b;
         assert_eq_(a.get<1>(), "abc");
+    }
+    struct Visitor {
+        size_t *p;
+        template <size_t P, typename T>
+        void operator()(const T &) {
+            assert_eq_(*p, 2);
+            *p = P;
+        }
+    };
+    rtest_(visit) {
+        size_t p = 2;
+        auto a = Variant<int, std::string>::create<0>(123);
+        a.visit(Visitor{&p});
+        assert_eq_(p, 0);
+
+        p = 2;
+        a = Variant<int, std::string>::create<1>("abc");
+        a.visit(Visitor{&p});
+        assert_eq_(p, 1);
     }
     rtest_(format) {
         auto a = Variant<int, std::string>::create<0>(123);
@@ -116,5 +137,10 @@ rtest_module_(variant) {
         assert_eq_(p, 1);
         assert_(a.is_some());
         assert_eq_(a.template get<1>(), 321);
+    }
+    rtest_(pointer) {
+        int x = 123;
+        auto a = Variant<bool, int*, const double*>::create<1>(&x);
+        assert_eq_(*a.get<1>(), x);
     }
 }

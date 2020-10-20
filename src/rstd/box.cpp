@@ -8,6 +8,7 @@ using namespace rstd;
 rtest_module_(box) {
     class Base {
     public:
+        virtual ~Base() = default;
         virtual int foo() = 0;
         //virtual Box<Base> copy() const = 0;
     };

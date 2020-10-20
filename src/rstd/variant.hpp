@@ -1,277 +1,139 @@
 #pragma once
 
 #include <type_traits>
+#include <variant>
+#include <utility>
 #include "templates.hpp"
 #include "container.hpp"
-#include "union.hpp"
 #include "format.hpp"
 #include "assert.hpp"
+#include "tuple.hpp"
 
 
 namespace rstd {
 
-// Safe union with id (similar to Rust enum type)
-
-template <bool C, typename ...Elems>
-class _Variant {
-protected:
-    _Union<Elems...> union_;
-    size_t id_ = size();
+template <typename ...Elems>
+class Variant final {
+private:
+    typedef std::variant<std::monostate, Elems...> Base;
+    Base base;
 
     void assert_some() const {
-        assert_(this->id_ < size());
+        assert_(base.index() > 0);
     }
     template <size_t P>
     void assert_variant() const {
-        assert_(this->id_ == P);
+        assert_(base.index() == P + 1);
     }
     void assert_none() const {
-        assert_(this->id_ == size());
+        assert_(base.index() == 0);
     }
 
 public:
-    static const bool copyable = false;
+    Variant() = default;
+    Variant(const Variant &) = default;
+    Variant &operator=(const Variant &) = default;
+    ~Variant() = default;
 
-protected:
-    template <size_t P>
-    struct Destroyer{
-        static void call(_Union<Elems...> &u) {
-            u.template destroy<P>();
-        }
-    };
-    template <size_t P>
-    struct Mover {
-        static void call(_Union<Elems...> &dst, _Union<Elems...> &src) {
-            dst.template move_from<P>(src);
-        }
-    };
-
-public:
-    _Variant() = default;
-
-    _Variant(_Variant &&v) {
-        if (v.is_some()) {
-            Dispatcher<Mover, size()>::dispatch(v.id_, this->union_, v.union_);
-        }
-        this->id_ = v.id_;
-        v.id_ = size();
+    Variant(Variant &&other) :
+        base(std::move(other.base))
+    {
+        other.base = Base();
     }
-    _Variant &operator=(_Variant &&v) {
-        this->try_destroy();
-        if (v.is_some()) {
-            Dispatcher<Mover, size()>::dispatch(v.id_, this->union_, v.union_);
-        }
-        this->id_ = v.id_;
-        v.id_ = size();
+    Variant &operator=(Variant &&other) {
+        base = std::move(other.base);
+        other.base = Base();
         return *this;
-    }
-
-    _Variant(const _Variant &var) = delete;
-    _Variant &operator=(const _Variant &var) = delete;
-
-    ~_Variant() {
-        this->try_destroy();
     }
 
     static constexpr size_t size() {
         return sizeof...(Elems);
     }
+    // FIXME: Rename to maybe `index`
     size_t id() const {
-        return this->id_;
-    }
-
-    _Union<Elems...> &_as_union() {
-        return union_;
-    }
-    const _Union<Elems...> &_as_union() const {
-        return union_;
-    }
-
-    template <size_t P>
-    void _put(nth_type<P, Elems...> &&x) {
-        static_assert(P < size(), "Index is out of bounds");
-        this->union_.template put<P>(std::move(x));
-        this->id_ = P;
-    }
-    template <size_t P>
-    void put(nth_type<P, Elems...> &&x) {
-        this->assert_none();
-        this->union_.template put<P>(std::move(x));
-        this->id_ = P;
-    }
-    template <size_t P, std::enable_if_t<rstd::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
-    void put(const nth_type<P, Elems...> &x) {
-        nth_type<P, Elems...> cx(x);
-        this->put<P>(std::move(cx));
-    }
-
-    template <size_t P>
-    void set(nth_type<P, Elems...> &&x) {
-        this->try_destroy();
-        this->union_.template put<P>(std::move(x));
-        this->id_ = P;
-    }
-    template <size_t P, std::enable_if_t<rstd::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
-    void set(const nth_type<P, Elems...> &x) {
-        nth_type<P, Elems...> cx(x);
-        this->set<P>(std::move(cx));
-    }
-
-    template <size_t P>
-    const nth_type<P, Elems...> &_get() const {
-        return this->union_.template get<P>();
-    }
-    template <size_t P>
-    const nth_type<P, Elems...> &get() const {
-        this->assert_variant<P>();
-        return this->template _get<P>();
-    }
-    template <size_t P>
-    nth_type<P, Elems...> &_get() {
-        return this->union_.template get<P>();
-    }
-    template <size_t P>
-    nth_type<P, Elems...> &get() {
-        this->assert_variant<P>();
-        return this->template _get<P>();
-    }
-
-    template <size_t P>
-    nth_type<P, Elems...> _take() {
-        this->id_ = size();
-        return std::move(this->union_.template take<P>());
-    }
-    template <size_t P>
-    nth_type<P, Elems...> take() {
-        this->assert_variant<P>();
-        return this->template _take<P>();
+        size_t idx = base.index();
+        if (idx == 0) {
+            return size();
+        } else {
+            return idx - 1;
+        }
     }
 
     bool is_some() const {
-        return this->id_ < size();
+        return base.index() > 0;
     }
     bool is_none() const {
-        return !this->is_some();
+        return base.index() == 0;
     }
     explicit operator bool() const {
         return this->is_some();
     }
 
-    void _destroy() {
-        Dispatcher<Destroyer, size()>::dispatch(this->id_, this->union_);
-        this->id_ = size();
+    template <size_t P>
+    void _put(nth_type<P, Elems...> &&x) {
+        static_assert(P < size(), "Index is out of bounds");
+        base = Base(std::in_place_index<P + 1>, std::move(x));
+    }
+    template <size_t P>
+    void put(nth_type<P, Elems...> &&x) {
+        assert_none();
+        _put<P>(std::move(x));
+    }
+    template <size_t P, std::enable_if_t<is_copyable_v<nth_type<P, Elems...>>, int> = 0>
+    void put(const nth_type<P, Elems...> &x) {
+        nth_type<P, Elems...> cx(x);
+        put<P>(std::move(cx));
+    }
+
+    template <size_t P>
+    void set(nth_type<P, Elems...> &&x) {
+        try_destroy();
+        _put<P>(std::move(x));
+    }
+    template <size_t P, std::enable_if_t<is_copyable_v<nth_type<P, Elems...>>, int> = 0>
+    void set(const nth_type<P, Elems...> &x) {
+        nth_type<P, Elems...> cx(x);
+        set<P>(std::move(cx));
+    }
+
+    template <size_t P>
+    const nth_type<P, Elems...> &_get() const {
+        return std::get<P + 1>(base);
+    }
+    template <size_t P>
+    const nth_type<P, Elems...> &get() const {
+        assert_variant<P>();
+        return _get<P>();
+    }
+    template <size_t P>
+    nth_type<P, Elems...> &_get() {
+        return std::get<P + 1>(base);
+    }
+    template <size_t P>
+    nth_type<P, Elems...> &get() {
+        assert_variant<P>();
+        return _get<P>();
+    }
+
+    template <size_t P>
+    nth_type<P, Elems...> _take() {
+        nth_type<P, Elems...> x(std::get<P + 1>(std::move(base)));
+        destroy();
+        return x;
+    }
+    template <size_t P>
+    nth_type<P, Elems...> take() {
+        assert_variant<P>();
+        return _take<P>();
+    }
+
+    void try_destroy() {
+        base = Base();
     }
     void destroy() {
-        this->assert_some();
-        this->_destroy();
+        assert_some();
+        try_destroy();
     }
-    void try_destroy() {
-        if (this->is_some()) {
-            this->_destroy();
-        }
-    }
-
-protected:
-    template <size_t P>
-    struct Matcher {
-        template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, Elems>...>>
-        static R call(_Union<Elems...> &u, Fs ...funcs) {
-            return nth_arg<P, Fs...>(funcs...)(u.template take<P>());
-        }
-    };
-    template <size_t P>
-    struct MatcherRef {
-        template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &>...>>
-        static R call(_Union<Elems...> &u, Fs ...funcs) {
-            return nth_arg<P, Fs...>(funcs...)(u.template get<P>());
-        }
-    };
-    template <size_t P>
-    struct MatcherRefConst {
-        template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, const Elems &>...>>
-        static R call(const _Union<Elems...> &u, Fs ...funcs) {
-            return nth_arg<P, Fs...>(funcs...)(u.template get<P>());
-        }
-    };
-
-public:
-    template <
-        typename ...Fs,
-        typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &&>...>
-    >
-    R match(Fs ...funcs) {
-        this->assert_some();
-        int id = this->id_;
-        this->id_ = size();
-        return Dispatcher<Matcher, size()>::dispatch(id, this->union_, funcs...);
-    }
-    template <
-        typename ...Fs,
-        typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &>...>
-    >
-    R match_ref(Fs ...funcs) {
-        this->assert_some();
-        return Dispatcher<MatcherRef, size()>::dispatch(this->id_, this->union_, funcs...);
-    }
-    template <
-        typename ...Fs,
-        typename R=std::common_type_t<std::invoke_result_t<Fs, const Elems &>...>
-    >
-    R match_ref(Fs ...funcs) const {
-        this->assert_some();
-        return Dispatcher<MatcherRefConst, size()>::dispatch(this->id_, this->union_, funcs...);
-    }
-};
-
-template <typename ...Elems>
-class _Variant<true, Elems...> : public _Variant<false, Elems...> {
-public:
-    static const bool copyable = true;
-
-private:
-    template <size_t P>
-    struct Copier {
-        static void call(_Union<Elems...> &dst, const _Union<Elems...> &src) {
-            dst.template put<P>(src.template get<P>());
-        }
-    };
-
-public:
-    _Variant() = default;
-
-    _Variant(const _Variant &var) {
-        if (var) {
-            Dispatcher<Copier, _Variant::size()>::dispatch(var.id_, this->union_, var.union_);
-            this->id_ = var.id_;
-        }
-    }
-    _Variant &operator=(const _Variant &var) {
-        this->try_destroy();
-        if (var) {
-            Dispatcher<Copier, _Variant::size()>::dispatch(var.id_, this->union_, var.union_);
-            this->id_ = var.id_;
-        }
-        return *this;
-    }
-
-    _Variant(_Variant &&v) = default;
-    _Variant &operator=(_Variant &&v) = default;
-
-    ~_Variant() = default;
-};
-
-template <typename ...Elems>
-class Variant final : public _Variant<all_v<rstd::is_copyable_v<Elems>...>, Elems...> {
-public:
-    Variant() = default;
-
-    Variant(const Variant &var) = default;
-    Variant &operator=(const Variant &var) = default;
-
-    Variant(Variant &&v) = default;
-    Variant &operator=(Variant &&v) = default;
-
-    ~Variant() = default;
 
     template <size_t P>
     static Variant create(nth_type<P, Elems...> &&x) {
@@ -280,27 +142,99 @@ public:
         v.template _put<P>(std::move(x));
         return v;
     }
-    template <size_t P, std::enable_if_t<rstd::is_copyable_v<nth_type<P, Elems...>>, int> = 0>
+    template <size_t P, std::enable_if_t<is_copyable_v<nth_type<P, Elems...>>, int> = 0>
     static Variant create(const nth_type<P, Elems...> &x) {
         nth_type<P, Elems...> cx(x);
         return create<P>(std::move(cx));
+    }
+
+private:
+    template <typename O, typename F>
+    struct Visitor {
+        O owner;
+        F func;
+        Visitor(O o, F &&f) :
+            owner(o),
+            func(std::move(f))
+        {}
+        template <size_t P>
+        decltype(auto) operator()() {
+            return func.template operator()<P>(owner->template get<P>());
+        }
+    };
+
+public:
+    template <typename F>
+    decltype(auto) visit(F &&f) {
+        return _Visit<size()>::visit(id(), Visitor<Variant *, F>(this, std::move(f)));
+    }
+    template <typename F>
+    decltype(auto) visit(F &&f) const {
+        return _Visit<size()>::visit(id(), Visitor<const Variant *, F>(this, std::move(f)));
+    }
+
+
+private:
+    template <typename ...Fs>
+    struct Matcher {
+        Variant *owner;
+        Tuple<Fs...> funcs;
+        Matcher(Variant *o, Fs &&...fs) :
+            owner(o),
+            funcs(std::forward<Fs>(fs)...)
+        {}
+        template <size_t P>
+        decltype(auto) operator()() {
+            return funcs.template get<P>()(owner->template take<P>());
+        }
+    };
+    template <typename O, typename ...Fs>
+    struct MatcherRef {
+        O owner;
+        Tuple<Fs...> funcs;
+        MatcherRef(O o, Fs &&...fs) :
+            owner(o),
+            funcs(std::forward<Fs>(fs)...)
+        {}
+        template <size_t P>
+        decltype(auto) operator()() {
+            return funcs.template get<P>()(owner->template get<P>());
+        }
+    };
+
+public:
+    template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &&>...>>
+    R match(Fs &&...fs) {
+        assert_some();
+        return _Visit<size()>::visit(id(), Matcher<Fs...>(this, std::forward<Fs>(fs)...));
+    }
+    template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &>...>>
+    R match_ref(Fs &&...fs) {
+        assert_some();
+        return _Visit<size()>::visit(id(), MatcherRef<Variant *, Fs...>(this, std::forward<Fs>(fs)...));
+    }
+    template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, const Elems &>...>>
+    R match_ref(Fs &&...fs) const {
+        assert_some();
+        return _Visit<size()>::visit(id(), MatcherRef<const Variant *, Fs...>(this, std::forward<Fs>(fs)...));
     }
 };
 
 template <typename ...Elems>
 struct fmt::Display<Variant<Elems...>> {
 private:
-    template <size_t P>
     struct Printer {
-        static void call(std::ostream &o, const Variant<Elems...> &v) {
-            write_(o, v.template get<P>());
+        std::ostream *o;
+        template <size_t, typename T>
+        void operator()(const T &v) {
+            write_(*o, v);
         }
     };
 public:
     static void fmt(const Variant<Elems...> &v, std::ostream &o) {
-        assert_(bool(v));
+        assert_(v.is_some());
         o << "Variant<" << v.id() << ">(";
-        Dispatcher<Printer, Variant<Elems...>::size()>::dispatch(v.id(), o, v);
+        v.visit(Printer{&o});
         o << ")";
     }
 };
