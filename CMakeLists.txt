@@ -4,7 +4,7 @@ else()
     cmake_minimum_required(VERSION 3.0)
 endif()
 
-project(rstd VERSION 0.4.0 DESCRIPTION "Rust-like types and routines for C++17")
+project(rstd VERSION 0.4.1 DESCRIPTION "Very incomplete C++17 replica of Rust's std")
 
 set(CMAKE_C_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++17 -fno-exceptions") # -std=c++17 -pedantic
