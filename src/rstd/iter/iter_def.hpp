@@ -170,6 +170,29 @@ public:
     }
 };
 
+template <typename T, typename U, typename I, typename J>
+class Zip final : public Iterator<Tuple<T, U>, Zip<T, U, I, J>> {
+private:
+    I first;
+    J second;
+public:
+    Zip(I &&i, J &&j) :
+        first(std::move(i)),
+        second(std::move(j))
+    {}
+    Option<Tuple<T, U>> next() {
+        auto ret = first.next().and_then([&](T &&x) {
+            return second.next().map([&](U &&y) {
+                return Tuple<T, U>(std::move(x), std::move(y));
+            });
+        });
+        if (ret.is_none()) {
+            drop(first);
+            drop(second);
+        }
+        return ret;
+    }
+};
 
 template <typename T>
 class Empty final : public Iterator<T, Empty<T>> {

@@ -2,6 +2,7 @@
 
 #include<vector>
 #include<memory>
+#include<string>
 
 #include "iterator.hpp"
 
@@ -49,6 +50,13 @@ rtest_module_(iterator) {
         auto iter = Range(0, 10).map([](int x) { return x % 2 == 0; });
         for (int i = 0; i < 10; ++i) {
             assert_eq_(iter.next().unwrap(), i % 2 == 0);
+        }
+        assert_(iter.next().is_none());
+    }
+    rtest_(map_string) {
+        auto iter = Range(0, 10).map([](int x) { return std::to_string(x); });
+        for (int i = 0; i < 10; ++i) {
+            assert_eq_(std::stoi(iter.next().unwrap()), i);
         }
         assert_(iter.next().is_none());
     }
@@ -103,7 +111,7 @@ rtest_module_(iterator) {
         .map([](int x) { return (257*x + 123) % 10; })
         .collect<std::vector>();
 
-        auto iter = iter_ref(data).copied()
+        auto iter = iter_ref(data).cloned()
         .scan(0, [](int *s, int x) {
             int p = *s;
             if (p < 50) {
@@ -125,11 +133,31 @@ rtest_module_(iterator) {
         assert_(iter.next().is_none());
         assert_(iter.next().is_none());
     }
+    rtest_(chain) {
+        auto iter = Range(0, 10).chain(Range(10, 20));
+        for (int i = 0; i < 20; ++i) {
+            assert_eq_(iter.next().unwrap(), i);
+        }
+        assert_(iter.next().is_none());
+    }
     rtest_(cycle) {
         auto iter = Range(0, 10).cycle();
         for (int i = 0; i < 33; ++i) {
             assert_eq_(iter.next().unwrap(), i % 10);
         }
+    }
+    rtest_(zip) {
+        auto iter = Range(0, 10).zip(
+            Range(0, 10).map([](int x) {
+                return std::to_string(x);
+            })
+        );
+        for (int i = 0; i < 10; ++i) {
+            auto ns = iter.next().unwrap();
+            assert_eq_(ns.get<0>(), i);
+            assert_eq_(ns.get<1>(), std::to_string(i));
+        }
+        assert_(iter.next().is_none());
     }
     rtest_(fold) {
         int fac = Range(1, 10).fold(1, [](int x, int y) { return x*y; });
@@ -145,9 +173,9 @@ rtest_module_(iterator) {
         assert_(Range(0, 10).all([](int x) { return x < 10; }));
         assert_(!Range(0, 10).all([](int x) { return x != 5; }));
     }
-    rtest_(copied) {
+    rtest_(cloned) {
         std::vector<int> data = {0, 1, 2, 3, 4};
-        auto iter = iter_ref(data).copied();
+        auto iter = iter_ref(data).cloned();
         for (int i = 0; i < int(data.size()); ++i) {
             assert_eq_(iter.next().unwrap(), i);
         }

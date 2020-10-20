@@ -111,6 +111,10 @@ public:
     iter::Fuse<T, Self> fuse() {
         return iter::Fuse<T, Self>(std::move(self()));
     }
+    template <typename J, typename U=iterator_item<J>>
+    iter::Zip<T, U, Self, J> zip(J &&other) {
+        return iter::Zip<T, U, Self, J>(std::move(self()), std::move(other));
+    }
 
     template <typename F>
     bool any(F f=[](bool x) { return x; }) {
@@ -122,7 +126,7 @@ public:
     }
 
     template <typename T_=T, typename X=std::enable_if_t<std::is_pointer_v<T_>, void>>
-    decltype(auto) copied() {
+    decltype(auto) cloned() {
         return self().map([](T_ x) { return *x; });
     }
 
