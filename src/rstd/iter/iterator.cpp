@@ -181,6 +181,17 @@ rtest_module_(iterator) {
         }
         assert_(iter.next().is_none());
     }
+    rtest_(enumerate) {
+        auto iter = Range(10, 20)
+        .map([](int x) { return std::to_string(x); })
+        .enumerate();
+        for (int i = 0; i < 10; ++i) {
+            auto iv = iter.next().unwrap();
+            assert_eq_(iv.get<0>(), i);
+            assert_eq_(std::stoi(iv.get<1>()), i + 10);
+        }
+        assert_(iter.next().is_none());
+    }
     rtest_(empty) {
         iter::empty<int>().next().unwrap_none();
     }
@@ -212,6 +223,7 @@ rtest_module_(iterator) {
                 return None();
             }
         });
+        assert_eq_(iter.next().unwrap(), 1);
         assert_eq_(iter.next().unwrap(), 10);
         assert_eq_(iter.next().unwrap(), 100);
         assert_eq_(iter.next().unwrap(), 1000);

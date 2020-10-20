@@ -6,7 +6,7 @@ endif()
 
 project(rstd VERSION 0.4.0 DESCRIPTION "Rust-like types and routines for C++17")
 
-set(CMAKE_C_FLAGS "-g -Wall -Wextra")
+set(CMAKE_C_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++17 -fno-exceptions") # -std=c++17 -pedantic
 include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
@@ -86,6 +86,7 @@ add_executable("${PROJECT_TEST}"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/self_test.cpp"
 )
 target_compile_definitions("${PROJECT_TEST}" PRIVATE "DEBUG")
+target_compile_options("${PROJECT_TEST}" PRIVATE "-g")
 if (USE_PCH)
     target_precompile_headers(${PROJECT_TEST} PRIVATE ${HEADERS})
 endif()

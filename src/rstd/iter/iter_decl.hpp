@@ -46,6 +46,38 @@ class Fuse;
 template <typename T, typename U, typename I, typename J>
 class Zip;
 
+template <typename T>
+class Empty;
+template <typename T>
+Empty<T> empty();
+
+template <typename T>
+class Once;
+template <typename T>
+Once<T> once(T &&t);
+
+template <typename F, typename R=std::invoke_result_t<F>>
+class OnceWith;
+template <typename F>
+decltype(auto) once_with(F &&f);
+
+template <typename T>
+class Repeat;
+template <typename T>
+Repeat<T> repeat(T &&t);
+template <typename T>
+Repeat<T> repeat(const T &t);
+
+template <typename F, typename R=std::invoke_result_t<F>>
+class RepeatWith;
+template <typename F>
+decltype(auto) repeat_with(F &&f);
+
+template <typename T, typename F>
+class Successors;
+template <typename T, typename F>
+Successors<T, F> successors(Option<T> &&init, F &&f);
+
 } // namespace iter
 
 template <typename I>

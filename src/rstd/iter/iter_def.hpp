@@ -201,6 +201,10 @@ public:
     typedef Empty<T> Rev;
     Rev rev() { return std::move(*this); }
 };
+template <typename T>
+Empty<T> empty() {
+    return Empty<T>();
+}
 
 template <typename T>
 class Once final : public Iterator<T, Once<T>> {
@@ -213,8 +217,12 @@ public:
     typedef Once<T> Rev;
     Rev rev() { return Rev(std::move(elem)); }
 };
+template <typename T>
+Once<T> once(T &&t) {
+    return Once<T>(std::move(t));
+}
 
-template <typename F, typename R=std::invoke_result_t<F>>
+template <typename F, typename R>
 class OnceWith final : public Iterator<R, OnceWith<F>> {
 private:
     Option<F> func;
@@ -225,6 +233,10 @@ public:
     typedef OnceWith<F> Rev;
     Rev rev() { return Rev(std::move(func)); }
 };
+template <typename F>
+decltype(auto) once_with(F &&f) {
+    return OnceWith<F>(std::move(f));
+}
 
 template <typename T>
 class Repeat final : public Iterator<T, Repeat<T>> {
@@ -238,8 +250,16 @@ public:
     typedef Repeat<T> Rev;
     Rev rev() { return Rev(std::move(elem)); }
 };
+template <typename T>
+Repeat<T> repeat(T &&t) {
+    return Repeat<T>(std::move(t));
+}
+template <typename T>
+Repeat<T> repeat(const T &t) {
+    return Repeat<T>(t);
+}
 
-template <typename F, typename R=std::invoke_result_t<F>>
+template <typename F, typename R>
 class RepeatWith final : public Iterator<R, RepeatWith<F>> {
 private:
     Option<F> func;
@@ -250,6 +270,10 @@ public:
     typedef RepeatWith<F> Rev;
     Rev rev() { return Rev(std::move(func)); }
 };
+template <typename F>
+decltype(auto) repeat_with(F &&f) {
+    return RepeatWith<F>(std::move(f));
+}
 
 template <typename T, typename F>
 class Successors final : public Iterator<T, Successors<T, F>> {
@@ -262,10 +286,15 @@ public:
         func(std::move(f))
     {}
     Option<T> next() {
+        auto ret = clone(prev);
         prev = prev.and_then([&](T &&x) { return func(x); });
-        return clone(prev);
+        return ret;
     }
 };
+template <typename T, typename F>
+Successors<T, F> successors(Option<T> &&init, F &&f) {
+    return Successors<T, F>(std::move(init), std::move(f));
+}
 
 } // namespace rstd
 } // namespace iter

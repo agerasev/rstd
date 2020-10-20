@@ -129,6 +129,12 @@ public:
     decltype(auto) cloned() {
         return self().map([](T_ x) { return *x; });
     }
+    decltype(auto) enumerate() {
+        auto endless = iter::successors(Some<size_t>(0), [](size_t x) {
+            return Option<size_t>::Some(x + 1);
+        });
+        return endless.zip(std::move(self()));
+    }
 
 private:
     class End {};
