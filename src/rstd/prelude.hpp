@@ -14,6 +14,7 @@
 #include "result.hpp"
 
 #include "hash.hpp"
+#include "iter/mod.hpp"
 
 #include "box.hpp"
 #include "rc.hpp"
