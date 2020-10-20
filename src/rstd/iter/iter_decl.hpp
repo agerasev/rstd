@@ -46,6 +46,9 @@ class Fuse;
 template <typename T, typename U, typename I, typename J>
 class Zip;
 
+template <typename T, typename I>
+class StepBy;
+
 template <typename T>
 class Empty;
 template <typename T>

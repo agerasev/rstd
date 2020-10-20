@@ -194,6 +194,32 @@ public:
     }
 };
 
+template <typename T, typename I>
+class StepBy final : public Iterator<T, StepBy<T, I>> {
+private:
+    I iter;
+    size_t step;
+public:
+    StepBy(I &&i, size_t s) :
+        iter(std::move(i)),
+        step(s)
+    {
+        assert_(s > 0);
+    }
+    Option<T> next() {
+        Option<T> ret = iter.next();
+        if (ret.is_none()) {
+            return None();
+        }
+        for (size_t i = 1; i < step; ++i) {
+            if (iter.next().is_some()) {
+                break;
+            }
+        }
+        return ret;
+    }
+};
+
 template <typename T>
 class Empty final : public Iterator<T, Empty<T>> {
 public:

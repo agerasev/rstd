@@ -159,6 +159,13 @@ rtest_module_(iterator) {
         }
         assert_(iter.next().is_none());
     }
+    rtest_(step_by) {
+        auto iter = Range(0, 10).step_by(2);
+        for (int i = 0; i < 5; ++i) {
+            assert_eq_(iter.next().unwrap(), 2*i);
+        }
+        assert_(iter.next().is_none());
+    }
     rtest_(fold) {
         int fac = Range(1, 10).fold(1, [](int x, int y) { return x*y; });
         assert_eq_(fac, 362880);
@@ -213,6 +220,14 @@ rtest_module_(iterator) {
     rtest_(max) {
         assert_eq_(Range(10).chain(Range(-10, 0)).max().unwrap(), 9);
         iter::empty<int>().max().unwrap_none();
+    }
+    rtest_(sum) {
+        assert_eq_(Range(10).sum(), 45);
+        assert_eq_(iter::empty<int>().sum(), 0);
+    }
+    rtest_(product) {
+        assert_eq_(Range(1, 10).product(), 362880);
+        assert_eq_(iter::empty<int>().product(), 1);
     }
     rtest_(empty) {
         iter::empty<int>().next().unwrap_none();

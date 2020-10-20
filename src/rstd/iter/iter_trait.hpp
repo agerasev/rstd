@@ -67,6 +67,9 @@ public:
     iter::Zip<T, U, Self, J> zip(J &&other) {
         return iter::Zip<T, U, Self, J>(std::move(self()), std::move(other));
     }
+    iter::StepBy<T, Self> step_by(size_t step) {
+        return iter::StepBy<T, Self>(std::move(self()), step);
+    }
     template <typename T_=T, typename X=std::enable_if_t<std::is_pointer_v<T_>, void>>
     decltype(auto) cloned() {
         return self().map([](T_ x) { return *x; });
@@ -127,11 +130,11 @@ public:
         }
     }
     template <typename B, typename F>
-    B fold(B init, F &&f) {
+    B fold(B &&init, F &&f) {
         for (;;) {
             Option<T> ox = self().next();
             if (ox.is_some()) {
-                init = f(init, ox.unwrap());
+                init = f(std::move(init), ox.unwrap());
             } else {
                 return init;
             }
@@ -167,6 +170,12 @@ public:
                 [&]() { return x; }
             ));
         });
+    }
+    T sum() {
+        return self().fold(T(0), [](T &&x, T &&y) { return x + y; });
+    }
+    T product() {
+        return self().fold(T(1), [](T &&x, T &&y) { return x * y; });
     }
 
 private:
