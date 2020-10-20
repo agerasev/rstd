@@ -45,6 +45,13 @@ rtest_module_(iterator) {
         }
         assert_(iter.next().is_none());
     }
+    rtest_(map_other_type) {
+        auto iter = Range(0, 10).map([](int x) { return x % 2 == 0; });
+        for (int i = 0; i < 10; ++i) {
+            assert_eq_(iter.next().unwrap(), i % 2 == 0);
+        }
+        assert_(iter.next().is_none());
+    }
     rtest_(map_while) {
         auto iter = Range(0, 20).map_while([](int x) {
             if (x < 10) {
@@ -132,6 +139,12 @@ rtest_module_(iterator) {
         size_t cnt = Range(0, 10).count();
         assert_eq_(cnt, 10);
     }
+    rtest_(any_all) {
+        assert_(!Range(0, 10).any([](int x) { return x >= 10; }));
+        assert_(Range(0, 10).any([](int x) { return x != 5; }));
+        assert_(Range(0, 10).all([](int x) { return x < 10; }));
+        assert_(!Range(0, 10).all([](int x) { return x != 5; }));
+    }
     rtest_(copied) {
         std::vector<int> data = {0, 1, 2, 3, 4};
         auto iter = iter_ref(data).copied();
@@ -139,5 +152,41 @@ rtest_module_(iterator) {
             assert_eq_(iter.next().unwrap(), i);
         }
         assert_(iter.next().is_none());
+    }
+    rtest_(empty) {
+        iter::empty<int>().next().unwrap_none();
+    }
+    rtest_(once) {
+        auto iter = iter::once(123);
+        assert_eq_(iter.next().unwrap(), 123);
+        iter.next().unwrap_none();
+    }
+    rtest_(once_with) {
+        auto iter = iter::once_with([]() { return 123; });
+        assert_eq_(iter.next().unwrap(), 123);
+        iter.next().unwrap_none();
+    }
+    rtest_(repeat) {
+        auto iter = iter::repeat(123);
+        assert_eq_(iter.next().unwrap(), 123);
+        assert_eq_(iter.next().unwrap(), 123);
+    }
+    rtest_(repeat_with) {
+        auto iter = iter::repeat_with([]() { return 123; });
+        assert_eq_(iter.next().unwrap(), 123);
+        assert_eq_(iter.next().unwrap(), 123);
+    }
+    rtest_(successors) {
+        auto iter = iter::successors(Some(1), [](int x) -> Option<int> {
+            if (x < 1000) {
+                return Some(10*x);
+            } else {
+                return None();
+            }
+        });
+        assert_eq_(iter.next().unwrap(), 10);
+        assert_eq_(iter.next().unwrap(), 100);
+        assert_eq_(iter.next().unwrap(), 1000);
+        iter.next().unwrap_none();
     }
 }

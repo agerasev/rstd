@@ -12,9 +12,9 @@ struct FromIterator {
     static Cont<T> from_iter(I &&iter) {
         Cont<T> cont;
         for (;;) {
-            auto ne = iter.next();
+            Option<T> ne = iter.next();
             if (ne.is_some()) {
-                cont.push_back(std::move(ne.unwrap()));
+                cont.push_back(ne.unwrap());
             } else {
                 break;
             }
@@ -51,6 +51,8 @@ template <
     typename R=option_some_type<std::invoke_result_t<F, S*, T>>
 >
 class Scan;
+template <typename T, typename I>
+class Fuse;
 
 } // namespace iter
 
@@ -68,7 +70,7 @@ public:
     Option<T> find(F &&f) {
         static_assert(std::is_same_v<std::invoke_result_t<F, T>, bool>);
         for (;;) {
-            auto res = self().next();
+            Option<T> res = self().next();
             if (res.is_some()) {
                 T x = res.unwrap();
                 if (f(x)) {
@@ -83,7 +85,7 @@ public:
     Option<T> find_map(F &&f) {
         static_assert(std::is_same_v<std::invoke_result_t<F, T>, Option<U>>);
         for (;;) {
-            auto res = self().next();
+            Option<T> res = self().next();
             if (res.is_some()) {
                 Option<U> ox = f(res.unwrap());
                 if (ox.is_some()) {
@@ -97,7 +99,7 @@ public:
     template <typename B, typename F>
     B fold(B init, F &&f) {
         for (;;) {
-            auto ox = self().next();
+            Option<T> ox = self().next();
             if (ox.is_some()) {
                 init = f(init, ox.unwrap());
             } else {
@@ -139,6 +141,18 @@ public:
     template <typename S, typename F>
     iter::Scan<T, Self, S, F> scan(S &&s, F &&f) {
         return iter::Scan<T, Self, S, F>(std::move(self()), std::move(s), std::move(f));
+    }
+    iter::Fuse<T, Self> fuse() {
+        return iter::Fuse<T, Self>(std::move(self()));
+    }
+
+    template <typename F>
+    bool any(F f=[](bool x) { return x; }) {
+        return self().find(f).is_some();
+    }
+    template <typename F>
+    bool all(F f=[](bool x) { return x; }) {
+        return self().find([&f](const T &x) { return !f(x); }).is_none();
     }
 
     template <typename T_=T, typename X=std::enable_if_t<std::is_pointer_v<T_>, void>>
@@ -206,7 +220,7 @@ public:
     Option<R> next() {
         Option<T> ox = iter.next();
         if (ox.is_some()) {
-            auto res = func(ox.unwrap());
+            Option<R> res = func(ox.unwrap());
             if (res.is_some()) {
                 return res;
             } else {
@@ -216,10 +230,6 @@ public:
         } else {
             return None();
         }
-    }
-    typedef Map<T, typename I::Rev, F> Rev;
-    Rev rev() {
-        return Rev(iter.rev(), std::move(func));
     }
 };
 template <typename T, typename I, typename F>
@@ -266,7 +276,7 @@ public:
         iter(std::move(i))
     {}
     Option<T> next() {
-        auto ox = iter.next();
+        Option<T> ox = iter.next();
         if (ox.is_some()) {
             return ox;
         } else {
@@ -306,9 +316,9 @@ public:
         func(std::move(f))
     {}
     Option<R> next() {
-        auto ox = iter.next();
+        Option<T> ox = iter.next();
         if (ox.is_some()) {
-            auto res = func(&state, ox.unwrap());
+            Option<R> res = func(&state, ox.unwrap());
             if (res.is_some()) {
                 return res;
             } else {
@@ -320,6 +330,127 @@ public:
         }
     }
 };
+template <typename T, typename I>
+class Fuse final : public Iterator<T, Fuse<T, I>> {
+private:
+    I iter;
+public:
+    Fuse(I &&i) :
+        iter(std::move(i))
+    {}
+    Option<T> next() {
+        Option<T> ox = iter.next();
+        if (ox.is_some()) {
+            return ox;
+        } else {
+            drop(iter);
+            return None();
+        }
+    }
+};
+
+
+template <typename T>
+class Empty final : public Iterator<T, Empty<T>> {
+public:
+    Option<T> next() { return None(); }
+    typedef Empty<T> Rev;
+    Rev rev() { return std::move(*this); }
+};
+
+template <typename T>
+class Once final : public Iterator<T, Once<T>> {
+private:
+    Option<T> elem;
+    Once(Option<T> &&oe) : elem(std::move(oe)) {}
+public:
+    Once(T &&e) : Once(Some(std::move(e))) {}
+    Option<T> next() { return std::move(elem); }
+    typedef Once<T> Rev;
+    Rev rev() { return Rev(std::move(elem)); }
+};
+
+template <typename F, typename R=std::invoke_result_t<F>>
+class OnceWith final : public Iterator<R, OnceWith<F>> {
+private:
+    Option<F> func;
+    OnceWith(Option<F> &&of) : func(std::move(of)) {}
+public:
+    OnceWith(F &&f) : OnceWith(Some(std::move(f))) {}
+    Option<R> next() { return func.map([](F &&f) { return f(); }); }
+    typedef OnceWith<F> Rev;
+    Rev rev() { return Rev(std::move(func)); }
+};
+
+template <typename T>
+class Repeat final : public Iterator<T, Repeat<T>> {
+private:
+    Option<T> elem;
+    Repeat(Option<T> &&oe) : elem(std::move(oe)) {}
+public:
+    Repeat(T &&e) : Repeat(Some(std::move(e))) {}
+    Repeat(const T &e) : Repeat(clone(e)) {}
+    Option<T> next() { return clone(elem); }
+    typedef Repeat<T> Rev;
+    Rev rev() { return Rev(std::move(elem)); }
+};
+
+template <typename F, typename R=std::invoke_result_t<F>>
+class RepeatWith final : public Iterator<R, RepeatWith<F>> {
+private:
+    Option<F> func;
+    RepeatWith(Option<F> &&of) : func(std::move(of)) {}
+public:
+    RepeatWith(F &&f) : RepeatWith(Some(std::move(f))) {}
+    Option<R> next() { return clone(func).map([](F &&f) { return f(); }); }
+    typedef RepeatWith<F> Rev;
+    Rev rev() { return Rev(std::move(func)); }
+};
+
+template <typename T, typename F>
+class Successors final : public Iterator<T, Successors<T, F>> {
+private:
+    Option<T> prev;
+    F func;
+public:
+    Successors(Option<T> &&init, F &&f) :
+        prev(std::move(init)),
+        func(std::move(f))
+    {}
+    Option<T> next() {
+        prev = prev.and_then([&](T &&x) { return func(x); });
+        return clone(prev);
+    }
+};
+
+template <typename T>
+Empty<T> empty() {
+    return Empty<T>();
+}
+template <typename T>
+Once<T> once(T &&t) {
+    return Once<T>(std::move(t));
+}
+template <typename F>
+decltype(auto) once_with(F &&f) {
+    return OnceWith<F>(std::move(f));
+}
+template <typename T>
+Repeat<T> repeat(T &&t) {
+    return Repeat<T>(std::move(t));
+}
+template <typename T>
+Repeat<T> repeat(const T &t) {
+    return Repeat<T>(t);
+}
+template <typename F>
+decltype(auto) repeat_with(F &&f) {
+    return RepeatWith<F>(std::move(f));
+}
+template <typename T, typename F>
+Successors<T, F> successors(Option<T> &&init, F &&f) {
+    return Successors<T, F>(std::move(init), std::move(f));
+}
 
 } // namespace iter
 
