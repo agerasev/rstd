@@ -250,6 +250,10 @@ template <typename T>
 Option<T> Some(const T &t) {
     return Option<T>(t);
 }
+template <typename T>
+Option<T> Some(T &t) {
+    return Option<T>(t);
+}
 inline Option<Tuple<>> Some() {
     return Option(Tuple<>());
 }
