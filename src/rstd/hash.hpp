@@ -8,7 +8,7 @@ namespace rstd {
 template <typename T>
 struct Hash {
     template <typename H>
-    void hash(const T &value, H &hasher) {
+    static void hash(const T &value, H &hasher) {
         hasher._hash(value);
     }
 };

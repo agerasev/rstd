@@ -114,6 +114,15 @@ public:
     Box &operator=(Box<U> &&derived) {
         return *this = derived.template upcast<T>();
     }
+
+    template <typename U, typename X=std::enable_if_t<std::is_base_of_v<T, U>, void>>
+    explicit Box(U &&v) :
+        Box(Box<U>(std::move(v)).template upcast<T>())
+    {}
+    template <typename U, typename X=std::enable_if_t<std::is_base_of_v<T, U>, void>>
+    explicit Box(const U &v) :
+        Box(Box<U>(v).template upcast<T>())
+    {}
 };
 
 } // namespace rstd
