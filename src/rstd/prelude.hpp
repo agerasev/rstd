@@ -15,6 +15,7 @@
 
 #include "hash.hpp"
 #include "iter/mod.hpp"
+#include "string.hpp"
 
 #include "box.hpp"
 #include "rc.hpp"
