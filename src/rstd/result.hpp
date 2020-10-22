@@ -32,9 +32,13 @@ public:
         return std::move(value);
     }
 };
-template <typename T>
+template <typename T, typename X=std::enable_if_t<!std::is_pointer_v<T>, void>>
 _Ok<T> Ok(T &&t) {
     return _Ok<T>(std::move(t));
+}
+template <typename T>
+_Ok<T> Ok(T &t) {
+    return _Ok<T>(clone(t));
 }
 template <typename T>
 _Ok<T> Ok(const T &t) {
@@ -69,13 +73,17 @@ public:
         return std::move(value);
     }
 };
-template <typename T>
+template <typename T, typename X=std::enable_if_t<!std::is_pointer_v<T>, void>>
 _Err<T> Err(T &&t) {
     return _Err<T>(std::move(t));
 }
 template <typename T>
 _Err<T> Err(const T &t) {
     return _Err<T>(t);
+}
+template <typename T>
+_Err<T> Err(T &t) {
+    return _Err<T>(clone(t));
 }
 inline _Err<Tuple<>> Err() {
     return _Err(Tuple<>());

@@ -97,15 +97,46 @@ public:
     Box<U> upcast() {
         return Box<U>::_from_raw(static_cast<U*>(this->into_raw()));
     }
+
+private:
     template <typename U, typename X=std::enable_if_t<std::is_base_of_v<T, U>, void>>
-    Result<Box<U>, Box<T>> downcast() {
-        T *ptr = this->into_raw();
+    static Result<U *, T *> downcast_ptr(T *ptr) {
         U *dptr = dynamic_cast<U *>(ptr);
         if (dptr != nullptr) {
-            return Ok(Box<U>::_from_raw(dptr));
+            return Ok(dptr);
         } else {
-            return Err(Box<T>::_from_raw(ptr));
+            return Err(ptr);
         }
+    }
+    template <typename U, typename X=std::enable_if_t<std::is_base_of_v<T, U>, void>>
+    static Result<const U *, const T *> downcast_ptr(const T *ptr) {
+        const U *dptr = dynamic_cast<const U *>(ptr);
+        if (dptr != nullptr) {
+            return Ok(dptr);
+        } else {
+            return Err(ptr);
+        }
+    }
+
+public:
+    template <typename U, typename X=std::enable_if_t<std::is_base_of_v<T, U>, void>>
+    Result<U *, T *> downcast_ref() {
+        return downcast_ptr<U>(this->raw());
+    }
+    template <typename U, typename X=std::enable_if_t<std::is_base_of_v<T, U>, void>>
+    Result<const U *, const T *> downcast_ref() const {
+        return downcast_ptr<U>(this->raw());
+    }
+    template <
+        typename U,
+        typename X=std::enable_if_t<std::is_base_of_v<T, U>, void>,
+        typename R=Result<Box<U>, Box<T>>
+    >
+    R downcast() {
+        return downcast_ptr<U>(this->into_raw()).match(
+            [](U *dptr) { return R::Ok(Box<U>::_from_raw(dptr)); },
+            [](T *ptr) { return R::Err(Box<T>::_from_raw(ptr)); }
+        );
     }
 
     template <typename U, typename X=std::enable_if_t<std::is_base_of_v<T, U>, void>>
