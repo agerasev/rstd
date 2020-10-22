@@ -252,7 +252,7 @@ Option<T> Some(const T &t) {
 }
 template <typename T>
 Option<T> Some(T &t) {
-    return Option<T>(t);
+    return Option<T>(clone(t));
 }
 inline Option<Tuple<>> Some() {
     return Option(Tuple<>());
