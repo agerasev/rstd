@@ -14,7 +14,8 @@ static void default_panic_hook(const std::string &message) {
     if (thread::current().is_main) {
         thread_name = "Main";
     } else {
-        thread_name = std::to_string(pthread_self());
+	// FIXME: get printable thread name
+        thread_name = "Unnamed"; //std::to_string(pthread_self());
     }
     stderr_()
     << "Thread " << thread_name
