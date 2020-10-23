@@ -56,4 +56,24 @@ rtest_module_(tuple) {
         a.visit_ref(Adder<decltype(a)>(&cnt));
         assert_eq_(cnt, 5);
     }
+    struct Incrementer { 
+        template <typename ...Args>
+        Tuple<std::remove_reference_t<Args>...> operator()(Args &&...args) {
+            return Tuple(((std::remove_reference_t<Args>)(args + 1))...);
+        }
+    };
+    rtest_(unpack) {
+        Tuple<bool, int, double> a(false, 1, 2.0);
+        auto b = a.unpack(Incrementer());
+        assert_eq_(b.get<0>(), true);
+        assert_eq_(b.get<1>(), 2);
+        assert_eq_(b.get<2>(), 3.0);
+    }
+    rtest_(unpack_ref) {
+        Tuple<bool, int, double> a(false, 1, 2.0);
+        auto b = a.unpack_ref(Incrementer());
+        assert_eq_(b.get<0>(), true);
+        assert_eq_(b.get<1>(), 2);
+        assert_eq_(b.get<2>(), 3.0);
+    }
 }

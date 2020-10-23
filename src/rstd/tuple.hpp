@@ -98,6 +98,63 @@ public:
     void visit_ref(F &&f) const {
         _Visit<size()>::visit(VisitorRefConst<F>(this, std::move(f)));
     }
+
+private:
+    template <typename F, size_t S=size(), size_t Q=S>
+    struct Unpacker {
+        template <typename ...Args>
+        static decltype(auto) unpack(Tuple *t, F &&f, Args &&...args) {
+            return Unpacker<F, S, Q - 1>::unpack(t, std::move(f), std::move(t->template get<Q - 1>()), std::forward<Args>(args)...);
+        }
+    };
+    template <typename F, size_t S>
+    struct Unpacker<F, S, 0> {
+        template <typename ...Args>
+        static decltype(auto) unpack(Tuple *t, F &&f, Args &&...args) {
+            return f.template operator()(std::forward<Args>(args)...);
+        }
+    };
+    template <typename F, size_t S=size(), size_t Q=S>
+    struct UnpackerRef {
+        template <typename ...Args>
+        static decltype(auto) unpack(Tuple *t, F &&f, Args &...args) {
+            return Unpacker<F, S, Q - 1>::unpack(t, std::move(f), t->template get<Q - 1>(), std::forward<Args>(args)...);
+        }
+    };
+    template <typename F, size_t S>
+    struct UnpackerRef<F, S, 0> {
+        template <typename ...Args>
+        static decltype(auto) unpack(Tuple *t, F &&f, Args &...args) {
+            return f.template operator()(std::forward<Args>(args)...);
+        }
+    };
+    template <typename F, size_t S=size(), size_t Q=S>
+    struct UnpackerRefConst {
+        template <typename ...Args>
+        static decltype(auto) unpack(const Tuple *t, F &&f, const Args &...args) {
+            return Unpacker<F, S, Q - 1>::unpack(t, std::move(f), t->template get<Q - 1>(), std::forward<Args>(args)...);
+        }
+    };
+    template <typename F, size_t S>
+    struct UnpackerRefConst<F, S, 0> {
+        template <typename ...Args>
+        static decltype(auto) unpack(const Tuple *t, F &&f, const Args &...args) {
+            return f.template operator()(std::forward<Args>(args)...);
+        }
+    };
+public:
+    template <typename F>
+    decltype(auto) unpack(F &&f) {
+        return Unpacker<F>::unpack(this, std::move(f));
+    }
+    template <typename F>
+    decltype(auto) unpack_ref(F &&f) {
+        return UnpackerRef<F>::unpack(this, std::move(f));
+    }
+    template <typename F>
+    decltype(auto) unpack_ref(F &&f) const {
+        return UnpackerRefConst<F>::unpack(this, std::move(f));
+    }
 };
 
 template<size_t P, typename ...Elems>
