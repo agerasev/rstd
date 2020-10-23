@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include "iterator.hpp"
 
 
@@ -64,59 +65,71 @@ I iter_ref(C<T> &cont) {
     return I(cont.begin(), cont.end());
 }
 
-template <template <typename...> typename C, typename T, typename J>
-class IntoIter : public Iterator<T, IntoIter<C, T, J>> {
+template <typename T>
+class IntoIter : public Iterator<T, IntoIter<T>> {
 private:
-    C<T> cont;
-    J cur, end;
+    std::vector<T> data;
+    size_t cur, end;
+    bool rev_;
 public:
-    IntoIter(C<T> &&c, J begin, J end) :
-        cont(std::move(c)),
-        cur(begin), end(end)
-    {}
+    template <typename J>
+    IntoIter(J b, J e, bool r=false) {
+        for (J j = b; j != e; ++j) {
+            data.push_back(std::move(*j));
+        }
+        cur = 0;
+        end = data.size();
+        rev_ = r;
+    }
     IntoIter(const IntoIter &) = default;
     IntoIter &operator=(const IntoIter &) = default;
     IntoIter(IntoIter &&other) :
-        cont(std::move(other.cont)),
-        cur(std::move(other.cur)),
-        end(std::move(other.end))
+        data(std::move(other.data)),
+        cur(other.cur),
+        end(other.end),
+        rev_(other.rev_)
     {
         other.cur = other.end;
     }
     IntoIter &operator=(IntoIter &&other) {
-        cont = std::move(other.cont);
-        cur = std::move(other.cur);
-        end = std::move(other.end);
+        data = std::move(other.data);
+        cur = other.cur;
+        end = other.end;
+        rev_ = other.rev_;
         other.cur = other.end;
         return *this;
     }
+
     rstd::Option<T> next() {
         if (cur != end) {
-            T t = std::move(*cur);
-            ++cur;
+            T t;
+            if (!rev_) {
+                t = std::move(data[cur]);
+                ++cur;
+            } else {
+                t = std::move(data[end - 1]);
+                --end;
+            }
             return Option<T>::Some(std::move(t));
         } else {
             return Option<T>::None();
         }
     }
-    typedef IntoIter<C, T, std::reverse_iterator<J>> Rev;
+    typedef IntoIter Rev;
     Rev rev() {
-        auto r = Rev(
-            std::move(cont),
-            std::reverse_iterator<J>(end),
-            std::reverse_iterator<J>(cur)
-        );
-        cur = end;
-        return r;
+        rev_ = !rev_;
+        return std::move(*this);
     }
 };
 template <
     template <typename...> typename C,
     typename T,
-    typename I=IntoIter<C, T, typename C<T>::iterator>
+    typename I=IntoIter<T>
 >
 I into_iter(C<T> &&cont) {
-    return I(std::move(cont), cont.begin(), cont.end());
+    auto r = I(cont.begin(), cont.end());
+    drop(cont);
+    return r;
 }
 
 } // namespace rstd

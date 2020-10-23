@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <memory>
+#include <set>
 
 #include "container.hpp"
 
@@ -92,6 +93,23 @@ rtest_module_(iter_container) {
         std::vector<int> data;
         for (int i = 0; i < 10; ++i) {
             data.push_back(i);
+        }
+        auto iter = into_iter(std::move(data));
+        for (int i = 0; i < 5; ++i) {
+            assert_eq_(iter.next().unwrap(), i);
+        }
+        auto iter_rev = iter.rev();
+        assert_(iter.next().is_none());
+        for (int i = 0; i < 5; ++i) {
+            assert_eq_(iter_rev.next().unwrap(), 9 - i);
+        }
+        assert_(iter_rev.next().is_none());
+        assert_(iter_rev.rev().next().is_none());
+    }
+    rtest_(into_iter_set) {
+        std::set<int> data;
+        for (int i = 0; i < 10; ++i) {
+            data.insert(i);
         }
         auto iter = into_iter(std::move(data));
         for (int i = 0; i < 5; ++i) {

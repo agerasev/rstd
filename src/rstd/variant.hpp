@@ -30,6 +30,9 @@ private:
     }
 
 public:
+    template <size_t P>
+    using Elem = nth_type<P, Elems...>;
+
     Variant() = default;
     Variant(const Variant &) = default;
     Variant &operator=(const Variant &) = default;
@@ -70,59 +73,59 @@ public:
     }
 
     template <size_t P>
-    void _put(nth_type<P, Elems...> &&x) {
+    void _put(Elem<P> &&x) {
         static_assert(P < size(), "Index is out of bounds");
         base = Base(std::in_place_index<P + 1>, std::move(x));
     }
     template <size_t P>
-    void put(nth_type<P, Elems...> &&x) {
+    void put(Elem<P> &&x) {
         assert_none();
         _put<P>(std::move(x));
     }
-    template <size_t P, std::enable_if_t<is_copyable_v<nth_type<P, Elems...>>, int> = 0>
-    void put(const nth_type<P, Elems...> &x) {
-        nth_type<P, Elems...> cx(x);
+    template <size_t P, std::enable_if_t<is_copyable_v<Elem<P>>, int> = 0>
+    void put(const Elem<P> &x) {
+        Elem<P> cx(x);
         put<P>(std::move(cx));
     }
 
     template <size_t P>
-    void set(nth_type<P, Elems...> &&x) {
+    void set(Elem<P> &&x) {
         try_destroy();
         _put<P>(std::move(x));
     }
-    template <size_t P, std::enable_if_t<is_copyable_v<nth_type<P, Elems...>>, int> = 0>
-    void set(const nth_type<P, Elems...> &x) {
-        nth_type<P, Elems...> cx(x);
+    template <size_t P, std::enable_if_t<is_copyable_v<Elem<P>>, int> = 0>
+    void set(const Elem<P> &x) {
+        Elem<P> cx(x);
         set<P>(std::move(cx));
     }
 
     template <size_t P>
-    const nth_type<P, Elems...> &_get() const {
+    const Elem<P> &_get() const {
         return std::get<P + 1>(base);
     }
     template <size_t P>
-    const nth_type<P, Elems...> &get() const {
+    const Elem<P> &get() const {
         assert_variant<P>();
         return _get<P>();
     }
     template <size_t P>
-    nth_type<P, Elems...> &_get() {
+    Elem<P> &_get() {
         return std::get<P + 1>(base);
     }
     template <size_t P>
-    nth_type<P, Elems...> &get() {
+    Elem<P> &get() {
         assert_variant<P>();
         return _get<P>();
     }
 
     template <size_t P>
-    nth_type<P, Elems...> _take() {
-        nth_type<P, Elems...> x(std::get<P + 1>(std::move(base)));
+    Elem<P> _take() {
+        Elem<P> x(std::get<P + 1>(std::move(base)));
         destroy();
         return x;
     }
     template <size_t P>
-    nth_type<P, Elems...> take() {
+    Elem<P> take() {
         assert_variant<P>();
         return _take<P>();
     }
@@ -136,15 +139,15 @@ public:
     }
 
     template <size_t P>
-    static Variant create(nth_type<P, Elems...> &&x) {
+    static Variant create(Elem<P> &&x) {
         static_assert(P < Variant::size(), "Index is out of bounds");
         Variant v;
         v.template _put<P>(std::move(x));
         return v;
     }
-    template <size_t P, std::enable_if_t<is_copyable_v<nth_type<P, Elems...>>, int> = 0>
-    static Variant create(const nth_type<P, Elems...> &x) {
-        nth_type<P, Elems...> cx(x);
+    template <size_t P, std::enable_if_t<is_copyable_v<Elem<P>>, int> = 0>
+    static Variant create(const Elem<P> &x) {
+        Elem<P> cx(x);
         return create<P>(std::move(cx));
     }
 
@@ -219,6 +222,24 @@ public:
         return _Visit<size()>::visit(id(), MatcherRef<const Variant *, Fs...>(this, std::forward<Fs>(fs)...));
     }
 };
+
+template<size_t P, typename ...Elems>
+nth_type<P, Elems...> &get(Variant<Elems...> &t) {
+    return t.template get<P>();
+}
+template<size_t P, typename ...Elems>
+const nth_type<P, Elems...> &get(const Variant<Elems...> &t) {
+    return t.template get<P>();
+}
+
+template<size_t P, typename ...Elems>
+nth_type<P, Elems...> take(Variant<Elems...> &&t) {
+    return t.template take<P>();
+}
+template<size_t P, typename ...Elems>
+const nth_type<P, Elems...> take(const Variant<Elems...> &&t) {
+    return t.template take<P>();
+}
 
 template <typename ...Elems>
 struct fmt::Display<Variant<Elems...>> {

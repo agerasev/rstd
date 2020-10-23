@@ -31,4 +31,12 @@ rtest_module_(tuple) {
         assert_eq_(format_(a), "(1, 123, abc)");
         assert_eq_(format_(Tuple<>()), "()");
     }
+    rtest_(get_func) {
+        Tuple<bool, int, double> a(true, 1, 3.1415);
+        assert_eq_(a.size(), 3u);
+
+        assert_eq_(get<0>(a), true);
+        assert_eq_(get<1>(a), 1);
+        assert_(std::abs(get<2>(a) - 3.1415) < 1e-8);
+    }
 }

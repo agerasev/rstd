@@ -16,6 +16,9 @@ private:
     Base base;
 
 public:
+    template <size_t P>
+    using Elem = std::tuple_element_t<P, Base>;
+
     explicit Tuple(Elems &&...args) :
         base(std::forward<Elems>(args)...)
     {}
@@ -33,14 +36,23 @@ public:
     }
     
     template <size_t P>
-    const std::tuple_element_t<P, Base> &get() const {
+    const Elem<P> &get() const {
         return std::get<P>(base);
     }
     template <size_t P>
-    std::tuple_element_t<P, Base> &get() {
+    Elem<P> &get() {
         return std::get<P>(base);
     }
 };
+
+template<size_t P, typename ...Elems>
+nth_type<P, Elems...> &get(Tuple<Elems...> &t) {
+    return t.template get<P>();
+}
+template<size_t P, typename ...Elems>
+const nth_type<P, Elems...> &get(const Tuple<Elems...> &t) {
+    return t.template get<P>();
+}
 
 template <typename ...Elems>
 struct _TuplePrinter {

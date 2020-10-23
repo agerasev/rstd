@@ -143,4 +143,17 @@ rtest_module_(variant) {
         auto a = Variant<bool, int*, const double*>::create<1>(&x);
         assert_eq_(*a.get<1>(), x);
     }
+    rtest_(get_take_funcs) {
+        auto a = Variant<bool, int, double>::create<1>(123);
+        assert_eq_(a.size(), 3u);
+
+        assert_eq_(get<1>(a), 123);
+        get<1>(a) = -321;
+        assert_eq_(take<1>(std::move(a)), -321);
+
+        a.put<2>(3.1415);
+        assert_(std::abs(get<2>(a) - 3.1415) < 1e-8);
+        get<2>(a) = -2.71;
+        assert_eq_(take<2>(std::move(a)), -2.71);
+    }
 }

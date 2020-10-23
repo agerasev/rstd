@@ -46,6 +46,7 @@ public:
             return None();
         }
     }
+    typedef void Rev;
 };
 
 template <typename T, typename I, typename F>
@@ -102,6 +103,7 @@ public:
             return iter.next();
         }
     }
+    typedef void Rev;
 };
 
 template <typename T, typename I, typename J>
@@ -149,6 +151,7 @@ public:
             return None();
         }
     }
+    typedef void Rev;
 };
 
 template <typename T, typename I>
@@ -168,6 +171,7 @@ public:
             return None();
         }
     }
+    typedef void Rev;
 };
 
 template <typename T, typename U, typename I, typename J>
@@ -192,6 +196,7 @@ public:
         }
         return ret;
     }
+    typedef void Rev;
 };
 
 template <typename T, typename I>
@@ -218,6 +223,7 @@ public:
         }
         return ret;
     }
+    typedef void Rev;
 };
 
 template <typename T>
@@ -316,6 +322,7 @@ public:
         prev = prev.and_then([&](T &&x) { return func(x); });
         return ret;
     }
+    typedef void Rev;
 };
 template <typename T, typename F>
 Successors<T, F> successors(Option<T> &&init, F &&f) {

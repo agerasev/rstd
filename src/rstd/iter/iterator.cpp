@@ -1,8 +1,8 @@
 #include <rtest.hpp>
 
-#include<vector>
-#include<memory>
-#include<string>
+#include <vector>
+#include <memory>
+#include <string>
 
 #include "iterator.hpp"
 
@@ -265,5 +265,19 @@ rtest_module_(iterator) {
         assert_eq_(iter.next().unwrap(), 100);
         assert_eq_(iter.next().unwrap(), 1000);
         iter.next().unwrap_none();
+    }
+    rtest_(iter_non_rev) {
+        auto iter = Range(10).fuse();
+        for (int i = 0; i < 10; ++i) {
+            assert_eq_(iter.next().unwrap(), i);
+        }
+        assert_(iter.next().is_none());
+    }
+    rtest_(map_non_rev) {
+        auto iter = Range(10).fuse().map([](int x) { return 2*x; });
+        for (int i = 0; i < 10; ++i) {
+            assert_eq_(iter.next().unwrap(), 2*i);
+        }
+        assert_(iter.next().is_none());
     }
 }
