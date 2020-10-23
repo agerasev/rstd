@@ -19,6 +19,7 @@ public:
     template <size_t P>
     using Elem = std::tuple_element_t<P, Base>;
 
+    Tuple() = default;
     explicit Tuple(Elems &&...args) :
         base(std::forward<Elems>(args)...)
     {}
@@ -111,35 +112,35 @@ private:
     struct Unpacker<F, S, 0> {
         template <typename ...Args>
         static decltype(auto) unpack(Tuple *t, F &&f, Args &&...args) {
-            return f.template operator()(std::forward<Args>(args)...);
+            return f(std::forward<Args>(args)...);
         }
     };
     template <typename F, size_t S=size(), size_t Q=S>
     struct UnpackerRef {
         template <typename ...Args>
-        static decltype(auto) unpack(Tuple *t, F &&f, Args &...args) {
-            return Unpacker<F, S, Q - 1>::unpack(t, std::move(f), t->template get<Q - 1>(), std::forward<Args>(args)...);
+        static decltype(auto) unpack(Tuple *t, F &&f, Args &&...args) {
+            return UnpackerRef<F, S, Q - 1>::unpack(t, std::move(f), t->template get<Q - 1>(), std::forward<Args>(args)...);
         }
     };
     template <typename F, size_t S>
     struct UnpackerRef<F, S, 0> {
         template <typename ...Args>
-        static decltype(auto) unpack(Tuple *t, F &&f, Args &...args) {
-            return f.template operator()(std::forward<Args>(args)...);
+        static decltype(auto) unpack(Tuple *t, F &&f, Args &&...args) {
+            return f(std::forward<Args>(args)...);
         }
     };
     template <typename F, size_t S=size(), size_t Q=S>
     struct UnpackerRefConst {
         template <typename ...Args>
-        static decltype(auto) unpack(const Tuple *t, F &&f, const Args &...args) {
-            return Unpacker<F, S, Q - 1>::unpack(t, std::move(f), t->template get<Q - 1>(), std::forward<Args>(args)...);
+        static decltype(auto) unpack(const Tuple *t, F &&f, Args &&...args) {
+            return UnpackerRefConst<F, S, Q - 1>::unpack(t, std::move(f), t->template get<Q - 1>(), std::forward<Args>(args)...);
         }
     };
     template <typename F, size_t S>
     struct UnpackerRefConst<F, S, 0> {
         template <typename ...Args>
-        static decltype(auto) unpack(const Tuple *t, F &&f, const Args &...args) {
-            return f.template operator()(std::forward<Args>(args)...);
+        static decltype(auto) unpack(const Tuple *t, F &&f, Args &&...args) {
+            return f(std::forward<Args>(args)...);
         }
     };
 public:
@@ -154,6 +155,24 @@ public:
     template <typename F>
     decltype(auto) unpack_ref(F &&f) const {
         return UnpackerRefConst<F>::unpack(this, std::move(f));
+    }
+};
+
+template <>
+class Tuple<> final {
+public:
+    Tuple() = default;
+
+    Tuple(const Tuple &t) = default;
+    Tuple &operator=(const Tuple &t) = default;
+
+    Tuple(Tuple &&t) = default;
+    Tuple &operator=(Tuple &&t) = default;
+
+    ~Tuple() = default;
+
+    static constexpr size_t size() {
+        return 0;
     }
 };
 
