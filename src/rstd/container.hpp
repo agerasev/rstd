@@ -54,28 +54,6 @@ struct _Visit<S, 0> {
     static void visit(F &&f) {}
 };
 
-/*
-template <size_t S, size_t Q = S - 1>
-struct _Visit {
-    static const size_t P = S - Q - 1;
-    template <typename F>
-    static decltype(auto) visit(size_t i, F &&f) {
-        if (i == P) {
-            return f.template operator()<P>();
-        } else {
-            return _Visit<S, Q - 1>::visit(i, std::forward<F>(f));
-        }
-    }
-};
-template <size_t S>
-struct _Visit<S, 0> {
-    template <typename F>
-    static decltype(auto) visit(size_t, F &&f) {
-        return f.template operator()<S - 1>();
-    }
-};
-*/
-
 template <typename T>
 inline constexpr bool is_copyable_v = 
     std::is_copy_constructible_v<T> && std::is_copy_assignable_v<T>;

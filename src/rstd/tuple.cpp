@@ -39,4 +39,21 @@ rtest_module_(tuple) {
         assert_eq_(get<1>(a), 1);
         assert_(std::abs(get<2>(a) - 3.1415) < 1e-8);
     }
+    template <typename T>
+    struct Adder;
+    template <typename ...Args>
+    struct Adder<Tuple<Args...>> {
+        int *cnt;
+        explicit Adder(int *c) : cnt(c) {}
+        template <size_t P>
+        void operator()(const nth_type<P, Args...> &x) {
+            *cnt += int(x);
+        }
+    };
+    rtest_(visit) {
+        Tuple<bool, int, double> a(true, 1, 3.1415);
+        int cnt = 0;
+        a.visit_ref(Adder<decltype(a)>(&cnt));
+        assert_eq_(cnt, 5);
+    }
 }

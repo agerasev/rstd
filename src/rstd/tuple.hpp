@@ -43,6 +43,61 @@ public:
     Elem<P> &get() {
         return std::get<P>(base);
     }
+
+private:
+    template <typename F>
+    struct Visitor {
+        Tuple *owner;
+        F func;
+        Visitor(Tuple *o, F &&f) :
+            owner(o),
+            func(std::move(f))
+        {}
+        template <size_t P>
+        void operator()() {
+            func.template operator()<P>(std::move(owner->template get<P>()));
+        }
+    };
+    template <typename F>
+    struct VisitorRef {
+        Tuple *owner;
+        F func;
+        VisitorRef(Tuple *o, F &&f) :
+            owner(o),
+            func(std::move(f))
+        {}
+        template <size_t P>
+        void operator()() {
+            func.template operator()<P>(owner->template get<P>());
+        }
+    };
+    template <typename F>
+    struct VisitorRefConst {
+        const Tuple *owner;
+        F func;
+        VisitorRefConst(const Tuple *o, F &&f) :
+            owner(o),
+            func(std::move(f))
+        {}
+        template <size_t P>
+        void operator()() {
+            func.template operator()<P>(owner->template get<P>());
+        }
+    };
+
+public:
+    template <typename F>
+    void visit(F &&f) {
+        _Visit<size()>::visit(Visitor<F>(this, std::move(f)));
+    }
+    template <typename F>
+    void visit_ref(F &&f) {
+        _Visit<size()>::visit(VisitorRef<F>(this, std::move(f)));
+    }
+    template <typename F>
+    void visit_ref(F &&f) const {
+        _Visit<size()>::visit(VisitorRefConst<F>(this, std::move(f)));
+    }
 };
 
 template<size_t P, typename ...Elems>
