@@ -76,12 +76,12 @@ rtest_module_(variant) {
     rtest_(visit) {
         size_t p = 2;
         auto a = Variant<int, std::string>::create<0>(123);
-        a.visit(Visitor{&p});
+        a.visit_ref(Visitor{&p});
         assert_eq_(p, 0);
 
         p = 2;
         a = Variant<int, std::string>::create<1>("abc");
-        a.visit(Visitor{&p});
+        a.visit_ref(Visitor{&p});
         assert_eq_(p, 1);
     }
     rtest_(format) {

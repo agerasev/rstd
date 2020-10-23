@@ -39,6 +39,22 @@ template <typename ...Types>
 inline constexpr size_t common_align = CommonAlign<Types...>::value;
 
 
+template <size_t S, size_t Q = S>
+struct _Visit {
+    static const size_t P = S - Q;
+    template <typename F>
+    static void visit(F &&f) {
+        f.template operator()<P>();
+        _Visit<S, Q - 1>::visit(std::forward<F>(f));
+    }
+};
+template <size_t S>
+struct _Visit<S, 0> {
+    template <typename F>
+    static void visit(F &&f) {}
+};
+
+/*
 template <size_t S, size_t Q = S - 1>
 struct _Visit {
     static const size_t P = S - Q - 1;
@@ -58,6 +74,7 @@ struct _Visit<S, 0> {
         return f.template operator()<S - 1>();
     }
 };
+*/
 
 template <typename T>
 inline constexpr bool is_copyable_v = 

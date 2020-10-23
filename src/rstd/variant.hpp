@@ -3,6 +3,7 @@
 #include <type_traits>
 #include <variant>
 #include <utility>
+#include <optional>
 #include "templates.hpp"
 #include "container.hpp"
 #include "format.hpp"
@@ -152,74 +153,170 @@ public:
     }
 
 private:
-    template <typename O, typename F>
+    template <typename F>
     struct Visitor {
-        O owner;
+        Variant *owner;
         F func;
-        Visitor(O o, F &&f) :
+        Visitor(Variant *o, F &&f) :
             owner(o),
             func(std::move(f))
         {}
         template <size_t P>
-        decltype(auto) operator()() {
-            return func.template operator()<P>(owner->template get<P>());
+        void operator()() {
+            if (owner->id() == P) {
+                func.template operator()<P>(owner->template take<P>());
+            }
+        }
+    };
+    template <typename F>
+    struct VisitorRef {
+        Variant *owner;
+        F func;
+        VisitorRef(Variant *o, F &&f) :
+            owner(o),
+            func(std::move(f))
+        {}
+        template <size_t P>
+        void operator()() {
+            if (owner->id() == P) {
+                func.template operator()<P>(owner->template get<P>());
+            }
+        }
+    };
+    template <typename F>
+    struct VisitorRefConst {
+        const Variant *owner;
+        F func;
+        VisitorRefConst(const Variant *o, F &&f) :
+            owner(o),
+            func(std::move(f))
+        {}
+        template <size_t P>
+        void operator()() {
+            if (owner->id() == P) {
+                func.template operator()<P>(owner->template get<P>());
+            }
         }
     };
 
 public:
     template <typename F>
-    decltype(auto) visit(F &&f) {
-        return _Visit<size()>::visit(id(), Visitor<Variant *, F>(this, std::move(f)));
+    void visit(F &&f) {
+        assert_some();
+        _Visit<size()>::visit(Visitor<F>(this, std::move(f)));
     }
     template <typename F>
-    decltype(auto) visit(F &&f) const {
-        return _Visit<size()>::visit(id(), Visitor<const Variant *, F>(this, std::move(f)));
+    void visit_ref(F &&f) {
+        assert_some();
+        _Visit<size()>::visit(VisitorRef<F>(this, std::move(f)));
+    }
+    template <typename F>
+    void visit_ref(F &&f) const {
+        assert_some();
+        _Visit<size()>::visit(VisitorRefConst<F>(this, std::move(f)));
     }
 
-
 private:
-    template <typename ...Fs>
+    template <typename R, typename ...Fs>
     struct Matcher {
-        Variant *owner;
         Tuple<Fs...> funcs;
-        Matcher(Variant *o, Fs &&...fs) :
-            owner(o),
-            funcs(std::forward<Fs>(fs)...)
+        std::optional<R> *ret;
+        Matcher(std::optional<R> *r, Fs &&...fs) :
+            funcs(std::forward<Fs>(fs)...), ret(r)
         {}
         template <size_t P>
-        decltype(auto) operator()() {
-            return funcs.template get<P>()(owner->template take<P>());
+        void operator()(nth_type<P, Elems...> &&v) {
+            *ret = std::optional<R>(funcs.template get<P>()(std::move(v)));
+        }
+        static R visit(Variant *var, Fs &&...fs) {
+            std::optional<R> ret;
+            var->visit(Matcher(&ret, std::forward<Fs>(fs)...));
+            return std::move(*ret);
         }
     };
-    template <typename O, typename ...Fs>
+    template <typename R, typename ...Fs>
     struct MatcherRef {
-        O owner;
         Tuple<Fs...> funcs;
-        MatcherRef(O o, Fs &&...fs) :
-            owner(o),
-            funcs(std::forward<Fs>(fs)...)
+        std::optional<R> *ret;
+        MatcherRef(std::optional<R> *r, Fs &&...fs) :
+            funcs(std::forward<Fs>(fs)...), ret(r)
         {}
         template <size_t P>
-        decltype(auto) operator()() {
-            return funcs.template get<P>()(owner->template get<P>());
+        void operator()(nth_type<P, Elems...> &v) {
+            *ret = std::optional<R>(funcs.template get<P>()(v));
+        }
+        static R visit(Variant *var, Fs &&...fs) {
+            std::optional<R> ret;
+            var->visit_ref(MatcherRef(&ret, std::forward<Fs>(fs)...));
+            return std::move(*ret);
+        }
+    };
+    template <typename R, typename ...Fs>
+    struct MatcherRefConst {
+        Tuple<Fs...> funcs;
+        std::optional<R> *ret;
+        MatcherRefConst(std::optional<R> *r, Fs &&...fs) :
+            funcs(std::forward<Fs>(fs)...), ret(r)
+        {}
+        template <size_t P>
+        void operator()(const nth_type<P, Elems...> &v) {
+            *ret = std::optional<R>(funcs.template get<P>()(v));
+        }
+        static R visit(const Variant *var, Fs &&...fs) {
+            std::optional<R> ret;
+            var->visit_ref(MatcherRefConst(&ret, std::forward<Fs>(fs)...));
+            return std::move(*ret);
+        }
+    };
+    template <typename ...Fs>
+    struct Matcher<void, Fs...> {
+        Tuple<Fs...> funcs;
+        Matcher(Fs &&...fs) : funcs(std::forward<Fs>(fs)...) {}
+        template <size_t P>
+        void operator()(nth_type<P, Elems...> &&v) {
+            funcs.template get<P>()(std::move(v));
+        }
+        static void visit(Variant *var, Fs &&...fs) {
+            var->visit(Matcher(std::forward<Fs>(fs)...));
+        }
+    };
+    template <typename ...Fs>
+    struct MatcherRef<void, Fs...> {
+        Tuple<Fs...> funcs;
+        MatcherRef(Fs &&...fs) : funcs(std::forward<Fs>(fs)...) {}
+        template <size_t P>
+        void operator()(nth_type<P, Elems...> &v) {
+            funcs.template get<P>()(v);
+        }
+        static void visit(Variant *var, Fs &&...fs) {
+            var->visit_ref(MatcherRef(std::forward<Fs>(fs)...));
+        }
+    };
+    template <typename ...Fs>
+    struct MatcherRefConst<void, Fs...> {
+        Tuple<Fs...> funcs;
+        MatcherRefConst(Fs &&...fs) : funcs(std::forward<Fs>(fs)...) {}
+        template <size_t P>
+        void operator()(const nth_type<P, Elems...> &v) {
+            funcs.template get<P>()(v);
+        }
+        static void visit(const Variant *var, Fs &&...fs) {
+            var->visit_ref(MatcherRefConst(std::forward<Fs>(fs)...));
         }
     };
 
 public:
     template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &&>...>>
     R match(Fs &&...fs) {
-        assert_some();
-        return _Visit<size()>::visit(id(), Matcher<Fs...>(this, std::forward<Fs>(fs)...));
+        return Matcher<R, Fs...>::visit(this, std::forward<Fs>(fs)...);
     }
     template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, Elems &>...>>
     R match_ref(Fs &&...fs) {
-        assert_some();
-        return _Visit<size()>::visit(id(), MatcherRef<Variant *, Fs...>(this, std::forward<Fs>(fs)...));
+        return MatcherRef<R, Fs...>::visit(this, std::forward<Fs>(fs)...);
     }
     template <typename ...Fs, typename R=std::common_type_t<std::invoke_result_t<Fs, const Elems &>...>>
     R match_ref(Fs &&...fs) const {
-        assert_some();
-        return _Visit<size()>::visit(id(), MatcherRef<const Variant *, Fs...>(this, std::forward<Fs>(fs)...));
+        return MatcherRefConst<R, Fs...>::visit(this, std::forward<Fs>(fs)...);
     }
 };
 
@@ -255,7 +352,7 @@ public:
     static void fmt(const Variant<Elems...> &v, std::ostream &o) {
         assert_(v.is_some());
         o << "Variant<" << v.id() << ">(";
-        v.visit(Printer{&o});
+        v.visit_ref(Printer{&o});
         o << ")";
     }
 };
