@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rcore/prelude.hpp>
+#include "core.hpp"
 
 #include "format.hpp"
 
@@ -22,3 +22,6 @@
 
 #include "thread.hpp"
 #include "mutex.hpp"
+
+// Shorter namespace alias
+namespace rs = rstd;

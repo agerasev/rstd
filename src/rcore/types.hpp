@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef RSTD_TYPES
+#ifdef RS_TYPES
 
 #include <cstdint>
 #include <cstdlib>
@@ -21,4 +21,4 @@ typedef size_t      usize;
 typedef float       f32;
 typedef double      f64;
 
-#endif // RSTD_TYPES
+#endif // RS_TYPES
