@@ -145,7 +145,7 @@ public:
         return FromIterator<C>::template from_iter<T>(std::move(self()));
     }
     size_t count() {
-        return self().fold((size_t)0, [](size_t a, auto _) { return a + 1; });
+        return self().fold((size_t)0, [](size_t a, auto) { return a + 1; });
     }
     template <typename F>
     bool any(F f=[](bool x) { return x; }) {

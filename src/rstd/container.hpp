@@ -51,7 +51,7 @@ struct _Visit {
 template <size_t S>
 struct _Visit<S, 0> {
     template <typename F>
-    static void visit(F &&f) {}
+    static void visit(F &&) {}
 };
 
 template <typename T>

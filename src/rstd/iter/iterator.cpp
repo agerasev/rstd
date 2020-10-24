@@ -34,7 +34,7 @@ rtest_module_(iterator) {
     }
     rtest_(collect) {
         std::vector<int> vec = Range(10).collect<std::vector>();
-        assert_eq_(vec.size(), 10);
+        assert_eq_(vec.size(), size_t(10));
         for (int i = 0; i < int(vec.size()); ++i) {
             assert_eq_(vec[i], i);
         }

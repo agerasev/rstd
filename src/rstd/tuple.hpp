@@ -111,7 +111,7 @@ private:
     template <typename F, size_t S>
     struct Unpacker<F, S, 0> {
         template <typename ...Args>
-        static decltype(auto) unpack(Tuple *t, F &&f, Args &&...args) {
+        static decltype(auto) unpack(Tuple *, F &&f, Args &&...args) {
             return f(std::forward<Args>(args)...);
         }
     };
@@ -125,7 +125,7 @@ private:
     template <typename F, size_t S>
     struct UnpackerRef<F, S, 0> {
         template <typename ...Args>
-        static decltype(auto) unpack(Tuple *t, F &&f, Args &&...args) {
+        static decltype(auto) unpack(Tuple *, F &&f, Args &&...args) {
             return f(std::forward<Args>(args)...);
         }
     };
@@ -139,7 +139,7 @@ private:
     template <typename F, size_t S>
     struct UnpackerRefConst<F, S, 0> {
         template <typename ...Args>
-        static decltype(auto) unpack(const Tuple *t, F &&f, Args &&...args) {
+        static decltype(auto) unpack(const Tuple *, F &&f, Args &&...args) {
             return f(std::forward<Args>(args)...);
         }
     };
