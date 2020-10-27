@@ -136,7 +136,7 @@ public:
             if (ox.is_some()) {
                 init = f(std::move(init), ox.unwrap());
             } else {
-                return init;
+                return std::move(init);
             }
         }
     }

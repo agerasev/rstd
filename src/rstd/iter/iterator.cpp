@@ -172,7 +172,7 @@ rtest_module_(iterator) {
     }
     rtest_(count) {
         size_t cnt = Range(0, 10).count();
-        assert_eq_(cnt, 10);
+        assert_eq_(cnt, (size_t)10);
     }
     rtest_(any_all) {
         assert_(!Range(0, 10).any([](int x) { return x >= 10; }));
@@ -194,7 +194,7 @@ rtest_module_(iterator) {
         .enumerate();
         for (int i = 0; i < 10; ++i) {
             auto iv = iter.next().unwrap();
-            assert_eq_(iv.get<0>(), i);
+            assert_eq_(iv.get<0>(), (size_t)i);
             assert_eq_(std::stoi(iv.get<1>()), i + 10);
         }
         assert_(iter.next().is_none());

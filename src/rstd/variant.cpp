@@ -69,7 +69,7 @@ rtest_module_(variant) {
         size_t *p;
         template <size_t P, typename T>
         void operator()(const T &) {
-            assert_eq_(*p, 2);
+            assert_eq_(*p, (size_t)2);
             *p = P;
         }
     };
@@ -77,12 +77,12 @@ rtest_module_(variant) {
         size_t p = 2;
         auto a = Variant<int, std::string>::create<0>(123);
         a.visit_ref(Visitor{&p});
-        assert_eq_(p, 0);
+        assert_eq_(p, (size_t)0);
 
         p = 2;
         a = Variant<int, std::string>::create<1>("abc");
         a.visit_ref(Visitor{&p});
-        assert_eq_(p, 1);
+        assert_eq_(p, (size_t)1);
     }
     rtest_(format) {
         auto a = Variant<int, std::string>::create<0>(123);
