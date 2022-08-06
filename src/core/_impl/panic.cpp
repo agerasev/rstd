@@ -13,7 +13,7 @@
 
 #include <cxxabi.h>
 
-namespace core {
+namespace core::_impl {
 
 /// NOTE: Must subject to [constant initialization](https://en.cppreference.com/w/cpp/language/constant_initialization).
 using PanicHook = std::atomic<void (*)()>;
@@ -23,7 +23,6 @@ void set_panic_hook(void (*hook)()) {
     panic_hook.store(hook);
 }
 
-namespace _impl {
 
 void print_backtrace() {
     static const size_t MAX_SIZE = 64;
@@ -72,6 +71,4 @@ void print_backtrace() {
     std::abort();
 }
 
-} // namespace _impl
-
-} // namespace core
+} // namespace core::_impl

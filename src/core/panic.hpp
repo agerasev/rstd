@@ -1,17 +1,12 @@
 #pragma once
 
+#include "_impl/panic.hpp"
 #include "format.hpp"
 
 namespace core {
 
-void set_panic_hook(void (*hook)());
+using _impl::print_backtrace;
 
-namespace _impl {
-
-void print_backtrace();
-[[noreturn]] void panic();
-
-} // namespace _impl
 } // namespace core
 
 #define core_panic(...) \

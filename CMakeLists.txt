@@ -6,6 +6,9 @@ set(CMAKE_C_FLAGS "-Wall -Wextra -Werror=return-type" CACHE INTERNAL "")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++20 -fno-exceptions" CACHE INTERNAL "")
 
 set(SRC
+    "src/core/_impl/panic.hpp"
+    "src/core/_impl/panic.cpp"
+    "src/core/panic.hpp"
     "src/core/assert.hpp"
     "src/core/convert.hpp"
     "src/core/numeric.hpp"
@@ -19,8 +22,6 @@ set(SRC
     "src/core/maybe_uninit.hpp"
     "src/core/match.hpp"
     "src/core/mutex.hpp"
-    "src/core/panic.hpp"
-    "src/core/panic.cpp"
     "src/core/option.hpp"
     "src/core/result.hpp"
     "src/core/collections/slice.hpp"

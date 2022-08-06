@@ -97,7 +97,7 @@ struct Print<io::ErrorKind> {
 template <>
 struct Print<io::Error> {
     inline static void print(std::ostream &o, const io::Error &e) {
-        core_write(o, "io::Error({}: {})", e.kind, e.message);
+        core_print_stream(o, "io::Error({}: {})", e.kind, e.message);
     }
 };
 

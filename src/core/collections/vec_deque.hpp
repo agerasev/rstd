@@ -14,9 +14,9 @@
 namespace core {
 
 template <typename T>
-struct VecDeque;
+class VecDeque;
 template <typename T>
-struct VecDequeView;
+class VecDequeView;
 
 namespace _impl {
 
