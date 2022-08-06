@@ -1,0 +1,22 @@
+on: [push, pull_request]
+
+env:
+  CC: gcc-10
+  CXX: g++-10
+jobs:
+  build_and_test:
+    name: core
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: turtlebrowser/get-conan@v1.0
+      - run: sudo apt update && sudo apt install ${{env.CC}} ${{env.CXX}}
+
+      - run: conan profile new default --detect
+      - run: conan profile update settings.compiler.libcxx=libstdc++11 default
+      - run: conan install ./test/ --install-folder=${{github.workspace}}/build
+
+      - run: cmake ./test/ -B ${{github.workspace}}/build
+      - run: cmake --build ${{github.workspace}}/build
+
+      - run: ${{github.workspace}}/build/core_test
