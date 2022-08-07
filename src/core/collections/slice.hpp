@@ -1,11 +1,13 @@
 #pragma once
 
+#include <cstring>
 #include <span>
 #include <functional>
 #include <type_traits>
 
 #include <core/assert.hpp>
 #include <core/format.hpp>
+#include <core/stream.hpp>
 
 namespace core {
 

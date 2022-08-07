@@ -9,3 +9,10 @@ cmake ../test/
 make
 ./core_test
 ```
+
+## Clang-Tidy
+
+```sh
+cd build
+make core_tidy
+```

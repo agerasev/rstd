@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 3.16)
 
 project("core")
 
-set(CMAKE_C_FLAGS "-Wall -Wextra -Werror=return-type" CACHE INTERNAL "")
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++20 -fno-exceptions" CACHE INTERNAL "")
+set(CMAKE_C_FLAGS "-Wall -Wextra -Werror=return-type")
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++20 -fno-exceptions")
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SRC
     "src/core/_impl/panic.hpp"
@@ -32,3 +34,12 @@ set(SRC
 
 add_library(${PROJECT_NAME} OBJECT ${SRC})
 target_include_directories(${PROJECT_NAME} PUBLIC "src")
+
+list(TRANSFORM SRC PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/ OUTPUT_VARIABLE SRC_ABS)
+add_custom_target(
+    ${PROJECT_NAME}_tidy
+    COMMAND clang-tidy
+    ${SRC_ABS}
+    --header-filter=${CMAKE_CURRENT_SOURCE_DIR}/src
+    -p=${CMAKE_BINARY_DIR}
+)
