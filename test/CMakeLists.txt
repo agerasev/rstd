@@ -4,13 +4,14 @@ project("core_test")
 
 add_subdirectory(".." "core")
 
-
 set(CMAKE_BUILD_TYPE "Debug" CACHE INTERNAL "")
 
 set(CMAKE_C_FLAGS "-Wall -Wextra -Werror=return-type" CACHE INTERNAL "")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++20 -fno-exceptions" CACHE INTERNAL "")
 
-#set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=*" CACHE INTERNAL "")
+#if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+#    set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=*" CACHE INTERNAL "")
+#endif()
 
 
 set(SRC

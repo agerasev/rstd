@@ -2,42 +2,26 @@ name: core
 on: [push, pull_request]
 
 jobs:
-  build_and_test_gcc:
+  test_gcc:
     name: gcc-10
     runs-on: ubuntu-latest
-    env:
-      CC: gcc-10
-      CXX: g++-10
     steps:
       - uses: actions/checkout@v2
       - uses: turtlebrowser/get-conan@v1.0
       - run: sudo apt update && sudo apt install gcc-10 g++-10
 
-      - run: conan profile new default --detect
-      - run: conan profile update settings.compiler.libcxx=libstdc++11 default
-      - run: conan install ./test/ --install-folder=${{github.workspace}}/build --build=missing
+      - run: ./manage.py ./build prepare --compiler=gcc
+      - run: ./manage.py ./build build
+      - run: ./manage.py ./build test
 
-      - run: cmake ./test/ -B ${{github.workspace}}/build
-      - run: cmake --build ${{github.workspace}}/build
-
-      - run: ${{github.workspace}}/build/core_test
-
-  build_and_test_clang:
+  test_clang:
     name: clang-11
     runs-on: ubuntu-latest
-    env:
-      CC: clang-11
-      CXX: clang++-11
     steps:
       - uses: actions/checkout@v2
       - uses: turtlebrowser/get-conan@v1.0
       - run: sudo apt update && sudo apt install clang-11
 
-      - run: conan profile new default --detect
-      - run: conan profile update settings.compiler.libcxx=libstdc++11 default
-      - run: conan install ./test/ --install-folder=${{github.workspace}}/build --build=missing
-
-      - run: cmake ./test/ -B ${{github.workspace}}/build
-      - run: cmake --build ${{github.workspace}}/build
-
-      - run: ${{github.workspace}}/build/core_test
+      - run: ./manage.py ./build prepare --compiler=clang
+      - run: ./manage.py ./build build
+      - run: ./manage.py ./build test
