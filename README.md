@@ -103,4 +103,3 @@ And include the following header in your single main `.cpp` file:
 int main(int argc, char *argv[]) {
     return rtest::main(argc, argv);
 }
-```
