@@ -77,7 +77,7 @@ IndentRequires: true
 IndentWrappedFunctionNames: false
 InsertTrailingCommas: Wrapped
 KeepEmptyLinesAtTheStartOfBlocks: true
-MaxEmptyLinesToKeep: 2
+MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
 PenaltyBreakAssignment: 200
 PenaltyBreakBeforeFirstCallParameter: 19

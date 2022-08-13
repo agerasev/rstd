@@ -7,10 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: turtlebrowser/get-conan@v1.0
       - run: sudo apt update && sudo apt install gcc-10 g++-10
 
-      - run: ./manage.py ./build prepare --compiler=gcc
+      - run: ./manage.py ./build prepare --compiler=gcc-10
       - run: ./manage.py ./build build
       - run: ./manage.py ./build test
 
@@ -19,9 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: turtlebrowser/get-conan@v1.0
       - run: sudo apt update && sudo apt install clang-11
 
-      - run: ./manage.py ./build prepare --compiler=clang
+      - run: ./manage.py ./build prepare --compiler=clang-11
       - run: ./manage.py ./build build
       - run: ./manage.py ./build test

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from typing import Optional
 import os
 import subprocess
 from argparse import ArgumentParser
@@ -7,7 +8,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from shutil import rmtree
 
-core_dir = Path(__file__).resolve().parent
+root = Path(__file__).resolve().parent
 
 
 def run(cmd, env={}, cwd=None):
@@ -16,18 +17,39 @@ def run(cmd, env={}, cwd=None):
 
 
 @dataclass
-class Core:
-    build_dir: Path
-    compiler: str
-    clean: bool
+class Compiler:
+    name: str
+    version: Optional[int]
 
-    def _compiler_env(self):
-        if self.compiler == "gcc":
-            return {"CC": "gcc-10", "CXX": "g++-10"}
-        elif self.compiler == "clang":
-            return {"CC": "clang-11", "CXX": "clang++-11"}
+    @staticmethod
+    def from_str(str):
+        parts = str.split("-")
+        if len(parts) == 1:
+            return Compiler(parts[0], None)
+        elif len(parts) == 2:
+            return Compiler(parts[0], int(parts[1]))
         else:
-            raise RuntimeError(f"Unknown compiler: {self.compiler}")
+            raise RuntimeError(f"Bad compiler string: {str}. Expected 'name[-version]'")
+
+    def binaries(self):
+        ver = f"-{self.version}" if self.version is not None else ""
+        if self.name == "gcc":
+            return (f"gcc{ver}", f"g++{ver}")
+        elif self.name == "clang":
+            return (f"clang{ver}", f"clang++{ver}")
+        else:
+            raise RuntimeError(f"Unknown compiler name: {self.name}. Expected 'gcc' or 'clang'")
+
+    def env(self):
+        cc, cxx = self.binaries()
+        return {"CC": cc, "CXX": cxx}
+
+
+@dataclass
+class Project:
+    build_dir: Path
+    compiler: Compiler
+    clean: bool
 
     def prepare(self):
         if self.build_dir.exists():
@@ -37,13 +59,7 @@ class Core:
         if not self.build_dir.exists():
             self.build_dir.mkdir()
 
-            env = self._compiler_env()
-            profile = self.build_dir / "profile.txt"
-            run(["conan", "profile", "new", profile, "--detect"], env=env)
-            run(["conan", "profile", "update", "settings.compiler.libcxx=libstdc++11", profile], env=env)
-            run(["conan", "install", core_dir / "test", "--profile", profile, "--build=missing"], env=env, cwd=self.build_dir)
-
-            run(["cmake", core_dir / "test"], env=env, cwd=self.build_dir)
+            run(["cmake", root], env=self.compiler.env(), cwd=self.build_dir)
 
     def build(self):
         self.prepare()
@@ -53,13 +69,13 @@ class Core:
     def test(self):
         self.build()
 
-        run([self.build_dir / "core_test"])
+        run([self.build_dir / "rcore_test"])
 
 
 actions = [
-    ("prepare", Core.prepare),
-    ("build", Core.build),
-    ("test", Core.test),
+    ("prepare", Project.prepare),
+    ("build", Project.build),
+    ("test", Project.test),
 ]
 
 
@@ -72,9 +88,9 @@ parser.add_argument("--clean", action="store_true", help="recreate build directo
 
 args = parser.parse_args()
 
-core = Core(
+core = Project(
     build_dir=args.build_dir.resolve(),
-    compiler=args.compiler,
+    compiler=Compiler.from_str(args.compiler),
     clean=args.clean,
 )
 
