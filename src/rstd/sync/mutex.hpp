@@ -2,7 +2,7 @@
 
 #include <mutex>
 
-namespace core::sync {
+namespace rstd::sync {
 
 template <typename T>
 class Mutex final {
@@ -69,4 +69,4 @@ public:
     }
 };
 
-} // namespace core::sync
+} // namespace rstd::sync

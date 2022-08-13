@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include <rcore/mem/lazy_static.hpp>
-#include <rcore/mem/maybe_uninit.hpp>
+#include <rstd/io/ansi_color.hpp>
+#include <rstd/sync/mutex.hpp>
 
 int main(int argc, const char *argv[]) {
     std::cout << "It works!" << std::endl;

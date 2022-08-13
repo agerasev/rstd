@@ -70,6 +70,7 @@ class Project:
         self.build()
 
         run([self.build_dir / "rcore_test"])
+        run([self.build_dir / "rstd_test"])
 
 
 actions = [
@@ -82,7 +83,7 @@ actions = [
 parser = ArgumentParser()
 parser.add_argument("build_dir", type=Path, help="build directory path")
 parser.add_argument("action", type=str, choices=[a[0] for a in actions], help="action")
-parser.add_argument("--compiler", type=str, choices=["gcc", "clang"], default="gcc")
+parser.add_argument("--compiler", type=str, default="gcc")
 parser.add_argument("--clean", action="store_true", help="recreate build directory")
 
 

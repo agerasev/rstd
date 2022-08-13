@@ -1,6 +1,9 @@
 #pragma once
 
+#include <array>
 #include <string>
+
+namespace rstd::io {
 
 /*
 black        30         40
@@ -22,35 +25,37 @@ inverse off      27
 */
 
 enum struct AnsiColor {
-    RESET           = 0,
-    BOLD            = 1,
-    UNDERLINE       = 4,
-    INVERSE         = 7,
-    BOLD_OFF        = 21,
-    UNDERLINE_OFF   = 24,
-    INVERSE_OFF     = 27,
+    RESET = 0,
+    BOLD = 1,
+    UNDERLINE = 4,
+    INVERSE = 7,
+    BOLD_OFF = 21,
+    UNDERLINE_OFF = 24,
+    INVERSE_OFF = 27,
 
-    FG_BLACK        = 30,
-    FG_RED          = 31,
-    FG_GREEN        = 32,
-    FG_YELLOW       = 33,
-    FG_BLUE         = 34,
-    FG_MAGENTA      = 35,
-    FG_CYAN         = 36,
-    FG_WHITE        = 37,
+    FG_BLACK = 30,
+    FG_RED = 31,
+    FG_GREEN = 32,
+    FG_YELLOW = 33,
+    FG_BLUE = 34,
+    FG_MAGENTA = 35,
+    FG_CYAN = 36,
+    FG_WHITE = 37,
 
-    BG_BLACK        = 40,
-    BG_RED          = 41,
-    BG_GREEN        = 42,
-    BG_YELLOW       = 43,
-    BG_BLUE         = 44,
-    BG_MAGENTA      = 45,
-    BG_CYAN         = 46,
-    BG_WHITE        = 47
+    BG_BLACK = 40,
+    BG_RED = 41,
+    BG_GREEN = 42,
+    BG_YELLOW = 43,
+    BG_BLUE = 44,
+    BG_MAGENTA = 45,
+    BG_CYAN = 46,
+    BG_WHITE = 47
 };
 
-template <typename ...Args>
-std::string _ansi_color_escape(Args ...colors) {
+namespace _impl {
+
+template <typename... Args>
+std::string _ansi_color_escape(Args... colors) {
     static_assert(sizeof...(colors) > 0, "There should be at least one color");
     std::array<AnsiColor, sizeof...(colors)> color_array{colors...};
     std::string out = "\033[";
@@ -62,12 +67,15 @@ std::string _ansi_color_escape(Args ...colors) {
     return out;
 }
 
+} // namespace _impl
 
-template <typename ...Args>
-std::string ansi_color(const std::string &str, Args ...colors) {
+template <typename... Args>
+std::string ansi_color(const std::string &str, Args... colors) {
     std::string out;
-    out += _ansi_color_escape(colors...);
+    out += _impl::_ansi_color_escape(colors...);
     out += str;
-    out += _ansi_color_escape(AnsiColor::RESET);
+    out += _impl::_ansi_color_escape(AnsiColor::RESET);
     return out;
 }
+
+} // namespace rstd::io

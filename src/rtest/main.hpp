@@ -1,52 +1,44 @@
 #pragma once
 
 #include <csignal>
-#include <vector>
-#include <map>
-#include <thread>
 #include <functional>
 #include <sstream>
-#include <rstd/prelude.hpp>
-#include <lazy_static.hpp>
-#include <ansi_color.hpp>
+#include <thread>
+#include <unordered_map>
+#include <vector>
+
+#include <rcore/mem/lazy_static.hpp>
+#include <rstd/io/ansi_color.hpp>
+
 #include "test.hpp"
 
-
-lazy_static_(::rtest::TestRegistrar, __rtest_registrar) {
-    return ::rtest::TestRegistrar();
-}
+rtest::StaticRegistrar RTEST_REGISTRAR;
 
 namespace rtest {
 
-namespace __main {
+namespace _impl {
 
-#define __rtest_sigpair(sig) \
-    std::make_pair(sig, #sig)
+const std::unordered_map<int, const std::string_view> SIGNALS = {
+    std::pair(SIGTERM, "SIGTERM"),
+    std::pair(SIGSEGV, "SIGSEGV"),
+    std::pair(SIGINT, "SIGINT"),
+    std::pair(SIGILL, "SIGILL"),
+    std::pair(SIGABRT, "SIGABRT"),
+    std::pair(SIGFPE, "SIGFPE"),
+};
 
-typedef std::map<int, std::string> SigMap;
-static_lazy_static_(SigMap, signals) {
-    return SigMap{
-        __rtest_sigpair(SIGTERM),
-        __rtest_sigpair(SIGSEGV),
-        __rtest_sigpair(SIGINT),
-        __rtest_sigpair(SIGILL),
-        __rtest_sigpair(SIGABRT),
-        __rtest_sigpair(SIGFPE)
-    };
-}
-
-void signal_handler(int sig) {
-    std::string signame;
-    auto entry = signals->find(sig);
-    if (entry != signals->end()) {
-        signame = entry->second;
+void signal_handler(int signal) {
+    std::string name;
+    auto entry = SIGNALS.find(signal);
+    if (entry != SIGNALS.end()) {
+        name = entry->second;
     } else {
-        signame = format_("Unknown signal {}", sig);
+        name = "Unknown signal"; // format_("Unknown signal {}", sig);
     }
-    panic_("{} caught", signame);
+    rcore_panic("{} caught", name);
 }
 
-} // namespace __main
+} // namespace _impl
 
 struct TestResult {
     std::string name;
@@ -55,7 +47,8 @@ struct TestResult {
 
 int main(int argc, const char *const *argv) {
     std::vector<rtest::TestCase> tests;
-    for (const TestCase &c : *__rtest_registrar) {
+    auto guard = RTEST_REGISTRAR->lock();
+    for (const TestCase &c : *guard) {
         bool add = argc < 2;
         for (int j = 1; j < argc; ++j) {
             if (c.name.find(argv[j]) != std::string::npos) {
@@ -70,18 +63,14 @@ int main(int argc, const char *const *argv) {
     int test_count = tests.size();
     auto b = tests.cbegin();
     auto e = tests.cend();
-    rstd::Mutex<decltype(b)> mb(std::move(b));
+    rstd::sync::Mutex<decltype(b)> mb(std::move(b));
 
-    std::vector<rstd::JoinHandle<>> workers(std::min(
-        std::thread::hardware_concurrency(),
-        unsigned(test_count)
-    ));
+    std::vector<rstd::JoinHandle<>> workers(std::min(std::thread::hardware_concurrency(), unsigned(test_count)));
 
 #ifndef RTEST_BW
     std::string result_name[2] = {
         ansi_color("ok", AnsiColor::FG_GREEN),
-        ansi_color("FAILED", AnsiColor::FG_RED, AnsiColor::BOLD)
-    };
+        ansi_color("FAILED", AnsiColor::FG_RED, AnsiColor::BOLD)};
 #else // RTEST_BW
     std::string result_name[2] = {"ok", "FAILED"};
 #endif // RTEST_BW
@@ -89,10 +78,10 @@ int main(int argc, const char *const *argv) {
     println_();
     println_("running {} tests in {} threads", test_count, workers.size());
 
-    rstd::Mutex<std::ostream*> log(&std::cout);
+    rstd::Mutex<std::ostream *> log(&std::cout);
     rstd::Mutex<std::vector<TestResult>> failures_;
 
-    for (auto sig : *__main::signals) {
+    for (auto sig : *__main::SIGNALS) {
         signal(sig.first, __main::signal_handler);
     }
     for (auto &worker : workers) {
@@ -108,20 +97,19 @@ int main(int argc, const char *const *argv) {
 
                 std::stringstream output;
                 auto res = rstd::thread::Builder()
-                .stdout_(output).stderr_(output)
-                .spawn([&]() {
-                    test.func();
-                }).join();
-                
+                               .stdout_(output)
+                               .stderr_(output)
+                               .spawn([&]() {
+                                   test.func();
+                               })
+                               .join();
+
                 std::string rn;
                 if (res.is_ok() == !test.should_panic) {
                     rn = result_name[0];
                 } else {
                     rn = result_name[1];
-                    failures_.lock()->push_back(rtest::TestResult {
-                        test.name,
-                        output.str()
-                    });
+                    failures_.lock()->push_back(rtest::TestResult{test.name, output.str()});
                 }
                 res.clear();
                 writeln_(**log.lock(), "test {} ... {}", test.name, rn);
@@ -131,7 +119,7 @@ int main(int argc, const char *const *argv) {
     for (auto &worker : workers) {
         worker.join().unwrap();
     }
-    for (auto sig : *__main::signals) {
+    for (auto sig : *__main::SIGNALS) {
         signal(sig.first, nullptr);
     }
     println_();
