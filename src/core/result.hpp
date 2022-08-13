@@ -2,8 +2,8 @@
 
 #include <variant>
 
-#include "panic.hpp"
-#include "format.hpp"
+#include <core/fmt/display.hpp>
+#include <core/panic.hpp>
 
 namespace core {
 
@@ -62,7 +62,7 @@ public:
 
     T unwrap() {
         if (this->is_err()) {
-            if constexpr (Printable<E>) {
+            if constexpr (fmt::IsDisplay<E>) {
                 core_panic("Result is Err({})", this->err());
             } else {
                 core_panic("Result is Err");
@@ -72,7 +72,7 @@ public:
     }
     E unwrap_err() {
         if (this->is_ok()) {
-            if constexpr (Printable<T>) {
+            if constexpr (fmt::IsDisplay<T>) {
                 core_panic("Result is Ok({})", this->ok());
             } else {
                 core_panic("Result is Ok");
@@ -101,11 +101,13 @@ public:
     }
 };
 
+namespace fmt {
+
 template <typename T>
-struct Print<Ok<T>> {
-    static void print(std::ostream &os, const Ok<T> &ok) {
+struct Display<Ok<T>> {
+    static void write(std::ostream &os, const Ok<T> &ok) {
         os << "Ok(";
-        if constexpr (Printable<T>) {
+        if constexpr (IsDisplay<T>) {
             os << ok.value;
         }
         os << ")";
@@ -113,10 +115,10 @@ struct Print<Ok<T>> {
 };
 
 template <typename E>
-struct Print<Err<E>> {
-    static void print(std::ostream &os, const Err<E> &err) {
+struct Display<Err<E>> {
+    static void write(std::ostream &os, const Err<E> &err) {
         os << "Err(";
-        if constexpr (Printable<E>) {
+        if constexpr (IsDisplay<E>) {
             os << err.value;
         }
         os << ")";
@@ -124,22 +126,24 @@ struct Print<Err<E>> {
 };
 
 template <typename T, typename E>
-struct Print<Result<T, E>> {
-    static void print(std::ostream &os, const Result<T, E> &res) {
+struct Display<Result<T, E>> {
+    static void write(std::ostream &os, const Result<T, E> &res) {
         os << "Result::";
         if (res.is_ok()) {
             os << "Ok(";
-            if constexpr (Printable<T>) {
+            if constexpr (IsDisplay<T>) {
                 os << res.ok();
             }
         } else {
             os << "Err(";
-            if constexpr (Printable<E>) {
+            if constexpr (IsDisplay<E>) {
                 os << res.err();
             }
         }
         os << ")";
     }
 };
+
+} // namespace fmt
 
 } // namespace core

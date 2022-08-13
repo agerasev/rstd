@@ -2,8 +2,8 @@
 
 #include <optional>
 
-#include "panic.hpp"
-#include "format.hpp"
+#include <core/fmt/display.hpp>
+#include <core/panic.hpp>
 
 namespace core {
 
@@ -58,7 +58,7 @@ public:
     }
     void unwrap_none() {
         if (this->is_some()) {
-            if constexpr (Printable<T>) {
+            if constexpr (fmt::IsDisplay<T>) {
                 core_panic("Option is Some({})", this->some());
             } else {
                 core_panic("Option is Some");
@@ -86,11 +86,13 @@ public:
     }
 };
 
+namespace fmt {
+
 template <typename T>
-struct Print<Some<T>> {
+struct Display<Some<T>> {
     static void print(std::ostream &os, const Some<T> &some) {
         os << "Some(";
-        if constexpr (Printable<T>) {
+        if constexpr (IsDisplay<T>) {
             os << some.value;
         }
         os << ")";
@@ -98,19 +100,19 @@ struct Print<Some<T>> {
 };
 
 template <>
-struct Print<None> {
+struct Display<None> {
     inline static void print(std::ostream &os, None) {
         os << "None";
     }
 };
 
 template <typename T>
-struct Print<Option<T>> {
+struct Display<Option<T>> {
     static void print(std::ostream &os, const Option<T> &opt) {
         os << "Option::";
         if (opt.is_some()) {
             os << "Some(";
-            if constexpr (Printable<T>) {
+            if constexpr (IsDisplay<T>) {
                 os << opt.some();
             }
             os << ")";
@@ -119,5 +121,7 @@ struct Print<Option<T>> {
         }
     }
 };
+
+} // namespace fmt
 
 } // namespace core

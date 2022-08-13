@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <utility>
 
-namespace core {
+namespace core::mem {
 
 /// Type which size and alignment are identical to `T` but it can be uninitialized.
 /// MaybeUninit<T> is POD for any `T`.
@@ -26,4 +26,4 @@ struct MaybeUninit {
     }
 } __attribute__((aligned(alignof(T))));
 
-} // namespace core
+} // namespace core::mem

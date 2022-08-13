@@ -3,17 +3,17 @@
 #include <atomic>
 #include <mutex>
 
-#include "maybe_uninit.hpp"
+#include <core/mem/maybe_uninit.hpp>
 
-namespace core {
+namespace core::misc {
 
 // NOTE: Must subject to [constant initialization](https://en.cppreference.com/w/cpp/language/constant_initialization).
-template <typename T, void F(MaybeUninit<T> &)>
+template <typename T, void F(mem::MaybeUninit<T> &)>
 class LazyStatic {
 private:
     std::atomic_bool initialized;
-    MaybeUninit<std::mutex> mutex_;
-    MaybeUninit<T> value_;
+    mem::MaybeUninit<std::mutex> mutex_;
+    mem::MaybeUninit<T> value_;
 
 private:
     std::mutex &mutex() {
@@ -51,4 +51,4 @@ public:
     }
 };
 
-} // namespace core
+} // namespace core::misc

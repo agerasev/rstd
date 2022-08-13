@@ -1,6 +1,6 @@
 #pragma once
 
-namespace core {
+namespace core::misc {
 
 template <typename... Ts>
 struct overloaded : Ts... {
@@ -10,4 +10,4 @@ struct overloaded : Ts... {
 template <typename... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-} // namespace core
+} // namespace core::misc

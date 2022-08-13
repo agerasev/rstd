@@ -3,9 +3,9 @@
 #include <array>
 #include <string>
 
-#include "format.hpp"
+#include <core/io/print.hpp>
 
-namespace core {
+namespace core::io {
 
 enum class LogLevel {
     Fatal = 0,
@@ -42,7 +42,7 @@ void log_static(Ts &&...args) {
 #endif
 
 } // namespace _impl
-} // namespace core
+} // namespace core::io
 
 #if defined(CORE_FORMAT_STATIC_CHECK)
 #define core_log(level, fmt_str, ...) ::core::_impl::log_static<level, fmt_str>(__VA_ARGS__)

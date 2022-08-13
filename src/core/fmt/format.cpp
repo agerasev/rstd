@@ -1,20 +1,15 @@
-#include <core/print.hpp>
-#include <core/format.hpp>
-#include <core/log.hpp>
+#ifdef CORE_TESTS
 
 #include <string>
 
 #include <gtest/gtest.h>
 
-using namespace core;
+#include "format.hpp"
 
-TEST(Print, string) {
-    static_assert(Printable<std::string>);
-}
+using namespace core::fmt;
 
-TEST(Print, c_str) {
-    static_assert(Printable<const char *>);
-}
+static_assert(IsDisplay<std::string>);
+static_assert(IsDisplay<const char *>);
 
 TEST(Format, empty) {
     ASSERT_EQ(core_format(""), "");
@@ -35,7 +30,10 @@ TEST(Format, two_args) {
 TEST(Format, escape) {
     ASSERT_EQ(core_format("}}{{"), "}{");
 }
-
+/*
 TEST(Log, info) {
     core_log_info("test {}", 123);
 }
+*/
+
+#endif CORE_TESTS

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstring>
-#include <span>
 #include <functional>
+#include <span>
 #include <type_traits>
 
 #include <core/assert.hpp>
@@ -108,26 +108,26 @@ public:
 };
 
 template <Printable T>
-struct Print<std::span<T>> {
-    static void print(std::ostream &os, const std::span<T> &value) {
+struct Display<std::span<T>> {
+    static void write(std::ostream &os, const std::span<T> &value) {
         auto it = value.begin();
         os << "[";
         if (it != value.end()) {
-            Print<T>::print(os, *it);
+            Display<T>::write(os, *it);
             ++it;
         }
         for (; it != value.end(); ++it) {
             os << ", ";
-            Print<T>::print(os, *it);
+            Display<T>::write(os, *it);
         }
         os << "]";
     }
 };
 
 template <Printable T>
-struct Print<Slice<T>> {
-    static void print(std::ostream &os, const Slice<T> &value) {
-        Print<std::span<T>>::print(os, value);
+struct Display<Slice<T>> {
+    static void write(std::ostream &os, const Slice<T> &value) {
+        Display<std::span<T>>::write(os, value);
     }
 };
 

@@ -4,13 +4,12 @@
 #include <limits>
 #include <functional>
 
-#include "panic.hpp"
-#include "option.hpp"
+#include <core/option.hpp>
 
-namespace core {
+namespace core::num {
 
 template <typename Dst, typename Src>
-Option<Dst> cast_int(Src src) {
+Option<Dst> convert(Src src) {
     static_assert(std::is_integral_v<Src>);
     static_assert(std::is_integral_v<Dst>);
 
@@ -30,16 +29,4 @@ Option<Dst> cast_int(Src src) {
     return None();
 }
 
-template <typename Dst, typename Src>
-Option<std::reference_wrapper<Dst>> downcast(Src &src) {
-    static_assert(std::is_base_of_v<Src, Dst>);
-    static_assert(std::is_convertible_v<Dst *, Src *>);
-
-    Dst *ptr = dynamic_cast<Dst *>(&src);
-    if (ptr != nullptr) {
-        return Some(std::ref(*ptr));
-    }
-    return None();
-}
-
-} // namespace core
+} // namespace core::num

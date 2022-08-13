@@ -2,23 +2,25 @@
 
 // TODO: Migrate to std::format when supported.
 
-#include <vector>
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <optional>
 #include <cassert>
+#include <iostream>
+#include <optional>
+#include <sstream>
+#include <string>
+#include <vector>
 
-#include "_impl/panic.hpp"
-#include "print.hpp"
+#include "display.hpp"
+
+namespace core {
+// We cannot include <core/panic.hpp> here because it produces circular dependency.
+[[noreturn]] void panic();
+} // namespace core
 
 #if defined(__GNUC__) && !defined(__clang__)
 #define CORE_FORMAT_STATIC_CHECK
 #endif
 
-namespace core::_impl {
-
-namespace format {
+namespace core::fmt {
 
 template <size_t N>
 struct Literal {
@@ -79,10 +81,9 @@ inline std::string get_error_string(const Error &err) {
     return ss.str();
 }
 
-} // namespace format
 
 template <typename... Ts>
-constexpr std::optional<format::Error> check_format_str(const std::string_view str) {
+constexpr std::optional<Error> check_format_str(const std::string_view str) {
     constexpr size_t total_args = sizeof...(Ts);
     size_t arg = 0;
     bool opened = false;
@@ -98,7 +99,7 @@ constexpr std::optional<format::Error> check_format_str(const std::string_view s
         } else if (c == '}') {
             if (opened) {
                 if (arg >= total_args) {
-                    return format::Error{format::ErrorKind::TooManyArgs, i};
+                    return Error{ErrorKind::TooManyArgs, i};
                 }
                 arg += 1;
                 opened = false;
@@ -109,21 +110,21 @@ constexpr std::optional<format::Error> check_format_str(const std::string_view s
             }
         } else {
             if (opened || closed) {
-                return format::Error{format::ErrorKind::UnpairedBrace, i};
+                return Error{ErrorKind::UnpairedBrace, i};
             }
         }
     }
     if (opened || closed) {
-        return format::Error{format::ErrorKind::UnpairedBrace, str.size()};
+        return Error{ErrorKind::UnpairedBrace, str.size()};
     }
     if (arg != total_args) {
-        return format::Error{format::ErrorKind::TooFewArgs, str.size()};
+        return Error{ErrorKind::TooFewArgs, str.size()};
     }
     return std::nullopt;
 }
 
 template <typename... Ts>
-void print_unchecked(std::ostream &stream, const std::string_view str, Ts &&...args) {
+void write_unchecked(std::ostream &stream, const std::string_view str, Ts &&...args) {
     [[maybe_unused]] auto arg_to_string = [](auto &&arg) {
         std::stringstream ss;
         Print<std::remove_cvref_t<decltype(arg)>>::print(ss, arg);
@@ -167,58 +168,55 @@ void print_unchecked(std::ostream &stream, const std::string_view str, Ts &&...a
 template <typename... Ts>
 std::string format_unchecked(const std::string_view str, Ts &&...args) {
     std::stringstream stream;
-    print_unchecked(stream, str, std::forward<Ts>(args)...);
+    write_unchecked(stream, str, std::forward<Ts>(args)...);
     return stream.str();
 }
 
 template <typename... Ts>
-void print_dynamic(std::ostream &stream, const std::string_view str, Ts &&...args) {
+void write_dynamic(std::ostream &stream, const std::string_view str, Ts &&...args) {
     const auto error = check_format_str<Ts...>(str);
     if (error.has_value()) {
-        std::cout << format::get_error_string(error.value()) << std::endl;
+        std::cout << get_error_string(error.value()) << std::endl;
         _impl::panic();
     }
-    print_unchecked(stream, str, std::forward<Ts>(args)...);
+    write_unchecked(stream, str, std::forward<Ts>(args)...);
 }
 
 template <typename... Ts>
 std::string format_dynamic(const std::string_view str, Ts &&...args) {
     std::stringstream stream;
-    print_dynamic(stream, str, std::forward<Ts>(args)...);
+    write_dynamic(stream, str, std::forward<Ts>(args)...);
     return stream.str();
 }
 
 #if defined(CORE_FORMAT_STATIC_CHECK)
 
-template <format::Literal FMT_STR, typename... Ts>
-void print_static(std::ostream &stream, Ts &&...args) {
+template <Literal FMT_STR, typename... Ts>
+void write_static(std::ostream &stream, Ts &&...args) {
     constexpr auto error = check_format_str<Ts...>(FMT_STR.view());
     static_assert(!error.has_value(), "Format error");
-    print_unchecked(stream, FMT_STR.view(), std::forward<Ts>(args)...);
+    write_unchecked(stream, FMT_STR.view(), std::forward<Ts>(args)...);
 }
 
-template <format::Literal FMT_STR, typename... Ts>
+template <Literal FMT_STR, typename... Ts>
 std::string format_static(Ts &&...args) {
     std::stringstream stream;
-    print_static<FMT_STR>(stream, std::forward<Ts>(args)...);
+    write_static<FMT_STR>(stream, std::forward<Ts>(args)...);
     return stream.str();
 }
 
 #endif
 
-} // namespace core::_impl
+} // namespace core::fmt
 
 #if defined(CORE_FORMAT_STATIC_CHECK)
 
-#define core_print_stream(stream, fmt_str, ...) ::core::_impl::print_static<fmt_str>(stream __VA_OPT__(, )##__VA_ARGS__)
-#define core_format(fmt_str, ...) ::core::_impl::format_static<fmt_str>(__VA_ARGS__)
+#define core_write(stream, fmt_str, ...) ::core::fmt::write_static<fmt_str>(stream __VA_OPT__(, )##__VA_ARGS__)
+#define core_format(fmt_str, ...) ::core::fmt::format_static<fmt_str>(__VA_ARGS__)
 
 #else
 
-#define core_print_stream(stream, fmt_str, ...) ::core::_impl::print_dynamic(stream, fmt_str __VA_OPT__(, )##__VA_ARGS__)
-#define core_format(fmt_str, ...) ::core::_impl::format_dynamic(fmt_str __VA_OPT__(, ) __VA_ARGS__)
+#define core_write(stream, fmt_str, ...) ::core::fmt::write_dynamic(stream, fmt_str __VA_OPT__(, )##__VA_ARGS__)
+#define core_format(fmt_str, ...) ::core::fmt::format_dynamic(fmt_str __VA_OPT__(, ) __VA_ARGS__)
 
 #endif
-
-#define core_print(fmt_str, ...) core_print_stream(std::cout, fmt_str __VA_OPT__(, )##__VA_ARGS__)
-#define core_println(fmt_str, ...) core_print_stream(std::cout, fmt_str __VA_OPT__(, )##__VA_ARGS__)

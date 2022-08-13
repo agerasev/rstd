@@ -1,11 +1,16 @@
 #pragma once
 
-#include "_impl/panic.hpp"
-#include "format.hpp"
+#include <core/io/print.hpp>
 
 namespace core {
 
-using _impl::print_backtrace;
+void set_panic_hook(void (*hook)());
+
+namespace _impl {
+void print_backtrace();
+} // namespace _impl
+
+[[noreturn]] void panic();
 
 } // namespace core
 
@@ -14,7 +19,7 @@ using _impl::print_backtrace;
         ::core::_impl::print_backtrace(); \
         core_println("Thread panicked in {}, at {}:{}", __FUNCTION__, __FILE__, __LINE__); \
         core_println(__VA_ARGS__); \
-        ::core::_impl::panic(); \
+        ::core::panic(); \
     } while (false)
 
 #define core_unimplemented(...) core_panic("Unimplemented. " __VA_ARGS__)

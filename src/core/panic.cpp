@@ -1,28 +1,30 @@
 #include "panic.hpp"
 
-#include <iostream>
-#include <string>
-#include <regex>
 #include <atomic>
+#include <iostream>
+#include <regex>
+#include <string>
 #include <type_traits>
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstring>
 #include <execinfo.h>
 #include <unistd.h>
 
 #include <cxxabi.h>
 
-namespace core::_impl {
+namespace core {
 
 /// NOTE: Must subject to [constant initialization](https://en.cppreference.com/w/cpp/language/constant_initialization).
 using PanicHook = std::atomic<void (*)()>;
-static PanicHook panic_hook;
+// NOLINTNEXTLINE(*-avoid-non-const-global-variables)
+static PanicHook PANIC_HOOK;
 
 void set_panic_hook(void (*hook)()) {
-    panic_hook.store(hook);
+    PANIC_HOOK.store(hook);
 }
 
+namespace _impl {
 
 void print_backtrace() {
     static const size_t MAX_SIZE = 64;
@@ -64,11 +66,15 @@ void print_backtrace() {
     free(symbols);
 }
 
+} // namespace _impl
+
 [[noreturn]] void panic() {
-    if (panic_hook != nullptr) {
-        panic_hook.load()();
+    auto hook = PANIC_HOOK.load();
+    if (hook != nullptr) {
+        hook();
+    } else {
+        std::abort();
     }
-    std::abort();
 }
 
-} // namespace core::_impl
+} // namespace core

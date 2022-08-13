@@ -4,9 +4,11 @@ Checks: >
     clang-analyzer-*,
     concurrency-*,
     cppcoreguidelines-*,
+        -cppcoreguidelines-macro-usage,
     misc-*,
-    -misc-non-private-member-variables-in-classes,
+        -misc-non-private-member-variables-in-classes,
     modernize-*,
+        -modernize-use-trailing-return-type,
     performance-*,
     portability-*,
     readability-*
