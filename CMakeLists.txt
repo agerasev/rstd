@@ -10,12 +10,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include_directories("src")
 
 set(RCORE_SRC
-    "src/rcore/mem/maybe_uninit.hpp"
-    "src/rcore/mem/lazy_static.hpp"
     "src/rcore/fmt/display.hpp"
     "src/rcore/fmt/format.hpp"
     "src/rcore/fmt/formatter.hpp"
     "src/rcore/sync/once.hpp"
+    "src/rcore/sync/lazy_static.hpp"
+    "src/rcore/mem/maybe_uninit.hpp"
     "src/rcore/option.hpp"
     "src/rcore/result.hpp"
 )
@@ -32,6 +32,8 @@ set(RSTD_SRC
     "src/rstd/io/stream.hpp"
     "src/rstd/io/stream.cpp"
     "src/rstd/sync/mutex.hpp"
+    "src/rstd/thread/local.hpp"
+    "src/rstd/thread/thread.hpp"
     "src/rstd/option.hpp"
     "src/rstd/result.hpp"
 )

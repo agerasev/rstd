@@ -31,7 +31,11 @@ private:
 
 public:
     constexpr LazyStatic() = default;
-    ~LazyStatic() = default;
+    ~LazyStatic() {
+        if (init_complete.load()) {
+            value_.assume_init().~T();
+        }
+    }
 
     LazyStatic(const LazyStatic &) = delete;
     LazyStatic &operator=(const LazyStatic &) = delete;
