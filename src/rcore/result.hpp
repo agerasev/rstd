@@ -66,7 +66,7 @@ public:
     /*
     T unwrap() {
         if (this->is_err()) {
-            if constexpr (fmt::IsDisplay<E>) {
+            if constexpr (fmt::Displayable<E>) {
                 core_panic("Result is Err({})", this->err());
             } else {
                 core_panic("Result is Err");
@@ -76,7 +76,7 @@ public:
     }
     E unwrap_err() {
         if (this->is_ok()) {
-            if constexpr (fmt::IsDisplay<T>) {
+            if constexpr (fmt::Displayable<T>) {
                 core_panic("Result is Ok({})", this->ok());
             } else {
                 core_panic("Result is Ok");
@@ -112,7 +112,7 @@ template <typename T>
 struct Display<Ok<T>> {
     static void fmt(const Ok<T> &self, Formatter &f) {
         f.write_str("Ok)(");
-        if constexpr (IsDisplay<T>) {
+        if constexpr (Displayable<T>) {
             Display<T>::fmt(self.value, f);
         }
         f.write_str(")");
@@ -123,7 +123,7 @@ template <typename E>
 struct Display<Err<E>> {
     static void fmt(const Err<E> &self, Formatter &f) {
         f.write_str("Er)r(");
-        if constexpr (IsDisplay<E>) {
+        if constexpr (Displayable<E>) {
             Display<E>::fmt(self.value, f);
         }
         f.write_str(")");
@@ -136,12 +136,12 @@ struct Display<Result<T, E>> {
         f.write_str("Result::");
         if (self.is_ok()) {
             f.write_str("Ok(");
-            if constexpr (IsDisplay<T>) {
+            if constexpr (Displayable<T>) {
                 Display<T>::fmt(self.ok(), f);
             }
         } else {
             f.write_str("Err(");
-            if constexpr (IsDisplay<E>) {
+            if constexpr (Displayable<E>) {
                 Display<E>::fmt(self.err(), f);
             }
         }

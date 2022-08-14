@@ -13,6 +13,7 @@ set(RCORE_SRC
     "src/rcore/mem/maybe_uninit.hpp"
     "src/rcore/mem/lazy_static.hpp"
     "src/rcore/fmt/display.hpp"
+    "src/rcore/fmt/format.hpp"
     "src/rcore/fmt/formatter.hpp"
     "src/rcore/sync/once.hpp"
     "src/rcore/option.hpp"
@@ -23,13 +24,16 @@ set(RCORE_TEST_SRC
 )
 
 set(RSTD_SRC
+    "src/rstd/fmt/display.hpp"
+    "src/rstd/fmt/format.hpp"
+    "src/rstd/fmt/formatter.hpp"
     "src/rstd/io/ansi_color.hpp"
     "src/rstd/io/error.hpp"
     "src/rstd/io/stream.hpp"
     "src/rstd/io/stream.cpp"
     "src/rstd/sync/mutex.hpp"
-    "src/rstd/sync/option.hpp"
-    "src/rstd/sync/result.hpp"
+    "src/rstd/option.hpp"
+    "src/rstd/result.hpp"
 )
 set(RSTD_TEST_SRC
     "src/rstd/test.cpp"
@@ -37,7 +41,7 @@ set(RSTD_TEST_SRC
 
 add_library("rcore" OBJECT ${RCORE_SRC})
 
-add_library("rstd" OBJECT ${RCORE_SRC})
+add_library("rstd" OBJECT ${RSTD_SRC})
 target_link_libraries("rstd" PUBLIC "rcore" PUBLIC "pthread")
 
 enable_testing()
@@ -46,7 +50,7 @@ target_compile_definitions("rcore_test" PRIVATE "RTEST")
 target_link_libraries("rcore_test" "rcore")
 add_test("rcore_test" "rcore_test")
 
-add_executable("rstd_test" ${RCORE_TEST_SRC})
+add_executable("rstd_test" ${RSTD_TEST_SRC})
 target_compile_definitions("rstd_test" PRIVATE "RTEST")
 target_link_libraries("rstd_test" "rstd")
 add_test("rstd_test" "rstd_test")

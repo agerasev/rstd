@@ -60,7 +60,7 @@ public:
     }
     void unwrap_none() {
         if (this->is_some()) {
-            if constexpr (fmt::IsDisplay<T>) {
+            if constexpr (fmt::Displayable<T>) {
                 core_panic("Option is Some({})", this->some());
             } else {
                 core_panic("Option is Some");
@@ -94,7 +94,7 @@ template <typename T>
 struct Display<Some<T>> {
     static void fmt(const Some<T> &self, Formatter &f) {
         f.write_str("Some(");
-        if constexpr (IsDisplay<T>) {
+        if constexpr (Displayable<T>) {
             Display<T>::fmt(self.value, f);
         }
         f.write_str(")");
@@ -114,7 +114,7 @@ struct Display<Option<T>> {
         f.write_str("Option::");
         if (self.is_some()) {
             f.write_str("Some(");
-            if constexpr (IsDisplay<T>) {
+            if constexpr (Displayable<T>) {
                 Display<T>::fmt(self.some(), f);
             }
             f.write_str(")");

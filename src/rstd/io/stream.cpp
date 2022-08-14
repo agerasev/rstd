@@ -1,5 +1,3 @@
-#pragma once
-
 #include "stream.hpp"
 
 namespace rstd::io {

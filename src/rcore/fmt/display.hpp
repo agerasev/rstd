@@ -1,8 +1,7 @@
 #pragma once
 
 #include <concepts>
-#include <cstdint>
-#include <iostream>
+#include <string>
 
 #include "formatter.hpp"
 
@@ -12,9 +11,35 @@ template <typename Self>
 struct Display;
 
 template <typename Self>
-concept IsDisplay = requires(const Self &self, Formatter &f) {
-    Display<Self>::fmt(f, self);
+concept Displayable = requires(const Self &self, Formatter &f) {
+    Display<Self>::fmt(self, f);
 };
+
+namespace _impl {
+
+template <typename Self>
+concept ToString = requires(Self self) {
+    std::to_string(self);
+};
+
+} // namespace _impl
+
+template <std::convertible_to<std::string_view> Self>
+struct Display<Self> {
+    static void fmt(const Self &self, Formatter &f) {
+        f.write_str(self);
+    }
+};
+
+template <_impl::ToString Self>
+struct Display<Self> {
+    static void fmt(const Self &self, Formatter &f) {
+        // FIXME: Stringify manually without string allocation.
+        const auto str = std::to_string(self);
+        f.write_str(str);
+    }
+};
+
 /*
 template <>
 struct Display<uint8_t> {
