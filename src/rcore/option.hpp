@@ -2,10 +2,10 @@
 
 #include <optional>
 
-#include <core/fmt/display.hpp>
-#include <core/panic.hpp>
+//#include <rcore/fmt/display.hpp>
+//#include <core/panic.hpp>
 
-namespace core {
+namespace rcore {
 
 template <typename T>
 struct Some final {
@@ -17,13 +17,15 @@ struct Some final {
 
 struct None final {};
 
-
 template <typename T>
 struct Option final {
 private:
     std::optional<T> optional_;
 
 public:
+    constexpr Option() = default;
+    constexpr ~Option() = default;
+
     constexpr Option(const Some<T> &t) : optional_(std::move(t.value)) {}
     constexpr Option(Some<T> &&t) : optional_(std::move(t.value)) {}
     constexpr Option(None) : optional_(std::nullopt) {}
@@ -36,10 +38,10 @@ public:
     constexpr Option(const std::optional<T> &opt) : optional_(opt){};
     constexpr Option(std::optional<T> &&opt) : optional_(opt){};
 
-    constexpr bool is_some() const {
+    [[nodiscard]] constexpr bool is_some() const {
         return this->optional_.has_value();
     }
-    constexpr bool is_none() const {
+    [[nodiscard]] constexpr bool is_none() const {
         return !this->optional_.has_value();
     }
 
@@ -49,7 +51,7 @@ public:
     constexpr T &some() {
         return this->optional_.value();
     }
-
+    /*
     T unwrap() {
         if (this->is_none()) {
             core_panic("Option is None");
@@ -65,7 +67,7 @@ public:
             }
         }
     }
-
+    */
     constexpr bool operator==(const Option &other) const {
         return this->optional_ == other.optional_;
     }
@@ -85,7 +87,7 @@ public:
         return !this->is_none();
     }
 };
-
+/*
 namespace fmt {
 
 template <typename T>
@@ -123,5 +125,5 @@ struct Display<Option<T>> {
 };
 
 } // namespace fmt
-
-} // namespace core
+*/
+} // namespace rcore

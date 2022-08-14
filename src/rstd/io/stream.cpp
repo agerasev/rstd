@@ -2,13 +2,13 @@
 
 #include "stream.hpp"
 
-namespace core::io {
+namespace rstd::io {
 
 Result<std::monostate, Error> Read::read_exact(std::span<uint8_t> data) {
     auto res = this->read(data);
     if (res.is_ok()) {
         if (res.ok() == data.size()) {
-            return Ok(std::monostate);
+            return Ok(std::monostate());
         } else {
             return Err(Error(ErrorKind::UnexpectedEof));
         }
@@ -26,7 +26,7 @@ Result<std::monostate, Error> Read::read_all(std::span<uint8_t> data) {
             total_len += len;
             data = std::span(data.data() + len, data.size() - len);
             if (total_len == data.size()) {
-                return Ok(std::monostate);
+                return Ok(std::monostate());
             }
         } else {
             return Err(std::move(res.err()));
@@ -38,7 +38,7 @@ Result<std::monostate, Error> Write::write_exact(std::span<const uint8_t> data) 
     auto res = this->write(data);
     if (res.is_ok()) {
         if (res.ok() == data.size()) {
-            return Ok(std::monostate);
+            return Ok(std::monostate());
         } else {
             return Err(Error(ErrorKind::UnexpectedEof));
         }
@@ -56,7 +56,7 @@ Result<std::monostate, Error> Write::write_all(std::span<const uint8_t> data) {
             total_len += len;
             data = std::span(data.data() + len, data.size() - len);
             if (total_len == data.size()) {
-                return Ok(std::monostate);
+                return Ok(std::monostate());
             }
         } else {
             return Err(std::move(res.err()));
@@ -64,4 +64,4 @@ Result<std::monostate, Error> Write::write_all(std::span<const uint8_t> data) {
     }
 }
 
-} // namespace core::io
+} // namespace rstd::io

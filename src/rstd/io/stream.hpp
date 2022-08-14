@@ -4,9 +4,9 @@
 #include <span>
 
 #include "error.hpp"
-#include <core/result.hpp>
+#include <rstd/result.hpp>
 
-namespace core::io {
+namespace rstd::io {
 
 class Read {
 public:
@@ -34,5 +34,4 @@ public:
     virtual Result<std::monostate, Error> write_all(std::span<const uint8_t> data);
 };
 
-
-} // namespace core::io
+} // namespace rstd::io

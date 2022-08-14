@@ -1,11 +1,12 @@
 #pragma once
 
+#include <type_traits>
 #include <variant>
 
-#include <core/fmt/display.hpp>
-#include <core/panic.hpp>
+//#include <rcore/fmt/display.hpp>
+//#include <rcore/panic.hpp>
 
-namespace core {
+namespace rcore {
 
 template <typename T>
 struct Ok final {
@@ -23,13 +24,15 @@ struct Err final {
     constexpr explicit Err(E &&e) : value(std::move(e)) {}
 };
 
-
 template <typename T, typename E>
 struct [[nodiscard]] Result final {
 private:
     std::variant<E, T> variant_;
 
 public:
+    constexpr Result() = default;
+    constexpr ~Result() = default;
+
     constexpr Result(const Ok<T> &t) : variant_(std::in_place_index<1>, std::move(t.value)) {}
     constexpr Result(const Err<E> &e) : variant_(std::in_place_index<0>, std::move(e.value)) {}
     constexpr Result(Ok<T> &&t) : variant_(std::in_place_index<1>, std::move(t.value)) {}
@@ -40,10 +43,10 @@ public:
     constexpr Result &operator=(const Result &) = default;
     constexpr Result &operator=(Result &&) = default;
 
-    constexpr bool is_ok() const {
+    [[nodiscard]] constexpr bool is_ok() const {
         return this->variant_.index() == 1;
     }
-    constexpr bool is_err() const {
+    [[nodiscard]] constexpr bool is_err() const {
         return this->variant_.index() == 0;
     }
 
@@ -60,6 +63,7 @@ public:
         return std::get<0>(this->variant_);
     }
 
+    /*
     T unwrap() {
         if (this->is_err()) {
             if constexpr (fmt::IsDisplay<E>) {
@@ -80,6 +84,7 @@ public:
         }
         return std::move(this->err());
     }
+    */
 
     constexpr bool operator==(const Result &other) const {
         return this->variant_ == other.variant_;
@@ -100,7 +105,7 @@ public:
         return !this->is_err() || this->err() != other.value;
     }
 };
-
+/*
 namespace fmt {
 
 template <typename T>
@@ -145,5 +150,5 @@ struct Display<Result<T, E>> {
 };
 
 } // namespace fmt
-
-} // namespace core
+*/
+} // namespace rcore

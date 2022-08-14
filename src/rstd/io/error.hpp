@@ -2,9 +2,9 @@
 
 #include <string>
 
-#include <core/fmt/display.hpp>
+//#include <rcore/fmt/display.hpp>
 
-namespace core {
+namespace rstd {
 
 namespace io {
 
@@ -20,11 +20,11 @@ struct Error final {
     ErrorKind kind;
     std::string message;
 
-    inline Error(ErrorKind kind, std::string message = "") : kind(kind), message(message) {}
+    inline Error(ErrorKind kind, std::string &&message = "") : kind(kind), message(std::move(message)) {}
 };
 
 } // namespace io
-
+/*
 namespace fmt {
 
 template <>
@@ -58,5 +58,5 @@ struct Display<io::Error> {
 };
 
 } // namespace fmt
-
-} // namespace core
+*/
+} // namespace rstd

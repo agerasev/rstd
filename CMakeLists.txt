@@ -12,6 +12,9 @@ include_directories("src")
 set(RCORE_SRC
     "src/rcore/mem/maybe_uninit.hpp"
     "src/rcore/mem/lazy_static.hpp"
+    "src/rcore/sync/once.hpp"
+    "src/rcore/option.hpp"
+    "src/rcore/result.hpp"
 )
 set(RCORE_TEST_SRC
     "src/rcore/test.cpp"
@@ -19,7 +22,12 @@ set(RCORE_TEST_SRC
 
 set(RSTD_SRC
     "src/rstd/io/ansi_color.hpp"
+    "src/rstd/io/error.hpp"
+    "src/rstd/io/stream.hpp"
+    "src/rstd/io/stream.cpp"
     "src/rstd/sync/mutex.hpp"
+    "src/rstd/sync/option.hpp"
+    "src/rstd/sync/result.hpp"
 )
 set(RSTD_TEST_SRC
     "src/rstd/test.cpp"
@@ -28,7 +36,7 @@ set(RSTD_TEST_SRC
 add_library("rcore" OBJECT ${RCORE_SRC})
 
 add_library("rstd" OBJECT ${RCORE_SRC})
-target_link_libraries("rstd" "rcore")
+target_link_libraries("rstd" PUBLIC "rcore" PUBLIC "pthread")
 
 enable_testing()
 add_executable("rcore_test" ${RCORE_TEST_SRC})

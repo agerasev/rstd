@@ -1,10 +1,9 @@
 #pragma once
 
-#include <iostream>
 #include <functional>
-#include "once.hpp"
-#include "io.hpp"
+#include <iostream>
 
+#include <rcore/sync/once.hpp>
 
 namespace rcore {
 
@@ -25,7 +24,7 @@ public:
     void __init() {
         pthread_key_create(&key, [](void *p) {
             if (p != nullptr) {
-                delete (T*)p;
+                delete (T *)p;
             }
         });
     }
@@ -59,7 +58,6 @@ Thread &current();
 
 } // namespace rcore
 
-
 #define __thread_local_(prefix, Type, name) \
     prefix void __##name##__init(); \
     prefix Type __##name##__create(); \
@@ -69,14 +67,11 @@ Thread &current();
     } \
     prefix Type __##name##__create()
 
-#define thread_local_(Type, name) \
-    __thread_local_(, Type, name)
+#define thread_local_(Type, name) __thread_local_(, Type, name)
 
-#define static_thread_local_(Type, name) \
-    __thread_local_(static, Type, name)
+#define static_thread_local_(Type, name) __thread_local_(static, Type, name)
 
 #define extern_thread_local_(Type, name) \
     extern void __##name##__init(); \
     extern Type __##name##__create(); \
     extern ::rcore::ThreadLocal<Type, __##name##__init, __##name##__create> name
-
