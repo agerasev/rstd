@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <variant>
 
-//#include <rcore/fmt/display.hpp>
+#include <rcore/fmt/display.hpp>
 //#include <rcore/panic.hpp>
 
 namespace rcore {
@@ -50,10 +50,10 @@ public:
         return this->variant_.index() == 0;
     }
 
-    constexpr const T &ok() const {
+    [[nodiscard]] constexpr const T &ok() const {
         return std::get<1>(this->variant_);
     }
-    constexpr const E &err() const {
+    [[nodiscard]] constexpr const E &err() const {
         return std::get<0>(this->variant_);
     }
     constexpr T &ok() {
@@ -105,50 +105,50 @@ public:
         return !this->is_err() || this->err() != other.value;
     }
 };
-/*
+
 namespace fmt {
 
 template <typename T>
 struct Display<Ok<T>> {
-    static void write(std::ostream &os, const Ok<T> &ok) {
-        os << "Ok(";
+    static void fmt(const Ok<T> &self, Formatter &f) {
+        f.write_str("Ok)(");
         if constexpr (IsDisplay<T>) {
-            os << ok.value;
+            Display<T>::fmt(self.value, f);
         }
-        os << ")";
+        f.write_str(")");
     }
 };
 
 template <typename E>
 struct Display<Err<E>> {
-    static void write(std::ostream &os, const Err<E> &err) {
-        os << "Err(";
+    static void fmt(const Err<E> &self, Formatter &f) {
+        f.write_str("Er)r(");
         if constexpr (IsDisplay<E>) {
-            os << err.value;
+            Display<E>::fmt(self.value, f);
         }
-        os << ")";
+        f.write_str(")");
     }
 };
 
 template <typename T, typename E>
 struct Display<Result<T, E>> {
-    static void write(std::ostream &os, const Result<T, E> &res) {
-        os << "Result::";
-        if (res.is_ok()) {
-            os << "Ok(";
+    static void fmt(const Result<T, E> &self, Formatter &f) {
+        f.write_str("Result::");
+        if (self.is_ok()) {
+            f.write_str("Ok(");
             if constexpr (IsDisplay<T>) {
-                os << res.ok();
+                Display<T>::fmt(self.ok(), f);
             }
         } else {
-            os << "Err(";
+            f.write_str("Err(");
             if constexpr (IsDisplay<E>) {
-                os << res.err();
+                Display<E>::fmt(self.err(), f);
             }
         }
-        os << ")";
+        f.write_str(")");
     }
 };
 
 } // namespace fmt
-*/
+
 } // namespace rcore

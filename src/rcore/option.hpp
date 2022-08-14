@@ -2,7 +2,7 @@
 
 #include <optional>
 
-//#include <rcore/fmt/display.hpp>
+#include <rcore/fmt/display.hpp>
 //#include <core/panic.hpp>
 
 namespace rcore {
@@ -87,43 +87,43 @@ public:
         return !this->is_none();
     }
 };
-/*
+
 namespace fmt {
 
 template <typename T>
 struct Display<Some<T>> {
-    static void print(std::ostream &os, const Some<T> &some) {
-        os << "Some(";
+    static void fmt(const Some<T> &self, Formatter &f) {
+        f.write_str("Some(");
         if constexpr (IsDisplay<T>) {
-            os << some.value;
+            Display<T>::fmt(self.value, f);
         }
-        os << ")";
+        f.write_str(")");
     }
 };
 
 template <>
 struct Display<None> {
-    inline static void print(std::ostream &os, None) {
-        os << "None";
+    inline static void fmt(None, Formatter &f) {
+        f.write_str("None");
     }
 };
 
 template <typename T>
 struct Display<Option<T>> {
-    static void print(std::ostream &os, const Option<T> &opt) {
-        os << "Option::";
-        if (opt.is_some()) {
-            os << "Some(";
+    static void fmt(const Option<T> &self, Formatter &f) {
+        f.write_str("Option::");
+        if (self.is_some()) {
+            f.write_str("Some(");
             if constexpr (IsDisplay<T>) {
-                os << opt.some();
+                Display<T>::fmt(self.some(), f);
             }
-            os << ")";
+            f.write_str(")");
         } else {
-            os << "None";
+            f.write_str("None");
         }
     }
 };
 
 } // namespace fmt
-*/
+
 } // namespace rcore
