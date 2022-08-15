@@ -5,18 +5,19 @@
 
 #include "display.hpp"
 #include "formatter.hpp"
+#include <rcore/fmt/arguments.hpp>
 #include <rcore/fmt/format.hpp>
 
 namespace rstd::fmt {
 
+using rcore::fmt::Arguments;
 using rcore::fmt::write;
 
 template <Displayable... Ts>
 std::string format_unchecked(const std::string_view str, Ts &&...args) {
-    std::stringstream ss;
-    OstreamFormatter f(ss);
+    StringFormatter f;
     write_unchecked(f, str, std::forward<Ts>(args)...);
-    return ss.str();
+    return f.copy_string();
 }
 
 template <Displayable... Ts>
@@ -27,10 +28,9 @@ void print_unchecked(const std::string_view str, Ts &&...args) {
 
 template <const char *FMT_STR, Displayable... Ts>
 std::string format(Ts &&...args) {
-    std::stringstream ss;
-    OstreamFormatter f(ss);
+    StringFormatter f;
     write<FMT_STR>(f, std::forward<Ts>(args)...);
-    return ss.str();
+    return f.copy_string();
 }
 
 template <const char *FMT_STR, Displayable... Ts>
@@ -43,6 +43,8 @@ void print(Ts &&...args) {
 
 #define rstd_write(...) rcore_write(__VA_ARGS__)
 #define rstd_writeln(...) rcore_writeln(__VA_ARGS__)
+
+#define rstd_format_args(lit, ...) rcore_format_args(lit __VA_OPT__(, )##__VA_ARGS__)
 
 #define rstd_format(lit, ...) \
     [&]() -> ::std::string { \

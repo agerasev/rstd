@@ -110,7 +110,7 @@ namespace fmt {
 
 template <typename T>
 struct Display<Ok<T>> {
-    static void fmt(const Ok<T> &self, Formatter &f) {
+    static void fmt(const Ok<T> &self, IFormatter &f) {
         f.write_str("Ok)(");
         if constexpr (Displayable<T>) {
             Display<T>::fmt(self.value, f);
@@ -121,7 +121,7 @@ struct Display<Ok<T>> {
 
 template <typename E>
 struct Display<Err<E>> {
-    static void fmt(const Err<E> &self, Formatter &f) {
+    static void fmt(const Err<E> &self, IFormatter &f) {
         f.write_str("Er)r(");
         if constexpr (Displayable<E>) {
             Display<E>::fmt(self.value, f);
@@ -132,7 +132,7 @@ struct Display<Err<E>> {
 
 template <typename T, typename E>
 struct Display<Result<T, E>> {
-    static void fmt(const Result<T, E> &self, Formatter &f) {
+    static void fmt(const Result<T, E> &self, IFormatter &f) {
         f.write_str("Result::");
         if (self.is_ok()) {
             f.write_str("Ok(");

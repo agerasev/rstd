@@ -59,7 +59,7 @@ class Project:
         if not self.build_dir.exists():
             self.build_dir.mkdir()
 
-            run(["cmake", root], env=self.compiler.env(), cwd=self.build_dir)
+            run(["cmake", "-DCMAKE_BUILD_TYPE=Debug", root], env=self.compiler.env(), cwd=self.build_dir)
 
     def build(self):
         self.prepare()

@@ -11,8 +11,27 @@ template <typename Self>
 struct Display;
 
 template <typename Self>
-concept Displayable = requires(const Self &self, Formatter &f) {
+concept Displayable = requires(const Self &self, IFormatter &f) {
     Display<Self>::fmt(self, f);
+};
+
+class IDisplay {
+public:
+    virtual void fmt(IFormatter &f) const = 0;
+};
+
+template <std::derived_from<IDisplay> Self>
+struct Display<Self> {
+    static void fmt(const Self &self, IFormatter &f) {
+        self.fmt(f);
+    }
+};
+
+template <typename Self>
+struct Display<const Self &> {
+    static void fmt(const Self &self, IFormatter &f) {
+        self.fmt(f);
+    }
 };
 
 namespace _impl {
@@ -26,14 +45,14 @@ concept ToString = requires(Self self) {
 
 template <std::convertible_to<std::string_view> Self>
 struct Display<Self> {
-    static void fmt(const Self &self, Formatter &f) {
-        f.write_str(self);
+    static void fmt(const Self &self, IFormatter &f) {
+        f.write_str(std::string_view(self));
     }
 };
 
 template <_impl::ToString Self>
 struct Display<Self> {
-    static void fmt(const Self &self, Formatter &f) {
+    static void fmt(const Self &self, IFormatter &f) {
         // FIXME: Stringify manually without string allocation.
         const auto str = std::to_string(self);
         f.write_str(str);

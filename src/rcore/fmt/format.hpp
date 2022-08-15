@@ -2,6 +2,7 @@
 
 // TODO: Migrate to std::format when supported.
 
+#include <cassert> // We use `cassert` it because `rcore_assert` depends on `format`.
 #include <optional>
 #include <string>
 #include <tuple>
@@ -24,7 +25,7 @@ struct Error {
 
 template <>
 struct Display<Error> {
-    inline static void fmt(const Error &self, Formatter &f) {
+    inline static void fmt(const Error &self, IFormatter &f) {
         switch (self.kind) {
         case ErrorKind::TooManyArgs:
             f.write_str("Too many args");
@@ -40,8 +41,6 @@ struct Display<Error> {
         Display<size_t>::fmt(self.pos, f);
     }
 };
-
-namespace _impl {
 
 template <Displayable... Ts>
 constexpr std::optional<Error> check_format_str(const std::string_view str) {
@@ -84,16 +83,18 @@ constexpr std::optional<Error> check_format_str(const std::string_view str) {
     return std::nullopt;
 }
 
+namespace _impl {
+
 template <Displayable... Ts>
 struct FormatNth {
-    inline static void apply(Formatter &, size_t) {
+    inline static void apply(IFormatter &, size_t) {
         // FIXME: rcore_assert_eq(n, 0);
     }
 };
 
 template <Displayable T, Displayable... Ts>
 struct FormatNth<T, Ts...> {
-    static void apply(Formatter &f, size_t n, T &&arg, Ts &&...args) {
+    static void apply(IFormatter &f, size_t n, T &&arg, Ts &&...args) {
         if (n == 0) {
             Display<std::remove_cvref_t<decltype(arg)>>::fmt(arg, f);
         } else {
@@ -103,15 +104,14 @@ struct FormatNth<T, Ts...> {
 };
 
 template <Displayable... Ts>
-void format_nth(Formatter &f, size_t n, Ts &&...args) {
+void format_nth(IFormatter &f, size_t n, Ts &&...args) {
     FormatNth<Ts...>::apply(f, n, std::forward<Ts>(args)...);
 }
 
 } // namespace _impl
 
 template <Displayable... Ts>
-void write_unchecked(Formatter &f, const std::string_view str, Ts &&...args) {
-    // constexpr size_t total_args = sizeof...(Ts);
+void write_unchecked(IFormatter &f, const std::string_view str, Ts &&...args) {
     size_t arg = 0;
     bool opened = false;
     bool closed = false;
@@ -135,19 +135,20 @@ void write_unchecked(Formatter &f, const std::string_view str, Ts &&...args) {
                 closed = true;
             }
         } else {
-            // rcore_assert(!opened && !closed);
+            assert(!opened && !closed);
             f.write_char(c);
         }
     }
-    // rcore_assert(!opened && !closed);
-    // rcore_assert_eq(arg, total_args);
+    assert(!opened && !closed);
+    assert(arg == sizeof...(Ts));
 }
 
 template <const char *FMT_STR, Displayable... Ts>
-void write(Formatter &f, Ts &&...args) {
-    constexpr auto error = _impl::check_format_str<Ts...>(FMT_STR);
+void write(IFormatter &f, Ts &&...args) {
+    constexpr std::string_view fmt_str(FMT_STR);
+    constexpr auto error = check_format_str<Ts...>(fmt_str);
     static_assert(!error.has_value(), "Format error");
-    write_unchecked(f, FMT_STR, std::forward<Ts>(args)...);
+    write_unchecked(f, fmt_str, std::forward<Ts>(args)...);
 }
 
 } // namespace rcore::fmt

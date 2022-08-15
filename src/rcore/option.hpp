@@ -92,7 +92,7 @@ namespace fmt {
 
 template <typename T>
 struct Display<Some<T>> {
-    static void fmt(const Some<T> &self, Formatter &f) {
+    static void fmt(const Some<T> &self, IFormatter &f) {
         f.write_str("Some(");
         if constexpr (Displayable<T>) {
             Display<T>::fmt(self.value, f);
@@ -103,14 +103,14 @@ struct Display<Some<T>> {
 
 template <>
 struct Display<None> {
-    inline static void fmt(None, Formatter &f) {
+    inline static void fmt(None, IFormatter &f) {
         f.write_str("None");
     }
 };
 
 template <typename T>
 struct Display<Option<T>> {
-    static void fmt(const Option<T> &self, Formatter &f) {
+    static void fmt(const Option<T> &self, IFormatter &f) {
         f.write_str("Option::");
         if (self.is_some()) {
             f.write_str("Some(");
