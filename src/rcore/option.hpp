@@ -2,8 +2,9 @@
 
 #include <optional>
 
+#include <rcore/assert.hpp>
 #include <rcore/fmt/display.hpp>
-//#include <core/panic.hpp>
+#include <rcore/panic.hpp>
 
 namespace rcore {
 
@@ -17,6 +18,10 @@ struct Some final {
 
 struct None final {};
 
+/// Value that can be either `Some(...)` or `None`.
+///
+/// NOTE: `Option` sets the source to `None` on move.
+///       This behavior is different from `std::optional`.
 template <typename T>
 struct Option final {
 private:
@@ -31,12 +36,34 @@ public:
     constexpr Option(None) : optional_(std::nullopt) {}
 
     constexpr Option(const Option &) = default;
-    constexpr Option(Option &&) = default;
     constexpr Option &operator=(const Option &) = default;
-    constexpr Option &operator=(Option &&) = default;
+    constexpr Option(Option &&other) : optional_(std::move(other.optional_)) {
+        other.optional_.reset();
+    }
+    constexpr Option &operator=(Option &&other) {
+        optional_ = std::move(other.optional_);
+        other.optional_.reset();
+        return *this;
+    }
 
-    constexpr Option(const std::optional<T> &opt) : optional_(opt){};
-    constexpr Option(std::optional<T> &&opt) : optional_(opt){};
+    constexpr Option(const std::optional<T> &opt) : optional_(opt) {}
+    constexpr Option &operator=(const std::optional<T> &opt) {
+        optional_ = opt;
+        return *this;
+    }
+    constexpr Option(std::optional<T> &&opt) : optional_(std::move(opt)) {
+        opt.reset();
+    }
+    constexpr Option &operator=(std::optional<T> &&opt) {
+        optional_ = std::move(opt);
+        opt.reset();
+        return *this;
+    }
+    constexpr Option(std::nullopt_t) : optional_(std::nullopt) {}
+    constexpr Option &operator=(std::nullopt_t) {
+        optional_ = std::nullopt;
+        return *this;
+    }
 
     [[nodiscard]] constexpr bool is_some() const {
         return this->optional_.has_value();
@@ -45,45 +72,55 @@ public:
         return !this->optional_.has_value();
     }
 
-    constexpr const T &some() const {
+    [[nodiscard]] constexpr const T &some() const {
+        rcore_assert(this->is_some());
         return this->optional_.value();
     }
-    constexpr T &some() {
+    [[nodiscard]] constexpr T &some() {
+        rcore_assert(this->is_some());
         return this->optional_.value();
     }
-    /*
-    T unwrap() {
-        if (this->is_none()) {
-            core_panic("Option is None");
-        }
+
+    [[nodiscard]] constexpr Option take() {
+        return std::move(*this);
+    }
+    [[nodiscard]] constexpr T take_some() {
         return std::move(this->some());
     }
-    void unwrap_none() {
+
+    [[nodiscard]] constexpr T unwrap() {
+        if (this->is_none()) {
+            rcore_panic("Option is None");
+        } else {
+            return take_some();
+        }
+    }
+    constexpr void unwrap_none() {
         if (this->is_some()) {
             if constexpr (fmt::Displayable<T>) {
-                core_panic("Option is Some({})", this->some());
+                rcore_panic("Option is Some({})", this->some());
             } else {
-                core_panic("Option is Some");
+                rcore_panic("Option is Some");
             }
         }
     }
-    */
-    constexpr bool operator==(const Option &other) const {
+
+    [[nodiscard]] constexpr bool operator==(const Option &other) const {
         return this->optional_ == other.optional_;
     }
-    constexpr bool operator==(const Some<T> &other) const {
+    [[nodiscard]] constexpr bool operator==(const Some<T> &other) const {
         return this->is_some() && this->some() == other.value;
     }
-    constexpr bool operator==(None) const {
+    [[nodiscard]] constexpr bool operator==(None) const {
         return this->is_none();
     }
-    constexpr bool operator!=(const Option &other) const {
+    [[nodiscard]] constexpr bool operator!=(const Option &other) const {
         return this->optional_ != other.optional_;
     }
-    constexpr bool operator!=(const Some<T> &other) const {
+    [[nodiscard]] constexpr bool operator!=(const Some<T> &other) const {
         return !this->is_some() || this->some() != other.value;
     }
-    constexpr bool operator!=(None) const {
+    [[nodiscard]] constexpr bool operator!=(None) const {
         return !this->is_none();
     }
 };

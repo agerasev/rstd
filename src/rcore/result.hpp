@@ -3,8 +3,9 @@
 #include <type_traits>
 #include <variant>
 
-#include <rcore/fmt/display.hpp>
-//#include <rcore/panic.hpp>
+#include <rstd/assert.hpp>
+#include <rstd/fmt/display.hpp>
+#include <rstd/panic.hpp>
 
 namespace rcore {
 
@@ -50,26 +51,29 @@ public:
         return this->variant_.index() == 0;
     }
 
-    [[nodiscard]] constexpr const T &ok() const {
+    [[nodiscard]] const T &ok() const {
+        rstd_assert(this->is_ok());
         return std::get<1>(this->variant_);
     }
-    [[nodiscard]] constexpr const E &err() const {
+    [[nodiscard]] const E &err() const {
+        rstd_assert(this->is_err());
         return std::get<0>(this->variant_);
     }
-    constexpr T &ok() {
+    T &ok() {
+        rstd_assert(this->is_ok());
         return std::get<1>(this->variant_);
     }
-    constexpr E &err() {
+    E &err() {
+        rstd_assert(this->is_err());
         return std::get<0>(this->variant_);
     }
 
-    /*
     T unwrap() {
         if (this->is_err()) {
             if constexpr (fmt::Displayable<E>) {
-                core_panic("Result is Err({})", this->err());
+                rstd_panic("Result is Err({})", this->err());
             } else {
-                core_panic("Result is Err");
+                rstd_panic("Result is Err");
             }
         }
         return std::move(this->ok());
@@ -77,14 +81,13 @@ public:
     E unwrap_err() {
         if (this->is_ok()) {
             if constexpr (fmt::Displayable<T>) {
-                core_panic("Result is Ok({})", this->ok());
+                rstd_panic("Result is Ok({})", this->ok());
             } else {
-                core_panic("Result is Ok");
+                rstd_panic("Result is Ok");
             }
         }
         return std::move(this->err());
     }
-    */
 
     constexpr bool operator==(const Result &other) const {
         return this->variant_ == other.variant_;

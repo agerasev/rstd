@@ -1,5 +1,7 @@
 #include <iostream>
+#include <type_traits>
 
+#include <rcore/assert.hpp>
 #include <rcore/fmt/display.hpp>
 #include <rcore/fmt/format.hpp>
 #include <rcore/fmt/formatter.hpp>
@@ -15,7 +17,14 @@ void rcore_panic_handler(const rcore::panic::PanicInfo &) {
     std::abort();
 }
 
+consteval void static_test() {
+    rcore::Option<int> opt = rcore::None();
+    opt.unwrap_none();
+}
+
 int main(int argc, const char *argv[]) {
+    static_test();
+
     std::cout << "It works!" << std::endl;
 
     return 0;

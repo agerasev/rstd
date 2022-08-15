@@ -40,6 +40,7 @@ set(RSTD_SRC
     "src/rstd/sync/mutex.hpp"
     "src/rstd/thread/local.hpp"
     "src/rstd/thread/thread.hpp"
+    "src/rstd/assert.hpp"
     "src/rstd/panic.hpp"
     "src/rstd/panic.cpp"
     "src/rstd/option.hpp"

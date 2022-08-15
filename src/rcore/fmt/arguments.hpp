@@ -16,7 +16,7 @@ private:
     std::tuple<Ts...> args;
 
 public:
-    Arguments(std::string_view fmt_str, Ts &&...args) : fmt_str(fmt_str), args(std::forward<Ts>(args)...) {}
+    constexpr Arguments(std::string_view fmt_str, Ts &&...args) : fmt_str(fmt_str), args(std::forward<Ts>(args)...) {}
 
     void fmt(IFormatter &f) const override {
         std::apply(write_unchecked<Ts...>, std::tuple_cat(std::tuple<IFormatter &, std::string_view>(f, fmt_str), args));

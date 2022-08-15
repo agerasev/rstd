@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include <rcore/fmt/arguments.hpp>
 #include <rcore/fmt/format.hpp>
 
@@ -11,14 +13,16 @@ struct Location {
     size_t line;
 };
 
-void set_hook(void (*hook)());
-
 struct PanicInfo {
     const fmt::IDisplay &message;
     panic::Location location;
 };
 
 [[noreturn]] void panic(const PanicInfo &info);
+
+using PanicHook = void (*)(const PanicInfo &);
+
+void set_hook(PanicHook hook);
 
 } // namespace rcore::panic
 
@@ -31,12 +35,16 @@ extern "C" {
 
 #define rcore_panic(...) \
     do { \
-        const auto message = rcore_format_args("" __VA_ARGS__); \
-        const ::rcore::panic::PanicInfo info{ \
-            message, \
-            rcore_panic_location(), \
-        }; \
-        ::rcore::panic::panic(info); \
+        if (!::std::is_constant_evaluated()) { \
+            const auto message = rcore_format_args("" __VA_ARGS__); \
+            const ::rcore::panic::PanicInfo info{ \
+                message, \
+                rcore_panic_location(), \
+            }; \
+            ::rcore::panic::panic(info); \
+        } else { \
+            assert(false); \
+        } \
     } while (false)
 
 #define rcore_unimplemented(...) rcore_panic("Unimplemented. " __VA_ARGS__)
