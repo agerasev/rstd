@@ -14,6 +14,10 @@ int main(int argc, const char *argv[]) {
     rstd_println("a: {{{}}}, b: {}, c: {}", "aa", 2, 3.1415);
     rstd_println("{}, {}", rstd_format_args("{}, {}", 1, 2), 3);
 
+    int a = 1;
+    const int b = 2;
+    rstd_println("v: {}, cv: {}, t: {}", a, b, 3);
+
     // rstd_panic("Panic: '{}'", "panic!");
 
     return 0;

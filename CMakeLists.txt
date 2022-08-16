@@ -15,7 +15,6 @@ include_directories("src")
 set(RCORE_SRC
     "src/rcore/fmt/display.hpp"
     "src/rcore/fmt/format.hpp"
-    "src/rcore/fmt/formatter.hpp"
     "src/rcore/sync/once.hpp"
     "src/rcore/sync/lazy_static.hpp"
     "src/rcore/mem/maybe_uninit.hpp"
@@ -32,7 +31,6 @@ set(RCORE_TEST_SRC
 set(RSTD_SRC
     "src/rstd/fmt/display.hpp"
     "src/rstd/fmt/format.hpp"
-    "src/rstd/fmt/formatter.hpp"
     "src/rstd/io/ansi_color.hpp"
     "src/rstd/io/error.hpp"
     "src/rstd/io/stream.hpp"

@@ -3,9 +3,13 @@
 #include <concepts>
 #include <string>
 
-#include "formatter.hpp"
-
 namespace rcore::fmt {
+
+class IFormatter {
+public:
+    virtual void write_str(std::string_view s) = 0;
+    virtual void write_char(char c) = 0;
+};
 
 template <typename Self>
 struct Display;
