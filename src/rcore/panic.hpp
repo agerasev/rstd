@@ -35,15 +35,15 @@ extern "C" {
 
 #define rcore_panic(...) \
     do { \
-        if (!::std::is_constant_evaluated()) { \
+        if (::std::is_constant_evaluated()) { \
+            assert(false); \
+        } else { \
             const auto message = rcore_format_args("" __VA_ARGS__); \
             const ::rcore::panic::PanicInfo info{ \
                 message, \
                 rcore_panic_location(), \
             }; \
             ::rcore::panic::panic(info); \
-        } else { \
-            assert(false); \
         } \
     } while (false)
 

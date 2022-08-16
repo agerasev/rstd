@@ -12,20 +12,20 @@
 #include <rcore/sync/lazy_static.hpp>
 #include <rcore/sync/once.hpp>
 
-void rcore_panic_handler(const rcore::panic::PanicInfo &) {
+[[noreturn]] void rcore_panic_handler(const rcore::panic::PanicInfo &) {
     std::cout << "Panic!" << std::endl;
     std::abort();
 }
 
-consteval void static_test() {
-    rcore::Option<int> opt = rcore::None();
-    opt.unwrap_none();
+constexpr int static_test() {
+    rcore::Option<int> opt = rcore::Some(0);
+    return opt.some();
 }
 
 int main(int argc, const char *argv[]) {
-    static_test();
+    constexpr int r = static_test();
 
     std::cout << "It works!" << std::endl;
 
-    return 0;
+    return static_test();
 }

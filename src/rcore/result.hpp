@@ -51,24 +51,24 @@ public:
         return this->variant_.index() == 0;
     }
 
-    [[nodiscard]] const T &ok() const {
+    [[nodiscard]] constexpr const T &ok() const {
         rstd_assert(this->is_ok());
         return std::get<1>(this->variant_);
     }
-    [[nodiscard]] const E &err() const {
+    [[nodiscard]] constexpr const E &err() const {
         rstd_assert(this->is_err());
         return std::get<0>(this->variant_);
     }
-    T &ok() {
+    [[nodiscard]] constexpr T &ok() {
         rstd_assert(this->is_ok());
         return std::get<1>(this->variant_);
     }
-    E &err() {
+    [[nodiscard]] constexpr E &err() {
         rstd_assert(this->is_err());
         return std::get<0>(this->variant_);
     }
 
-    T unwrap() {
+    [[nodiscard]] constexpr T unwrap() {
         if (this->is_err()) {
             if constexpr (fmt::Displayable<E>) {
                 rstd_panic("Result is Err({})", this->err());
@@ -78,7 +78,7 @@ public:
         }
         return std::move(this->ok());
     }
-    E unwrap_err() {
+    [[nodiscard]] constexpr E unwrap_err() {
         if (this->is_ok()) {
             if constexpr (fmt::Displayable<T>) {
                 rstd_panic("Result is Ok({})", this->ok());

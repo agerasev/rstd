@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project("rstd" VERSION 0.5.0)
 
-set(CMAKE_C_FLAGS_DEBUG "-g -rdynamic -funwind-tables")
+set(CMAKE_C_FLAGS_DEBUG "-g")
 set(CMAKE_C_FLAGS "-Wall -Wextra -Werror=return-type")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++20 -fno-exceptions")
@@ -56,6 +56,7 @@ add_library("rstd" OBJECT ${RSTD_SRC})
 target_link_libraries("rstd" PUBLIC "rcore" PUBLIC "pthread")
 
 enable_testing()
+
 add_executable("rcore_test" ${RCORE_TEST_SRC})
 target_compile_definitions("rcore_test" PRIVATE "RTEST")
 target_link_libraries("rcore_test" "rcore")
