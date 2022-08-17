@@ -35,6 +35,7 @@ private:
     }
 
 public:
+    PosixThread() = default;
     PosixThread(const Thread &handle, std::function<R()> &&main_func) :
         handle_(Some(handle)),
         main_(std::move(main_func)) //

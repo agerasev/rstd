@@ -4,17 +4,13 @@
 #include <rcore/assert.hpp>
 #include <rcore/fmt/display.hpp>
 #include <rcore/fmt/format.hpp>
+#include <rcore/mem/lazy_static.hpp>
 #include <rcore/mem/maybe_uninit.hpp>
+#include <rcore/ops.hpp>
 #include <rcore/option.hpp>
 #include <rcore/panic.hpp>
 #include <rcore/result.hpp>
-#include <rcore/sync/lazy_static.hpp>
 #include <rcore/sync/once.hpp>
-
-[[noreturn]] void rcore_panic_handler(const rcore::panic::PanicInfo &) {
-    std::cout << "Panic!" << std::endl;
-    std::abort();
-}
 
 constexpr int static_test() {
     rcore::Option<int> opt = rcore::Some(0);

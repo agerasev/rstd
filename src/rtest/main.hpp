@@ -2,17 +2,22 @@
 
 #include <csignal>
 #include <functional>
-#include <sstream>
+#include <string>
 #include <thread>
 #include <unordered_map>
 #include <vector>
 
 #include <rcore/mem/lazy_static.hpp>
+#include <rcore/ops.hpp>
+#include <rstd/fmt/format.hpp>
 #include <rstd/io/ansi_color.hpp>
+#include <rstd/sync/mutex.hpp>
+#include <rstd/thread/builder.hpp>
+#include <rstd/thread/thread.hpp>
 
 #include "test.hpp"
 
-rtest::StaticRegistrar RTEST_REGISTRAR;
+constinit rtest::StaticRegistrar RTEST_REGISTRAR;
 
 namespace rtest {
 
@@ -33,7 +38,7 @@ void signal_handler(int signal) {
     if (entry != SIGNALS.end()) {
         name = entry->second;
     } else {
-        name = "Unknown signal"; // format_("Unknown signal {}", sig);
+        name = rstd_format("Unknown signal {}", signal);
     }
     rcore_panic("{} caught", name);
 }
@@ -63,26 +68,27 @@ int main(int argc, const char *const *argv) {
     int test_count = tests.size();
     auto b = tests.cbegin();
     auto e = tests.cend();
-    rstd::sync::Mutex<decltype(b)> mb(std::move(b));
+    rstd::sync::Mutex<decltype(b)> mb(b);
 
-    std::vector<rstd::JoinHandle<>> workers(std::min(std::thread::hardware_concurrency(), unsigned(test_count)));
+    std::vector<rstd::thread::JoinHandle<std::monostate>> workers(
+        std::min(std::thread::hardware_concurrency(), unsigned(test_count)));
 
-#ifndef RTEST_BW
+#ifndef RTEST_NO_COLOR
     std::string result_name[2] = {
-        ansi_color("ok", AnsiColor::FG_GREEN),
-        ansi_color("FAILED", AnsiColor::FG_RED, AnsiColor::BOLD)};
-#else // RTEST_BW
+        ansi_color("ok", rstd::io::AnsiColor::FG_GREEN),
+        ansi_color("FAILED", rstd::io::AnsiColor::FG_RED, rstd::io::AnsiColor::BOLD)};
+#else // RTEST_NO_COLOR
     std::string result_name[2] = {"ok", "FAILED"};
-#endif // RTEST_BW
+#endif // RTEST_NO_COLOR
 
-    println_();
-    println_("running {} tests in {} threads", test_count, workers.size());
+    rstd_println("");
+    rstd_println("running {} tests in {} threads", test_count, workers.size());
 
-    rstd::Mutex<std::ostream *> log(&std::cout);
-    rstd::Mutex<std::vector<TestResult>> failures_;
+    auto log = rstd::sync::Mutex<rstd::fmt::OstreamFormatter>(rstd::fmt::OstreamFormatter(std::cout));
+    rstd::sync::Mutex<std::vector<TestResult>> failures_;
 
-    for (auto sig : *__main::SIGNALS) {
-        signal(sig.first, __main::signal_handler);
+    for (const auto sig : _impl::SIGNALS) {
+        signal(sig.first, _impl::signal_handler);
     }
     for (auto &worker : workers) {
         worker = rstd::thread::spawn([&]() {
@@ -93,16 +99,16 @@ int main(int argc, const char *const *argv) {
                 }
                 const auto &test = **i;
                 ++*i;
-                rstd::drop(i);
+                rcore::ops::drop(i);
 
                 std::stringstream output;
-                auto res = rstd::thread::Builder()
-                               .stdout_(output)
-                               .stderr_(output)
-                               .spawn([&]() {
-                                   test.func();
-                               })
-                               .join();
+                auto res =
+                    [&]() {
+                        auto builder = rstd::thread::Builder();
+                        builder.set_stdout(output).set_stderr(output);
+                        return builder.spawn([&]() { test.func(); });
+                    }()
+                        .join();
 
                 std::string rn;
                 if (res.is_ok() == !test.should_panic) {
@@ -111,39 +117,39 @@ int main(int argc, const char *const *argv) {
                     rn = result_name[1];
                     failures_.lock()->push_back(rtest::TestResult{test.name, output.str()});
                 }
-                res.clear();
-                writeln_(**log.lock(), "test {} ... {}", test.name, rn);
+                // res.clear();
+                rstd_writeln(*log.lock(), "test {} ... {}", test.name, rn);
             }
         });
     }
     for (auto &worker : workers) {
         worker.join().unwrap();
     }
-    for (auto sig : *__main::SIGNALS) {
+    for (const auto sig : _impl::SIGNALS) {
         signal(sig.first, nullptr);
     }
-    println_();
+    rstd_println();
 
-    std::vector<rtest::TestResult> failures = failures_.into_inner();
+    std::vector<rtest::TestResult> failures = std::move(*failures_.lock());
     if (!failures.empty()) {
-        println_("failures:");
-        println_();
+        rstd_println("failures:");
+        rstd_println("");
         for (const auto &fail : failures) {
-            println_("---- {} output ----", fail.name);
-            println_(fail.output);
-            println_();
+            rstd_println("---- {} output ----", fail.name);
+            rstd_println("{}", fail.output);
+            rstd_println("");
         }
 
-        println_("failures:");
+        rstd_println("failures:");
         for (const auto &fail : failures) {
-            println_("    {}", fail.name);
+            rstd_println("    {}", fail.name);
         }
-        println_();
+        rstd_println("");
     }
 
     int fails = failures.size();
-    println_("test result: {}. {} passed; {} failed;", result_name[fails != 0], test_count - fails, fails);
-    println_();
+    rstd_println("test result: {}. {} passed; {} failed;", result_name[fails != 0], test_count - fails, fails);
+    rstd_println("");
 
     return int(fails != 0);
 }

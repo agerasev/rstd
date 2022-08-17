@@ -5,7 +5,7 @@
 
 #include <pthread.h>
 
-#include <rcore/sync/lazy_static.hpp>
+#include <rcore/mem/lazy_static.hpp>
 
 namespace rstd::thread {
 

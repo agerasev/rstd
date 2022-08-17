@@ -9,7 +9,7 @@ class Mutex final {
 public:
     class Guard final {
     private:
-        std::lock_guard<std::mutex> guard_;
+        std::unique_lock<std::mutex> guard_;
         T &value_ref_;
 
     public:

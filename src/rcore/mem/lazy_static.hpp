@@ -52,15 +52,3 @@ public:
 };
 
 } // namespace rcore::mem
-
-#define rcore_static_block(name) \
-    struct _rcore_static_block__##name##__struct { \
-        _rcore_static_block__##name##__struct(); \
-    } _rcore_static_block__##name##__instance; \
-    _rcore_static_block__##name##__struct::_rcore_static_block__##name##__struct()
-
-#define rcore_static_atexit(name) \
-    struct _rcore_static_atexit__##name##__struct { \
-        ~_rcore_static_atexit__##name##__struct(); \
-    } _rcore_static_atexit__##name##__instance; \
-    _rcore_static_atexit__##name##__struct::~_rcore_static_atexit__##name##__struct()

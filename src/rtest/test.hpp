@@ -43,26 +43,38 @@ using StaticRegistrar = const ::rcore::mem::LazyStatic<::rstd::sync::Mutex<::rte
 
 } // namespace rtest
 
+#define rtest_static_block(name) \
+    struct rtest_static_block__##name##__struct { \
+        rtest_static_block__##name##__struct(); \
+    } rtest_static_block__##name##__instance; \
+    rtest_static_block__##name##__struct::rtest_static_block__##name##__struct()
+
+#define rtest_static_atexit(name) \
+    struct rtest_static_atexit__##name##__struct { \
+        ~rtest_static_atexit__##name##__struct(); \
+    } rtest_static_atexit__##name##__instance; \
+    rtest_static_atexit__##name##__struct::~rtest_static_atexit__##name##__struct()
+
 // FIXME: Don't use `rtest_case` without `rtest_module`
 #define rtest_module(name) \
     extern ::rtest::StaticRegistrar RTEST_REGISTRAR; \
-    rcore_static_block(__rtest__##name##__namespacer) { \
-        RTEST_REGISTRAR->set_section(#name); \
+    rtest_static_block(__rtest__##name##__namespacer) { \
+        RTEST_REGISTRAR->lock()->set_section(#name); \
     } \
     namespace __rtest_section__##name
 
 #define rtest_case(name) \
     extern ::rtest::StaticRegistrar RTEST_REGISTRAR; \
     void _rtest_case__##name(); \
-    rcore_static_block(__rtest__##name##__registrator) { \
-        ::RTEST_REGISTRAR->register_(#name, _rtest_case__##name); \
+    rtest_static_block(__rtest__##name##__registrator) { \
+        ::RTEST_REGISTRAR->lock()->register_(#name, _rtest_case__##name); \
     } \
     void _rtest_case__##name()
 
 #define rtest_case_should_panic(name) \
     extern ::rtest::StaticRegistrar RTEST_REGISTRAR; \
     void _rtest_case__##name(); \
-    rcore_static_block(__rtest__##name##__registrator) { \
-        ::RTEST_REGISTRAR->register_(#name, _rtest_case__##name, true); \
+    rtest_static_block(__rtest__##name##__registrator) { \
+        ::RTEST_REGISTRAR->lock()->register_(#name, _rtest_case__##name, true); \
     } \
     void _rtest_case__##name()

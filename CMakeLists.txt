@@ -16,7 +16,7 @@ set(RCORE_SRC
     "src/rcore/fmt/display.hpp"
     "src/rcore/fmt/format.hpp"
     "src/rcore/sync/once.hpp"
-    "src/rcore/sync/lazy_static.hpp"
+    "src/rcore/mem/lazy_static.hpp"
     "src/rcore/mem/maybe_uninit.hpp"
     "src/rcore/assert.hpp"
     "src/rcore/panic.hpp"
@@ -51,19 +51,35 @@ set(RSTD_TEST_SRC
     "src/rstd/test.cpp"
 )
 
+set(RTEST_SRC
+    "src/rtest/main.hpp"
+    "src/rtest/test.hpp"
+)
+set(RTEST_TEST_SRC
+    "src/rtest/test.cpp"
+)
+
 add_library("rcore" OBJECT ${RCORE_SRC})
 
 add_library("rstd" OBJECT ${RSTD_SRC})
-target_link_libraries("rstd" PUBLIC "rcore" PUBLIC "pthread")
+target_link_libraries("rstd" "rcore" "pthread")
+
+add_library("rtest" OBJECT ${RTEST_SRC})
+target_link_libraries("rtest" "rcore")
 
 enable_testing()
 
 add_executable("rcore_test" ${RCORE_TEST_SRC})
 target_compile_definitions("rcore_test" PRIVATE "RTEST")
-target_link_libraries("rcore_test" "rcore")
+target_link_libraries("rcore_test" "rcore" "rstd" "rtest")
 add_test("rcore_test" "rcore_test")
 
 add_executable("rstd_test" ${RSTD_TEST_SRC})
 target_compile_definitions("rstd_test" PRIVATE "RTEST")
-target_link_libraries("rstd_test" "rstd" "rcore")
+target_link_libraries("rstd_test" "rcore" "rstd" "rtest")
 add_test("rstd_test" "rstd_test")
+
+add_executable("rtest_test" ${RTEST_TEST_SRC})
+target_compile_definitions("rtest_test" PRIVATE "RTEST")
+target_link_libraries("rtest_test" "rcore" "rstd" "rtest")
+add_test("rtest_test" "rtest_test")

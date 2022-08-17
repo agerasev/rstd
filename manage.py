@@ -71,6 +71,7 @@ class Project:
 
         run([self.build_dir / "rcore_test"])
         run([self.build_dir / "rstd_test"])
+        run([self.build_dir / "rtest_test"])
 
 
 actions = [
