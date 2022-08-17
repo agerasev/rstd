@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <iostream>
+
 #include <pthread.h>
 
 #include <rcore/sync/lazy_static.hpp>
@@ -17,10 +18,10 @@ private:
 
 public:
     PthreadKey() {
-        pthread_key_create(&raw, [](void *p) { delete (T *)p; });
+        rstd_assert_eq(pthread_key_create(&raw, [](void *p) { delete (T *)p; }), 0);
     }
     ~PthreadKey() {
-        pthread_key_delete(raw);
+        rstd_assert_eq(pthread_key_delete(raw), 0);
     }
 
     PthreadKey(const PthreadKey &) = delete;
@@ -32,9 +33,9 @@ public:
         T *value = static_cast<T *>(pthread_getspecific(raw));
         if (value == nullptr) {
             value = new T();
-            pthread_setspecific(raw, static_cast<void *>(value));
+            rstd_assert_eq(pthread_setspecific(raw, static_cast<void *>(value)), 0);
         }
-        return value;
+        return *value;
     }
 };
 

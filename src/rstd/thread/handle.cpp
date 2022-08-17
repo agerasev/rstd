@@ -6,7 +6,7 @@
 
 namespace rstd::thread {
 
-static const LocalKey<Thread> CURRENT;
+static constinit LocalKey<Thread> CURRENT;
 
 Thread &current() {
     return *CURRENT;

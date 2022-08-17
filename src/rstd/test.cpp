@@ -6,6 +6,10 @@
 #include <rstd/io/stream.hpp>
 #include <rstd/panic.hpp>
 #include <rstd/sync/mutex.hpp>
+#include <rstd/thread/builder.hpp>
+#include <rstd/thread/handle.hpp>
+#include <rstd/thread/local.hpp>
+#include <rstd/thread/thread.hpp>
 
 int main(int argc, const char *argv[]) {
     std::cout << "It works!" << std::endl;
@@ -18,7 +22,7 @@ int main(int argc, const char *argv[]) {
     const int b = 2;
     rstd_println("v: {}, cv: {}, t: {}", a, b, 3);
 
-    // rstd_panic("Panic: '{}'", "panic!");
+    // rstd::thread::spawn([]() { rstd_panic("Panic in thread"); }).join().unwrap();
 
     return 0;
 }

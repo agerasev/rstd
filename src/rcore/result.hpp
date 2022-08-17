@@ -34,15 +34,31 @@ public:
     constexpr Result() = default;
     constexpr ~Result() = default;
 
-    constexpr Result(const Ok<T> &t) : variant_(std::in_place_index<1>, std::move(t.value)) {}
-    constexpr Result(const Err<E> &e) : variant_(std::in_place_index<0>, std::move(e.value)) {}
-    constexpr Result(Ok<T> &&t) : variant_(std::in_place_index<1>, std::move(t.value)) {}
-    constexpr Result(Err<E> &&e) : variant_(std::in_place_index<0>, std::move(e.value)) {}
-
     constexpr Result(const Result &) = default;
-    constexpr Result(Result &&) = default;
     constexpr Result &operator=(const Result &) = default;
+    constexpr Result(Result &&) = default;
     constexpr Result &operator=(Result &&) = default;
+
+    constexpr Result(const Ok<T> &t) : variant_(std::in_place_index<1>, t.value) {}
+    constexpr Result &operator=(const Ok<T> &t) {
+        variant_.emplace<1>(t.value);
+        return *this;
+    }
+    constexpr Result(const Err<E> &e) : variant_(std::in_place_index<0>, e.value) {}
+    constexpr Result &operator=(const Err<E> &e) {
+        variant_.emplace<0>(e.value);
+        return *this;
+    }
+    constexpr Result(Ok<T> &&t) : variant_(std::in_place_index<1>, std::move(t.value)) {}
+    constexpr Result &operator=(Ok<T> &&t) {
+        variant_.emplace<1>(std::move(t.value));
+        return *this;
+    }
+    constexpr Result(Err<E> &&e) : variant_(std::in_place_index<0>, std::move(e.value)) {}
+    constexpr Result &operator=(Err<E> &&e) {
+        variant_.emplace<0>(std::move(e.value));
+        return *this;
+    }
 
     [[nodiscard]] constexpr bool is_ok() const {
         return this->variant_.index() == 1;

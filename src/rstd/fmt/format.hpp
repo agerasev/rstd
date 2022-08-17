@@ -6,6 +6,7 @@
 #include "display.hpp"
 #include <rcore/fmt/arguments.hpp>
 #include <rcore/fmt/format.hpp>
+#include <rstd/thread/handle.hpp>
 
 namespace rstd::fmt {
 
@@ -27,12 +28,12 @@ using rcore::fmt::Arguments;
 
 #define rstd_print(...) \
     [&]() { \
-        ::rstd::fmt::OstreamFormatter f(std::cout); \
+        ::rstd::fmt::OstreamFormatter f(*::rstd::thread::current().stdio.out); \
         rstd_write(f, __VA_ARGS__); \
     }()
 
 #define rstd_println(...) \
     [&]() { \
-        ::rstd::fmt::OstreamFormatter f(std::cout); \
+        ::rstd::fmt::OstreamFormatter f(*::rstd::thread::current().stdio.out); \
         rstd_writeln(f, __VA_ARGS__); \
     }()

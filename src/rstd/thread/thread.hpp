@@ -1,77 +1,79 @@
 #pragma once
 
+#include <concepts>
 #include <functional>
-#include <iostream>
+#include <memory>
 #include <string>
 
-#include <rcore/sync/lazy_static.hpp>
+#include <pthread.h>
+
 #include <rstd/assert.hpp>
 #include <rstd/option.hpp>
-#include <rstd/panic.hpp>
+#include <rstd/result.hpp>
+
+#include "handle.hpp"
 
 namespace rstd::thread {
 
-struct Stdio {
-    std::istream *in = nullptr;
-    std::ostream *out = nullptr;
-    std::ostream *err = nullptr;
-};
+namespace _impl {
 
-class Thread final {
+template <typename R>
+class PosixThread final {
 private:
-    Stdio stdio_;
-    panic::PanicHook panic_hook_ = nullptr;
-
-    friend class Builder;
-};
-
-template <typename T>
-class JoinHandle final {
-private:
+    Option<Thread> handle_;
     Option<pthread_t> thread_;
+    std::function<R()> main_;
+    Option<R> result_;
+    std::shared_ptr<std::string> panic_message_;
 
-public:
-    JoinHandle() : thread_(None()) {}
+    static void *launch(void *data) {
+        auto *this_ = static_cast<PosixThread *>(data);
 
-private:
-    explicit JoinHandle(pthread_t thread_) : thread_(Some(thread_)) {}
-
-public:
-    JoinHandle(const JoinHandle &) = delete;
-    JoinHandle &operator=(const JoinHandle &) = delete;
-
-    JoinHandle(JoinHandle &&other) = default;
-    JoinHandle &operator=(JoinHandle &&other) {
-        rstd_assert(thread_.is_none());
-        thread_ = std::move(other.thread_);
-        return *this;
+        current() = this_->handle_.take_some();
+        this_->result_ = Some(this_->main_());
+        return nullptr;
     }
 
-    Result<T, std::monostate> join() {
-        T *rv = nullptr;
-        rstd_assert(pthread_join(thread_.take().unwrap(), (void **)&rv) == 0);
-        if (rv != nullptr) {
-            auto ret = Ok<T>(std::move(*rv));
-            delete rv;
-            return ret;
-        } else {
-            return Err(std::monostate());
-        }
-    }
+public:
+    PosixThread(const Thread &handle, std::function<R()> &&main_func) :
+        handle_(Some(handle)),
+        main_(std::move(main_func)) //
+    {
+        panic_message_ = std::make_shared<std::string>();
+        handle_.some().panic_message = panic_message_;
 
-    ~JoinHandle() {
-        if (thread_.is_some()) {
+        pthread_t thread;
+        rstd_assert_eq(pthread_create(&thread, nullptr, PosixThread::launch, static_cast<void *>(this)), 0);
+        thread_ = Some(thread);
+    }
+    ~PosixThread() {
+        if (!is_empty()) {
             join().unwrap();
         }
     }
 
-    explicit operator bool() const {
-        return thread_.is_some();
+    PosixThread(const PosixThread &) = delete;
+    PosixThread &operator=(const PosixThread &) = delete;
+    PosixThread(PosixThread &&) = default;
+    PosixThread &operator=(PosixThread &&) = default;
+
+    [[nodiscard]] bool is_empty() const {
+        return thread_.is_none();
     }
 
-    friend class thread::Builder;
+    Result<R, std::string> join() {
+        rstd_assert_eq(pthread_join(thread_.take_some(), nullptr), 0);
+        if (result_.is_some()) {
+            return Ok(result_.unwrap());
+        } else {
+            return Err(std::move(*panic_message_));
+        }
+    }
 };
 
-[[nodiscard]] Thread &current();
+} // namespace _impl
+
+template <typename T>
+using JoinHandle = _impl::PosixThread<T>;
 
 } // namespace rstd::thread

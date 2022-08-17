@@ -9,9 +9,11 @@
 
 #include <cxxabi.h>
 #include <execinfo.h>
+#include <pthread.h>
 #include <unistd.h>
 
 #include <rstd/fmt/format.hpp>
+#include <rstd/thread/handle.hpp>
 
 namespace rstd::panic {
 
@@ -58,11 +60,32 @@ static void write_backtrace(fmt::IFormatter &f) {
 } // namespace rstd::panic
 
 [[noreturn]] void rcore_panic_handler(const rcore::panic::PanicInfo &info) {
-    rstd::fmt::OstreamFormatter f(std::cout);
-    rstd_writeln(f, "");
-    rstd::panic::write_backtrace(f);
-    rstd_writeln(f, "");
-    rstd_writeln(f, "Thread panicked in '{}', at '{}':{}", info.location.function, info.location.file, info.location.line);
-    rstd_writeln(f, "{}", info.message);
-    std::abort();
+    auto &thread = rstd::thread::current();
+    rstd::fmt::OstreamFormatter f(*thread.stdio.out);
+
+    if (thread.is_main) {
+        rstd_writeln(f, "");
+        rstd::panic::write_backtrace(f);
+        rstd_writeln(f, "");
+        rstd_writeln(
+            f,
+            "Thread 'main' panicked in '{}', at '{}':{}",
+            info.location.function,
+            info.location.file,
+            info.location.line //
+        );
+        rstd_writeln(f, "{}", info.message);
+    } else {
+        if (thread.panic_message != nullptr) {
+            rstd::fmt::StringFormatter sf;
+            rstd_write(sf, "{}", info.message);
+            *thread.panic_message = sf.copy_string();
+        }
+    }
+
+    if (thread.is_main) {
+        std::abort();
+    } else {
+        pthread_exit(nullptr);
+    }
 }

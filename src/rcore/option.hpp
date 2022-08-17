@@ -31,10 +31,6 @@ public:
     constexpr Option() = default;
     constexpr ~Option() = default;
 
-    constexpr Option(const Some<T> &t) : optional_(std::move(t.value)) {}
-    constexpr Option(Some<T> &&t) : optional_(std::move(t.value)) {}
-    constexpr Option(None) : optional_(std::nullopt) {}
-
     constexpr Option(const Option &) = default;
     constexpr Option &operator=(const Option &) = default;
     constexpr Option(Option &&other) : optional_(std::move(other.optional_)) {
@@ -43,6 +39,22 @@ public:
     constexpr Option &operator=(Option &&other) {
         optional_ = std::move(other.optional_);
         other.optional_.reset();
+        return *this;
+    }
+
+    constexpr Option(const Some<T> &t) : optional_(t.value) {}
+    constexpr Option &operator=(const Some<T> &t) {
+        optional_ = t.value;
+        return *this;
+    }
+    constexpr Option(Some<T> &&t) : optional_(std::move(t.value)) {}
+    constexpr Option &operator=(Some<T> &&t) {
+        optional_ = std::move(t.value);
+        return *this;
+    }
+    constexpr Option(None) : optional_(std::nullopt) {}
+    constexpr Option &operator=(None) {
+        optional_ = std::nullopt;
         return *this;
     }
 

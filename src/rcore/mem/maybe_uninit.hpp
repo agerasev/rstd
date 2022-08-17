@@ -15,10 +15,10 @@ struct MaybeUninit {
     MaybeUninit() = default;
 
     [[nodiscard]] const T &assume_init() const {
-        return *static_cast<const T *>(this->payload->data());
+        return *reinterpret_cast<const T *>(this->payload.data());
     }
     [[nodiscard]] T &assume_init() {
-        return *static_cast<T *>(this->payload->data());
+        return *reinterpret_cast<T *>(this->payload.data());
     }
 
     template <typename... Args>
