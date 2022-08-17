@@ -42,7 +42,7 @@ public:
         std::invocable F,
         typename T = std::invoke_result_t<F>,
         typename R = std::conditional_t<std::is_same_v<T, void>, std::monostate, T>>
-    auto spawn(F main) const {
+    JoinHandle<R> spawn(F main) const {
         auto rmain = [main]() {
             if constexpr (!std::is_same_v<T, void>) {
                 return main;
@@ -53,7 +53,7 @@ public:
                 };
             }
         }();
-        return _impl::PosixThread<R>(handle_, rmain);
+        return JoinHandle<R>(std::make_unique<_impl::PosixThread<R>>(handle_, rmain));
     }
 };
 

@@ -65,13 +65,13 @@ int main(int argc, const char *const *argv) {
         }
     }
 
-    int test_count = tests.size();
+    size_t test_count = tests.size();
     auto b = tests.cbegin();
     auto e = tests.cend();
     rstd::sync::Mutex<decltype(b)> mb(b);
 
     std::vector<rstd::thread::JoinHandle<std::monostate>> workers(
-        std::min(std::thread::hardware_concurrency(), unsigned(test_count)));
+        std::min(size_t(std::thread::hardware_concurrency()), test_count));
 
 #ifndef RTEST_NO_COLOR
     std::string result_name[2] = {

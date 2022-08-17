@@ -16,7 +16,7 @@ struct Display;
 
 template <typename Self>
 concept Displayable = requires(const Self &self, IFormatter &f) {
-    Display<Self>::fmt(self, f);
+    Display<std::remove_cvref_t<Self>>::fmt(self, f);
 };
 
 class IDisplay {

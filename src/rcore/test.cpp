@@ -18,7 +18,7 @@ constexpr int static_test() {
 }
 
 int main(int argc, const char *argv[]) {
-    constexpr int r = static_test();
+    // constexpr int r = static_test();
 
     std::cout << "It works!" << std::endl;
 

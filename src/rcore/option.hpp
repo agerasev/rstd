@@ -97,7 +97,9 @@ public:
         return std::move(*this);
     }
     [[nodiscard]] constexpr T take_some() {
-        return std::move(this->some());
+        T value = std::move(this->some());
+        this->optional_.reset();
+        return value;
     }
 
     [[nodiscard]] constexpr T unwrap() {
