@@ -1,16 +1,9 @@
-#include <iostream>
+#include <rtest/main.hpp>
 
-#include <rstd/fmt/format.hpp>
-#include <rstd/io/ansi_color.hpp>
-#include <rstd/io/error.hpp>
-#include <rstd/io/stream.hpp>
-#include <rstd/panic.hpp>
-#include <rstd/sync/mutex.hpp>
-#include <rstd/thread/builder.hpp>
-#include <rstd/thread/handle.hpp>
-#include <rstd/thread/local.hpp>
-#include <rstd/thread/thread.hpp>
-
+int main(int argc, const char *argv[]) {
+    return rtest::main(argc, argv);
+}
+/*
 int main(int argc, const char *argv[]) {
     std::cout << "It works!" << std::endl;
 
@@ -26,3 +19,4 @@ int main(int argc, const char *argv[]) {
 
     return 0;
 }
+*/

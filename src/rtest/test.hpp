@@ -59,7 +59,7 @@ using StaticRegistrar = const ::rcore::mem::LazyStatic<::rstd::sync::Mutex<::rte
 #define rtest_module(name) \
     extern ::rtest::StaticRegistrar RTEST_REGISTRAR; \
     rtest_static_block(__rtest__##name##__namespacer) { \
-        RTEST_REGISTRAR->lock()->set_section(#name); \
+        ::RTEST_REGISTRAR->lock()->set_section(#name); \
     } \
     namespace __rtest_section__##name
 

@@ -25,7 +25,7 @@ set(RCORE_SRC
     "src/rcore/result.hpp"
 )
 set(RCORE_TEST_SRC
-    "src/rcore/test.cpp"
+    "src/rcore/self_test.cpp"
 )
 
 set(RSTD_SRC
@@ -48,7 +48,8 @@ set(RSTD_SRC
     "src/rstd/result.hpp"
 )
 set(RSTD_TEST_SRC
-    "src/rstd/test.cpp"
+    "src/rstd/fmt/tests.cpp"
+    "src/rstd/self_test.cpp"
 )
 
 set(RTEST_SRC
@@ -56,7 +57,7 @@ set(RTEST_SRC
     "src/rtest/test.hpp"
 )
 set(RTEST_TEST_SRC
-    "src/rtest/test.cpp"
+    "src/rtest/self_test.cpp"
 )
 
 add_library("rcore" OBJECT ${RCORE_SRC})

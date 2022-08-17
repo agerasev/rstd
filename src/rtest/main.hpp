@@ -17,7 +17,9 @@
 
 #include "test.hpp"
 
+extern "C" {
 constinit rtest::StaticRegistrar RTEST_REGISTRAR;
+}
 
 namespace rtest {
 
